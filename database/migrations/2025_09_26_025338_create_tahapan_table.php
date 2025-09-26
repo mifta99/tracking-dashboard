@@ -16,7 +16,7 @@ class CreateTahapanTable extends Migration
         Schema::create('tahapan', function (Blueprint $table) {
             $table->integer('id')->autoIncrement()->unsigned();
             $table->string('tahapan');
-            $table->string('tahap_ke', 2);
+            $table->integer('tahap_ke')->unsigned();
         });
     }
 
