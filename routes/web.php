@@ -20,3 +20,24 @@ Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('ho
 Route::get('/login', [App\Http\Controllers\Auth\LoginController::class, 'login'])->name('login');
 Route::post('/login', [App\Http\Controllers\Auth\LoginController::class, 'loginProcess'])->name('login.process');
 Route::post('/logout', [App\Http\Controllers\Auth\LoginController::class, 'logout'])->name('logout');
+
+Route::middleware(['auth', 'roles:2,3'])->prefix('import-data')->name('import-data.')->group(function () {
+    Route::get('/', function () {
+        return view('import-data.index');
+    })->name('index');
+});
+Route::middleware(['auth', 'roles:2,3'])->prefix('verification-request')->name('verification-request.')->group(function () {
+    Route::get('/', function () {
+        return view('verification-request.index');
+    })->name('index');
+});
+Route::middleware(['auth', 'roles:2,3'])->prefix('raised-issue')->name('raised-issue.')->group(function () {
+    Route::get('/', function () {
+        return view('raised-issue.index');
+    })->name('index');
+});
+Route::middleware(['auth', 'roles:2,3'])->prefix('import-data')->name('import-data.')->group(function () {
+    Route::get('/', function () {
+        return view('import-data.index');
+    })->name('index');
+});
