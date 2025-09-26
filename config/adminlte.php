@@ -14,7 +14,7 @@ return [
     |
     */
 
-    'title' => 'AdminLTE 3',
+    'title' => 'Tracking Dashboard',
     'title_prefix' => '',
     'title_postfix' => '',
 
