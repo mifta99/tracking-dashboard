@@ -17,11 +17,15 @@ class CreateInsidenTable extends Migration
             $table->integer('id')->autoIncrement()->unsigned();
             $table->string('puskesmas_id', 9);
             $table->integer('tahapan_id')->unsigned();
+            $table->integer('status_id')->unsigned();
             $table->integer('reported_by')->unsigned()->nullable();
             $table->date('reported_date')->nullable();
-            $table->text('detail')->nullable();
+            $table->string('insiden')->nullable();
+            $table->date('waktu_kejadian')->nullable();
+            $table->text('detail_kejadian')->nullable();
+            $table->string('nama_korban')->nullable();
+            $table->text('tindak_lanjut')->nullable();
             $table->string('dokumentasi')->nullable();
-            $table->text('action_taken')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });
@@ -30,6 +34,7 @@ class CreateInsidenTable extends Migration
             $table->foreign('puskesmas_id')->references('id')->on('puskesmas');
             $table->foreign('tahapan_id')->references('id')->on('tahapan');
             $table->foreign('reported_by')->references('id')->on('users');
+            $table->foreign('status_id')->references('id')->on('status_insiden');
         });
     }
 
