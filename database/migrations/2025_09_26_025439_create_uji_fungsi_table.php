@@ -18,10 +18,12 @@ class CreateUjiFungsiTable extends Migration
             $table->string('puskesmas_id', 9);
             $table->date('target_tgl_uji_fungsi')->nullable();
             $table->date('tgl_instalasi')->nullable();
+            $table->string('doc_instalasi')->nullable();
             $table->date('tgl_pelatihan')->nullable();
+            $table->string('doc_pelatihan')->nullable();
             $table->date('tgl_uji_fungsi')->nullable();
+            $table->string('doc_uji_fungsi')->nullable();
             $table->text('catatan')->nullable();
-            $table->string('link_ba_uji_fungsi')->nullable();
             $table->boolean('verif_kemenkes')->default(false);
             $table->timestamp('tgl_verif_kemenkes')->nullable();
             $table->integer('created_by')->unsigned()->nullable();
