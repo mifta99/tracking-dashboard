@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Equipment extends Model
 {
@@ -29,4 +31,24 @@ class Equipment extends Model
     protected $casts = [
         'id' => 'integer',
     ];
+
+    /**
+     * Get the pengiriman associated with the Equipment
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function pengiriman(): HasOne
+    {
+        return $this->hasOne(Pengiriman::class, 'equipment_id', 'id');
+    }
+
+    /**
+     * Get all of the keluhan for the Equipment
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function keluhan(): HasMany
+    {
+        return $this->hasMany(Keluhan::class, 'equipment_id', 'id');
+    }
 }

@@ -4,8 +4,113 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Keluhan extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
+    protected $primaryKey = 'id';
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
+    protected $fillable = [
+        'id',
+        'equipment_id',
+        'kategori_id',
+        'status_id',
+        'reported_by',
+        'reported_date',
+        'reported_issue',
+        'proceed_by',
+        'proceed_date',
+        'resolved_by',
+        'resolved_date',
+        'action_taken',
+        'catatan',
+        'total_downtime',
+    ];
+
+    /**
+     * The attributes that should be cast to native types.
+     *
+     * @var array
+     */
+    protected $casts = [
+        'id' => 'integer',
+        'equipment_id' => 'integer',
+        'kategori_id' => 'integer',
+        'status_id' => 'integer',
+        'reported_by' => 'integer',
+        'reported_date' => 'date',
+        'proceed_by' => 'integer',
+        'proceed_date' => 'date',
+        'resolved_by' => 'integer',
+        'resolved_date' => 'date',
+        'total_downtime' => 'integer',
+    ];
+
+    /**
+     * Get the equipment that owns the Keluhan
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function equipment(): BelongsTo
+    {
+        return $this->belongsTo(Equipment::class, 'equipment_id', 'id');
+    }
+
+    /**
+     * Get the kategori that owns the Keluhan
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function kategoriKeluhan(): BelongsTo
+    {
+        return $this->belongsTo(KategoriKeluhan::class, 'kategori_id', 'id');
+    }
+
+    /**
+     * Get the status that owns the Keluhan
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function statusKeluhan(): BelongsTo
+    {
+        return $this->belongsTo(StatusKeluhan::class, 'status_id', 'id');
+    }
+
+    /**
+     * Get the user that owns the Keluhan
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function reporter(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'reported_by', 'id');
+    }
+
+    /**
+     * Get the user that owns the Keluhan
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function proceeder(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'proceed_by', 'id');
+    }
+
+    /**
+     * Get the resolver that owns the Keluhan
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function resolver(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'resolved_by', 'id');
+    }
+
 }
