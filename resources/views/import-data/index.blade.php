@@ -41,7 +41,7 @@
                     <h3 class="card-title">Upload Excel File</h3>
                 </div>
                 {{-- {{ route('import.data') }} --}}
-                <form action="" method="POST" enctype="multipart/form-data">
+                <form action="{{ route('import-data.import.puskesmas') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <div class="card-body">
                         @if(session('success'))

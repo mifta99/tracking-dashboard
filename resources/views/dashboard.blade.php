@@ -36,8 +36,8 @@
                     <div class="card" style="background-color: #30db58; height: 80px;">
                         <div class="card-body d-flex justify-content-between align-items-center position-relative h-100">
                             <div>
-                                <h4 class="text-white mb-1">Card 2</h4>
-                                <p class="text-white mb-0">Content for card 2</p>
+                                <h4 class="text-white mb-1">Jumlah Puskesmas</h4>
+                                <p class="text-white mb-0">{{ $countPuskesmas }}</p>
                             </div>
                             <div class="text-secondary position-absolute" style="font-size: 3rem; right: 15px; top: 50%; transform: translateY(-50%); opacity: 0.25;">
                                 <i class="fas fa-users"></i>
