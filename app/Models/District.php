@@ -13,6 +13,7 @@ class District extends Model
     protected $primaryKey = 'id';
     protected $keyType = 'string';
     public $incrementing = false;
+    public $timestamps = false;
 
     /**
      * The attributes that are mass assignable.

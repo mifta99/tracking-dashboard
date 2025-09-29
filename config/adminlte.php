@@ -351,6 +351,12 @@ return [
             'icon' => 'fas fa-fw fa-file-import',
             'can'   => ['endo','kemenkes']
         ],
+        [
+            'text' => 'Master Puskesmas',
+            'url'  => '/master-puskesmas',
+            'icon' => 'fas fa-fw fa-hospital',
+            'can'   => ['endo','kemenkes']
+        ],
         
         // ['header' => 'account_settings'],
         // [
