@@ -36,6 +36,11 @@ Route::middleware(['auth', 'roles:2,3'])->prefix('raised-issue')->name('raised-i
         return view('raised-issue.index');
     })->name('index');
 });
+Route::middleware(['auth', 'roles:2,3'])->prefix('reported-incidents')->name('reported-incidents.')->group(function () {
+    Route::get('/', function () {
+        return view('reported-incidents.index');
+    })->name('index');
+});
 Route::middleware(['auth', 'roles:2,3'])->prefix('import-data')->name('import-data.')->group(function () {
     Route::get('/', [App\Http\Controllers\ImportData\ImportDataController::class, 'index'])->name('index');
     Route::get('/import', [App\Http\Controllers\ImportData\ImportDataController::class, 'import'])->name('import');
