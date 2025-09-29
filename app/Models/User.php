@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
 {
@@ -68,4 +69,105 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Puskesmas::class, 'puskesmas_id', 'id');
     }
+
+    /**
+     * Get all pengiriman records created by this user
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function createdPengiriman(): HasMany
+    {
+        return $this->hasMany(Pengiriman::class, 'created_by', 'id');
+    }
+
+    /**
+     * Get all pengiriman records updated by this user
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function updatedPengiriman(): HasMany
+    {
+        return $this->hasMany(Pengiriman::class, 'updated_by', 'id');
+    }
+
+    /**
+     * Get all uji_fungsi records created by this user
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function createdUjiFungsi(): HasMany
+    {
+        return $this->hasMany(UjiFungsi::class, 'created_by', 'id');
+    }
+
+    /**
+     * Get all uji_fungsi records updated by this user
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function updatedUjiFungsi(): HasMany
+    {
+        return $this->hasMany(UjiFungsi::class, 'updated_by', 'id');
+    }
+
+     /**
+     * Get all document records created by this user
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function createdDocument(): HasMany
+    {
+        return $this->hasMany(Document::class, 'created_by', 'id');
+    }
+
+    /**
+     * Get all document records updated by this user
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function updatedDocument(): HasMany
+    {
+        return $this->hasMany(Document::class, 'updated_by', 'id');
+    }
+
+    /**
+     * Get all of the keluhan for the User
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function reportedKeluhan(): HasMany
+    {
+        return $this->hasMany(Keluhan::class, 'reported_by', 'id');
+    }
+
+    /**
+     * Get all of the proceedKeluhan for the User
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function proceedKeluhan(): HasMany
+    {
+        return $this->hasMany(Keluhan::class, 'proceed_by', 'id');
+    }
+
+    /**
+     * Get all of the resolvedKeluhan for the User
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function resolvedKeluhan(): HasMany
+    {
+        return $this->hasMany(Keluhan::class, 'resolved_by', 'id');
+    }
+
+    /**
+     * Get all of the insiden for the User
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function reportedInsiden(): HasMany
+    {
+        return $this->hasMany(Insiden::class, 'reported_by', 'id');
+    }
+
 }
