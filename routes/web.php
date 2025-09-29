@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Route;
 
 // Auth::routes();
 
-Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+Route::get('/', [App\Http\Controllers\DashboardController::class, 'index'])->name('home');
 
 Route::get('/login', [App\Http\Controllers\Auth\LoginController::class, 'login'])->name('login');
 Route::post('/login', [App\Http\Controllers\Auth\LoginController::class, 'loginProcess'])->name('login.process');
@@ -37,7 +37,6 @@ Route::middleware(['auth', 'roles:2,3'])->prefix('raised-issue')->name('raised-i
     })->name('index');
 });
 Route::middleware(['auth', 'roles:2,3'])->prefix('import-data')->name('import-data.')->group(function () {
-    Route::get('/', function () {
-        return view('import-data.index');
-    })->name('index');
+    Route::get('/', [App\Http\Controllers\ImportData\ImportDataController::class, 'index'])->name('index');
+    Route::get('/import', [App\Http\Controllers\ImportData\ImportDataController::class, 'import'])->name('import');
 });
