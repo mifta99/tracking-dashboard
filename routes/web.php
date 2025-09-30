@@ -21,15 +21,10 @@ Route::get('/login', [App\Http\Controllers\Auth\LoginController::class, 'login']
 Route::post('/login', [App\Http\Controllers\Auth\LoginController::class, 'loginProcess'])->name('login.process');
 Route::post('/logout', [App\Http\Controllers\Auth\LoginController::class, 'logout'])->name('logout');
 
-Route::middleware(['auth', 'roles:2,3'])->prefix('import-data')->name('import-data.')->group(function () {
-    Route::get('/', function () {
-        return view('import-data.index');
-    })->name('index');
-});
 Route::middleware(['auth', 'roles:2,3'])->prefix('verification-request')->name('verification-request.')->group(function () {
-    Route::get('/', function () {
-        return view('verification-request.index');
-    })->name('index');
+    Route::get('/', [App\Http\Controllers\VerificationRequest\VerificationRequestController::class, 'index'])->name('index');
+    Route::get('/fetch', [App\Http\Controllers\VerificationRequest\VerificationRequestController::class, 'fetch'])->name('fetch');
+    Route::get('/{id}', [App\Http\Controllers\VerificationRequest\VerificationRequestController::class, 'show'])->name('show');
 });
 Route::middleware(['auth', 'roles:2,3'])->prefix('raised-issue')->name('raised-issue.')->group(function () {
     Route::get('/', function () {
@@ -39,7 +34,7 @@ Route::middleware(['auth', 'roles:2,3'])->prefix('raised-issue')->name('raised-i
 Route::middleware(['auth', 'roles:2,3'])->prefix('import-data')->name('import-data.')->group(function () {
     Route::get('/', [App\Http\Controllers\ImportData\ImportDataController::class, 'index'])->name('index');
     Route::post('/import-puskesmas', [App\Http\Controllers\ImportData\ImportDataController::class, 'importPuskesmas'])->name('import.puskesmas');
-
+    Route::get('/download-template', [App\Http\Controllers\ImportData\ImportDataController::class, 'downloadExcel'])->name('download.template');
 });
 Route::middleware(['auth', 'roles:2,3'])->prefix('master-puskesmas')->name('master-puskesmas.')->group(function () {
     Route::get('/', [App\Http\Controllers\Puskesmas\MasterPuskesmasController::class, 'index'])->name('index');
@@ -47,8 +42,14 @@ Route::middleware(['auth', 'roles:2,3'])->prefix('master-puskesmas')->name('mast
 
 Route::middleware(['auth', 'roles:2,3'])->prefix('api-puskesmas')->name('api-puskesmas.')->group(function () {
     Route::get('/fetch', [App\Http\Controllers\Puskesmas\API\APIPuskesmasController::class, 'fetchData'])->name('fetch-data');
+    Route::post('/store', [App\Http\Controllers\Puskesmas\API\APIPuskesmasController::class, 'store'])->name('store');
+    Route::put('/{id}/update-basic', [App\Http\Controllers\Puskesmas\API\APIPuskesmasController::class, 'updateBasic'])->name('update-basic');
     Route::get('/provinces', [App\Http\Controllers\Puskesmas\API\APIPuskesmasController::class, 'fetchProvinces'])->name('provinces');
     Route::get('/regencies', [App\Http\Controllers\Puskesmas\API\APIPuskesmasController::class, 'fetchRegencies'])->name('regencies');
     Route::get('/districts', [App\Http\Controllers\Puskesmas\API\APIPuskesmasController::class, 'fetchDistricts'])->name('districts');
     Route::get('/test', [App\Http\Controllers\Puskesmas\API\APIPuskesmasController::class, 'testConnection'])->name('test');
+});
+
+Route::middleware(['auth', 'roles:2,3'])->prefix('api-verification-request')->name('api-verification-request.')->group(function () {
+    Route::POST('/basic-information/{id}', [App\Http\Controllers\VerificationRequest\API\APIVerificationRequestController::class, 'editBasicInformation'])->name('basic-information');
 });

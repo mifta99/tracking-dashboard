@@ -11,6 +11,7 @@ class Equipment extends Model
 {
     use HasFactory;
     protected $primaryKey = 'id';
+        public $timestamps = false;
 
     /**
      * The attributes that are mass assignable.

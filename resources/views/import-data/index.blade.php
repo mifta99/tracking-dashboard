@@ -27,7 +27,7 @@
 
                     <!-- Bagian kanan: tombol -->
                     <div class="ms-3">
-                        <a href="#" class="btn btn-light btn-sm shadow-sm px-3 py-2 text-decoration-none d-flex align-items-center text-secondary" onmouseover="this.classList.add('text-dark')" onmouseout="this.classList.remove('text-dark')">
+                        <a href="{{ route('import-data.download.template') }}" class="btn btn-light btn-sm shadow-sm px-3 py-2 text-decoration-none d-flex align-items-center text-secondary" onmouseover="this.classList.add('text-dark')" onmouseout="this.classList.remove('text-dark')">
                             <i class="fas fa-download me-2 text-danger"></i>
                             <span class="fw-semibold px-2">Download Template</span>
                         </a>

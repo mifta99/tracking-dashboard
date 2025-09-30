@@ -30,12 +30,6 @@ class MasterPuskesmasController extends Controller
             // Load puskesmas data with relationships
             $data = Puskesmas::with(['district.regency.province'])->get();
             
-            // Add debug info
-            Log::info('Puskesmas data loaded', [
-                'count' => $data->count(),
-                'first_record' => $data->first()
-            ]);
-            
             return view('puskesmas.index', ['data' => $data]);
         } catch (\Exception $e) {
             Log::error('Error loading puskesmas data: ' . $e->getMessage());

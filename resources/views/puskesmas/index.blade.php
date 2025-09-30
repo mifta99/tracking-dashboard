@@ -11,7 +11,7 @@
     <div class="card-header">
         <h3 class="card-title">Data Puskesmas</h3>
         <div class="card-tools">
-            <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#addModal">
+            <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#addPuskesmasModal">
                 <i class="fas fa-plus"></i> Tambah Puskesmas
             </button>
         </div>
@@ -55,7 +55,7 @@
                                         <i class="fas fa-search"></i> Cari Data
                                     </button>
                                     <button type="button" id="resetBtn" class="btn btn-secondary" title="Reset Filter">
-                                        <i class="fas fa-refresh"></i>
+                                        <i class="fas fa-sync-alt"></i>
                                     </button>
                                 </div>
                             </div>
@@ -70,31 +70,36 @@
                 <thead>
                     <tr>
                         <th class="excel-header">No</th>
-                        <th class="excel-header">Nama Puskesmas</th>
                         <th class="excel-header">Provinsi</th>
                         <th class="excel-header">Kabupaten</th>
                         <th class="excel-header">Kecamatan</th>
+                        <th class="excel-header">Nama Puskesmas</th>
                         <th class="excel-header">PIC Puskesmas (Petugas ASPAK)</th>
                         <th class="excel-header">Kepala Puskesmas</th>
                         <th class="excel-header">PIC Dinas Kesehatan Provinsi</th>
                         <th class="excel-header">PIC ADINKES</th>
+                        <th class="excel-header">Pengiriman</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse ($data as $item)
-                        <tr>
-                            <td class="excel-cell text-center">{{ $loop->iteration }}</td>
-                            <td class="excel-cell editable" data-field="name" contenteditable="false">{{ $item->name ?? '-' }}</td>
-                            <td class="excel-cell">{{ $item->district->regency->province->name ?? '-' }}</td>
-                            <td class="excel-cell">{{ $item->district->regency->name ?? '-' }}</td>
-                            <td class="excel-cell">{{ $item->district->name ?? '-' }}</td>
-                            <td class="excel-cell editable" data-field="pic" contenteditable="false">{{ $item->pic ?? '-' }}</td>
-                            <td class="excel-cell editable" data-field="kepala" contenteditable="false">{{ $item->kepala ?? '-' }}</td>
-                            <td class="excel-cell editable" data-field="pic_dinkes_prov" contenteditable="false">{{ $item->pic_dinkes_prov ?? '-' }}</td>
-                            <td class="excel-cell editable" data-field="pic_dinkes_kab" contenteditable="false">{{ $item->pic_dinkes_kab ?? '-' }}</td>
+                        <tr data-id="{{ $item->id }}">
+                            <td class="excel-cell text-center align-middle">{{ $loop->iteration }}</td>
+                            <td class="excel-cell align-middle">{{ $item->district->regency->province->name ?? '-' }}</td>
+                            <td class="excel-cell align-middle">{{ $item->district->regency->name ?? '-' }}</td>
+                            <td class="excel-cell align-middle">{{ $item->district->name ?? '-' }}</td>
+                            <td class="excel-cell editable align-middle" data-field="name" contenteditable="false">{{ $item->name ?? '-' }}</td>
+                            <td class="excel-cell editable align-middle" data-field="pic" contenteditable="false">{{ $item->pic ?? '-' }}</td>
+                            <td class="excel-cell editable align-middle" data-field="kepala" contenteditable="false">{{ $item->kepala ?? '-' }}</td>
+                            <td class="excel-cell editable align-middle" data-field="pic_dinkes_prov" contenteditable="false">{{ $item->pic_dinkes_prov ?? '-' }}</td>
+                            <td class="excel-cell editable align-middle" data-field="pic_dinkes_kab" contenteditable="false">{{ $item->pic_dinkes_kab ?? '-' }}</td>
+                            <td class="excel-cell text-center align-middle" data-field="pengiriman" >
+                                {!! empty($item->pengiriman) ? '<a href="'.route('verification-request.show', $item->id).'" class="btn btn-secondary btn-sm px-2" title="Info Pengiriman"><i class="fas fa-info-circle fa-sm"></i></a>' : '<a href="'.route('verification-request.show', $item->id).'" class="btn btn-primary btn-sm px-2" title="Info Pengiriman"><i class="fas fa-info-circle fa-sm"></i></a>' !!}
+                            </td>
                         </tr>
                     @empty
                         <tr>
+                            <td class="excel-cell text-center">-</td>
                             <td class="excel-cell text-center">-</td>
                             <td class="excel-cell text-center">-</td>
                             <td class="excel-cell text-center">-</td>
@@ -114,8 +119,99 @@
             </table>
         </div>
     </div>
-</div>
-@stop
+    </div>
+
+    <!-- Modal: Tambah Puskesmas -->
+    <div class="modal fade" id="addPuskesmasModal" tabindex="-1" role="dialog" aria-labelledby="addPuskesmasLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white py-2">
+                    <h5 class="modal-title mb-0" id="addPuskesmasLabel"><i class="fas fa-plus"></i> Tambah Puskesmas</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form id="formAddPuskesmas" autocomplete="off">
+                    <div class="modal-body pt-3 pb-1">
+                        <div class="row">
+                            <div class="col-12 mb-2">
+                                <h6 class="text-primary font-weight-bold mb-2"><i class="fas fa-map-marker-alt"></i> Lokasi</h6>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group mb-2">
+                                    <label class="mb-1">Provinsi <span class="text-danger">*</span></label>
+                                    <select id="modal_province" class=""></select>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group mb-2">
+                                    <label class="mb-1">Kabupaten/Kota <span class="text-danger">*</span></label>
+                                    <select id="modal_regency" class="" disabled></select>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group mb-2">
+                                    <label class="mb-1">Kecamatan <span class="text-danger">*</span></label>
+                                    <select id="modal_district" name="district_id" class="" disabled></select>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+
+                            <div class="col-12 mt-3 mb-2">
+                                <h6 class="text-primary font-weight-bold mb-2"><i class="fas fa-hospital"></i> Data Puskesmas</h6>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group mb-2">
+                                    <label class="mb-1">Nama Puskesmas <span class="text-danger">*</span></label>
+                                    <input type="text" name="name" id="modal_name" class="form-control" placeholder="Masukkan nama puskesmas...">
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+
+                            <div class="col-12 mt-3 mb-2">
+                                <h6 class="text-primary font-weight-bold mb-2"><i class="fas fa-users"></i> Penanggung Jawab</h6>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-2">
+                                    <label class="mb-1">PIC Puskesmas (Petugas ASPAK)</label>
+                                    <input type="text" name="pic" id="modal_pic" class="form-control" placeholder="Nama PIC...">
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-2">
+                                    <label class="mb-1">Kepala Puskesmas</label>
+                                    <input type="text" name="kepala" id="modal_kepala" class="form-control" placeholder="Nama kepala puskesmas...">
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-2">
+                                    <label class="mb-1">PIC Dinkes Provinsi</label>
+                                    <input type="text" name="pic_dinkes_prov" id="modal_pic_dinkes_prov" class="form-control" placeholder="Nama PIC Dinkes Provinsi...">
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-2">
+                                    <label class="mb-1">PIC ADINKES</label>
+                                    <input type="text" name="pic_dinkes_kab" id="modal_pic_dinkes_kab" class="form-control" placeholder="Nama PIC ADINKES...">
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer py-2">
+                        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal"><i class="fas fa-times"></i> Batal</button>
+                        <button type="submit" id="btnSavePuskesmas" class="btn btn-primary btn-sm"><i class="fas fa-save"></i> Simpan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    @stop
 
 @section('css')
 <!-- DataTables CSS -->
@@ -278,6 +374,25 @@
 
 <!-- Tom Select JS -->
 <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+<!-- SweetAlert2 (ensure loaded) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"/>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+
+<script>
+// Safe notifier wrapper so error tetap muncul walau SweetAlert gagal load
+function notify(options){
+    try {
+        if(window.Swal){
+            Swal.fire(options);
+        } else {
+            alert((options.title?options.title+"\n":"") + (options.text||options.html||"Terjadi kesalahan"));
+        }
+    } catch(e){
+        console.error('Notify fallback error:', e, options);
+        alert(options && (options.text||options.title) || 'Error');
+    }
+}
+</script>
 
 <script>
 $(document).ready(function() {
@@ -547,8 +662,8 @@ $(document).ready(function() {
         
         // Validate we have 9 header columns
         const headerCount = $('#puskesmasTable thead th').length;
-        if (headerCount !== 9) {
-            console.error('Header column count is not 9:', headerCount);
+        if (headerCount !== 10) {
+            console.error('Header column count is not 10:', headerCount);
             return;
         }
 
@@ -557,6 +672,7 @@ $(document).ready(function() {
             // For empty data, add a proper row with exact column count (9 columns)
             tbody.append(`
                 <tr>
+                    <td class="excel-cell text-center">-</td>
                     <td class="excel-cell text-center">-</td>
                     <td class="excel-cell text-center">-</td>
                     <td class="excel-cell text-center">-</td>
@@ -578,14 +694,15 @@ $(document).ready(function() {
                 const row = `
                     <tr>
                         <td class="excel-cell text-center">${index + 1}</td>
-                        <td class="excel-cell editable" data-field="name" contenteditable="false">${item.name || '-'}</td>
                         <td class="excel-cell">${item.provinsi || '-'}</td>
                         <td class="excel-cell">${item.kabupaten_kota || '-'}</td>
                         <td class="excel-cell">${item.kecamatan || '-'}</td>
+                        <td class="excel-cell editable" data-field="name" contenteditable="false">${item.name || '-'}</td>
                         <td class="excel-cell editable" data-field="pic" contenteditable="false">${item.pic || '-'}</td>
                         <td class="excel-cell editable" data-field="kepala" contenteditable="false">${item.kepala || '-'}</td>
                         <td class="excel-cell editable" data-field="pic_dinkes_prov" contenteditable="false">${item.pic_dinkes_prov || '-'}</td>
                         <td class="excel-cell editable" data-field="pic_dinkes_kab" contenteditable="false">${item.pic_dinkes_kab || '-'}</td>
+                        <td class="excel-cell">${item.status_pengiriman===0 ? `<a href="/verification-request/${item.id}" class="btn btn-secondary btn-sm px-2" title="Info Pengiriman"><i class="fas fa-info-circle fa-sm"></i></a>` : `<a href="/verification-request/${item.id}" class="btn btn-primary btn-sm px-2" title="Info Pengiriman"><i class="fas fa-info-circle fa-sm"></i></a>`}</td>
                     </tr>
                 `;
                 tbody.append(row);
@@ -598,7 +715,7 @@ $(document).ready(function() {
         
         console.log(`Final validation - Header: ${finalHeaderCount}, First row: ${finalRowCount}`);
         
-        if (finalHeaderCount === 9 && (finalRowCount === 0 || finalRowCount === 9)) {
+        if (finalHeaderCount === 10 && (finalRowCount === 0 || finalRowCount === 10)) {
             // Small delay before reinitializing DataTable to ensure DOM is ready
             setTimeout(function() {
                 initializeDataTable();
@@ -617,6 +734,7 @@ $(document).ready(function() {
         tbody.empty();
         tbody.append(`
             <tr>
+                <td class="excel-cell text-center">-</td>
                 <td class="excel-cell text-center">-</td>
                 <td class="excel-cell text-center">-</td>
                 <td class="excel-cell text-center">-</td>
@@ -706,13 +824,13 @@ $(document).ready(function() {
             
             console.log(`Table structure - Header: ${headerCount} columns, First row: ${firstRowCount} columns, Total rows: ${totalRows}`);
             
-            if (headerCount !== 9) {
-                console.error('Header column count is not 9:', headerCount);
-                throw new Error(`Header should have 9 columns, but has ${headerCount}`);
+            if (headerCount !== 10) {
+                console.error('Header column count is not 10:', headerCount);
+                throw new Error(`Header should have 10 columns, but has ${headerCount}`);
             }
-            
-            if (firstRowCount > 0 && firstRowCount !== 9) {
-                console.warn(`First row has ${firstRowCount} columns instead of 9, but continuing...`);
+
+            if (firstRowCount > 0 && firstRowCount !== 10) {
+                console.warn(`First row has ${firstRowCount} columns instead of 10, but continuing...`);
             }
             
             // Safely destroy existing DataTable
@@ -861,17 +979,54 @@ $(document).ready(function() {
         const newValue = cell.text().trim();
         const originalValue = cell.data('original-value');
         const field = cell.data('field');
+        const row = cell.closest('tr');
+        // Assume first column after numbering contains province etc; ID not present directly so we embed data-id attribute
+        let id = row.data('id');
+        if(!id){
+            // Try to infer from link in last column
+            const link = row.find('td:last a[href*="/verification-request/"]').attr('href');
+            if(link){
+                const parts = link.split('/');
+                id = parts[parts.length-1];
+                row.attr('data-id', id);
+            }
+        }
         
         cell.removeClass('editing');
         cell.attr('contenteditable', 'false');
         
         if (newValue !== originalValue && newValue !== '') {
-            // Here you would typically send an AJAX request to save the data
-            console.log(`Saving ${field}: ${newValue}`);
-            
-            // Show success feedback
-            cell.css('background-color', '#d4edda').delay(1000).queue(function() {
-                $(this).css('background-color', '').dequeue();
+            if(!id){
+                console.warn('Tidak menemukan ID baris untuk update.');
+                cell.text(originalValue);
+                return;
+            }
+            const payload = {}; payload[field] = newValue;
+            cell.addClass('position-relative').append('<span class="spinner-border spinner-border-sm text-primary position-absolute" style="top:4px;right:4px;"></span>');
+            $.ajax({
+                url: `/api-puskesmas/${id}/update-basic`,
+                method: 'PUT',
+                data: payload,
+                headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                success: function(res){
+                    cell.find('.spinner-border').remove();
+                    if(res && res.success){
+                        cell.css('background-color', '#d4edda').delay(800).queue(function(){ $(this).css('background-color','').dequeue(); });
+                    } else {
+                        cell.text(originalValue);
+                        notify({ icon:'error', title:'Gagal', text:(res && res.message)||'Tidak dapat menyimpan perubahan' });
+                    }
+                },
+                error: function(xhr){
+                    cell.find('.spinner-border').remove();
+                    cell.text(originalValue);
+                    if(xhr.status===422 && xhr.responseJSON && xhr.responseJSON.errors){
+                        const firstErr = Object.values(xhr.responseJSON.errors)[0][0];
+                        notify({ icon:'error', title:'Validasi', text:firstErr });
+                    } else {
+                        notify({ icon:'error', title:'Error', text:'Gagal menyimpan perubahan' });
+                    }
+                }
             });
         }
         
@@ -923,5 +1078,154 @@ $(document).ready(function() {
         }
     });
 });
+// ================= MODAL ADD PUSKESMAS LOGIC =================
+(function() {
+    let mProvince, mRegency, mDistrict;
+    const modalId = '#addPuskesmasModal';
+
+    function resetModal() {
+        $('#formAddPuskesmas')[0].reset();
+        $('#formAddPuskesmas .is-invalid').removeClass('is-invalid');
+        $('#formAddPuskesmas .invalid-feedback').text('');
+        if (mProvince) { mProvince.destroy(); mProvince = null; }
+        if (mRegency) { mRegency.destroy(); mRegency = null; }
+        if (mDistrict) { mDistrict.destroy(); mDistrict = null; }
+    }
+
+    function initModalSelects() {
+        mProvince = new TomSelect('#modal_province', {
+            valueField:'id', labelField:'name', searchField:'name', placeholder:'Pilih Provinsi...',
+            onChange: function(v){ loadRegencies(v); }
+        });
+        mRegency = new TomSelect('#modal_regency', {
+            valueField:'id', labelField:'name', searchField:'name', placeholder:'Pilih Kabupaten...',
+            onChange: function(v){ loadDistricts(v); }
+        });
+        mDistrict = new TomSelect('#modal_district', {
+            valueField:'id', labelField:'name', searchField:'name', placeholder:'Pilih Kecamatan...'
+        });
+        mRegency.disable();
+        mDistrict.disable();
+        loadProvinces();
+    }
+
+    function ajaxGet(url, data, cb) {
+        $.ajax({ url, method:'GET', data, success: cb, error: function(xhr){ console.error('AJAX GET error', url, xhr.responseText);} });
+    }
+    function loadProvinces() {
+        ajaxGet("{{ route('api-puskesmas.provinces') }}", {}, function(res){
+            if(res && res.data){
+                mProvince.addOptions(res.data);
+            }
+        });
+    }
+    function loadRegencies(provinceId){
+        mRegency.clearOptions(); mRegency.disable();
+        mDistrict.clearOptions(); mDistrict.disable();
+        if(!provinceId) return;
+        ajaxGet("{{ route('api-puskesmas.regencies') }}", {province_id: provinceId}, function(res){
+            if(res && res.data){ mRegency.addOptions(res.data); mRegency.enable(); }
+        });
+    }
+    function loadDistricts(regencyId){
+        mDistrict.clearOptions(); mDistrict.disable();
+        if(!regencyId) return;
+        ajaxGet("{{ route('api-puskesmas.districts') }}", {regency_id: regencyId}, function(res){
+            if(res && res.data){ mDistrict.addOptions(res.data); mDistrict.enable(); }
+        });
+    }
+
+    $(modalId).on('shown.bs.modal', function(){ resetModal(); initModalSelects(); });
+    $(modalId).on('hidden.bs.modal', function(){ resetModal(); });
+
+    $('#formAddPuskesmas').on('submit', function(e){
+        e.preventDefault();
+        const btn = $('#btnSavePuskesmas');
+        btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Simpan...');
+        const formData = new FormData(this);
+        formData.set('district_id', $('#modal_district').val());
+        $.ajax({
+            url: '{{ route("api-puskesmas.store") }}',
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            timeout: 15000,
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+            success: function(res){
+                if(res && res.success){
+                    notify({ icon:'success', title:'Berhasil', text:'Puskesmas tersimpan', timer:1400, showConfirmButton:false });
+                    $(modalId).modal('hide');
+                    setTimeout(()=> location.reload(), 600);
+                } else {
+                    // Validation errors
+                    if(res && res.errors){
+                        Object.keys(res.errors).forEach(f => {
+                            const input = $('[name="'+f+'"]');
+                            input.addClass('is-invalid');
+                            input.siblings('.invalid-feedback').text(res.errors[f][0]);
+                        });
+                    }
+                    notify({ icon:'error', title:'Gagal', text: (res && res.message) || 'Tidak dapat menyimpan data'});
+                }
+            },
+            error: function(xhr, status, error){
+                let title = 'Error';
+                let message = 'Terjadi kesalahan pada server.';
+                let footerDetail = '';
+
+                if(status === 'timeout') {
+                    message = 'Permintaan timeout. Periksa koneksi internet Anda.';
+                } else if (xhr.status === 500) {
+                    title = 'Server Error (500)';
+                    message = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Server mengalami kesalahan internal.';
+                    footerDetail = 'Silakan coba lagi atau hubungi administrator.';
+                } else if (xhr.status === 422) {
+                    // Laravel validation fallback (should normally go to success with success:false)
+                    const resp = xhr.responseJSON;
+                    if(resp && resp.errors) {
+                        Object.keys(resp.errors).forEach(f => {
+                            const input = $('[name="'+f+'"]');
+                            input.addClass('is-invalid');
+                            input.siblings('.invalid-feedback').text(resp.errors[f][0]);
+                        });
+                        message = 'Validasi gagal. Periksa isian Anda.';
+                    }
+                } else if (xhr.status === 419) {
+                    message = 'Sesi kedaluwarsa. Silakan refresh halaman.';
+                } else if (xhr.status === 403) {
+                    message = 'Anda tidak memiliki izin.';
+                } else if (xhr.status === 404) {
+                    message = 'Endpoint tidak ditemukan.';
+                } else if (xhr.status === 0) {
+                    message = 'Tidak dapat terhubung ke server.';
+                } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                    message = xhr.responseJSON.message;
+                }
+
+                // Log detail ke console untuk debugging
+                console.group('STORE PUSKESMAS ERROR');
+                console.error('Status:', xhr.status);
+                console.error('Status Text:', xhr.statusText);
+                console.error('Response Text:', xhr.responseText);
+                console.error('Parsed JSON:', xhr.responseJSON);
+                console.error('AJAX Status Arg:', status);
+                console.error('Thrown Error:', error);
+                console.groupEnd();
+
+                notify({
+                    icon: 'error',
+                    title: title,
+                    html: `<div style=\"text-align:left;font-size:13px;\">${message}</div>`,
+                    footer: footerDetail ? `<small class=\"text-muted\">${footerDetail}</small>` : undefined
+                });
+            },
+            complete: function(){
+                btn.prop('disabled', false).html('<i class="fas fa-save"></i> Simpan');
+            }
+        });
+    });
+})();
+// =============================================================
 </script>
 @stop

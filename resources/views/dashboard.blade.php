@@ -40,7 +40,7 @@
                                 <p class="text-white mb-0">{{ $countPuskesmas }}</p>
                             </div>
                             <div class="text-secondary position-absolute" style="font-size: 3rem; right: 15px; top: 50%; transform: translateY(-50%); opacity: 0.25;">
-                                <i class="fas fa-users"></i>
+                                <i class="fas fa-hospital"></i>
                             </div>
                         </div>
                     </div>
