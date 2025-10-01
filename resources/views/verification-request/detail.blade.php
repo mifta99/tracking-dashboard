@@ -15,8 +15,12 @@
 @endsection
 
 @section('css')
+    <!-- CSRF Token -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <!-- Toastr CSS for toast notifications -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <style>
         .table-kv td{padding:.35rem .25rem;vertical-align:top;font-size:.875rem;}
         .table-kv td:first-child{font-weight:600;width:230px;color:#212529;}
@@ -40,6 +44,16 @@
             .shipment-status-flow .sf-step{padding:0 0 1.2rem 2.7rem;text-align:left;}
             .shipment-status-flow .sf-step:not(:last-child):after{left:28px;top:56px;width:8px;height:100%;}
             .shipment-status-flow .sf-circle{margin:0 0 6px;}
+        }
+
+        /* Disabled verification switch styling */
+        .custom-control-input:disabled ~ .custom-control-label {
+            color: #007bff;
+            font-weight: 600;
+        }
+        .custom-control-input:disabled ~ .custom-control-label::before {
+            background-color: #007bff;
+            border-color: #007bff;
         }
     </style>
 @endsection
@@ -277,14 +291,16 @@
                                     @csrf
                                     <div class="form-group">
                                         <div class="custom-control custom-switch">
-                                            <input type="checkbox" class="custom-control-input" id="verifiedDelivery" {{ ($peng && $peng->verif_kemenkes) ? 'checked' : '' }}>
-                                            <label class="custom-control-label" for="verifiedDelivery">Verified</label>
+                                            <input type="checkbox" class="custom-control-input" id="verifiedDelivery"
+                                                {{ ($peng && $peng->verif_kemenkes) ? 'checked disabled' : '' }}>
+                                            <label class="custom-control-label" for="verifiedDelivery">
+                                                {{ ($peng && $peng->verif_kemenkes) ? 'Verified' : 'Verified' }}
+                                            </label>
                                         </div>
                                     </div>
                                 </form>
                             </td>
                         </tr>
-
                         <tr><td>Tanggal Verifikasi</td><td>{{ $peng->tgl_verif_kemenkes ?? '-' }}</td></tr>
                     </table>
                 </div>
@@ -321,7 +337,7 @@
                                     @csrf
                                     <div class="form-group">
                                         <div class="custom-control custom-switch">
-                                            <input type="checkbox" class="custom-control-input" id="verifiedUjiFungsi" {{ ($uji && $uji->verif_kemenkes) ? 'checked' : '' }}>
+                                            <input type="checkbox" class="custom-control-input" name="verif_kemenkes" id="verifiedUjiFungsi" {{ ($uji && $uji->verif_kemenkes) ? 'checked' : '' }}>
                                             <label class="custom-control-label" for="verifiedUjiFungsi">Verified</label>
                                         </div>
                                     </div>
@@ -616,6 +632,8 @@
 @section('js')
 <!-- Toastr JS for toast notifications -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<!-- SweetAlert2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 // Configure toastr options
 toastr.options = {
@@ -1319,6 +1337,164 @@ $(function(){
             $submitBtn.prop('disabled', false).html(originalHtml);
         });
     });
+});
+
+// Delivery Verification handler with SweetAlert
+$(function(){
+    const $form = $('#verifDeliveryForm');
+    const $verificationSwitch = $('#verifiedDelivery');
+    if(!$form.length || !$verificationSwitch.length) return;
+
+    const updateUrl = '{{ route('api-verification-request.delivery-verification', ['id' => $puskesmas->id]) }}';
+    let isUpdating = false;
+
+    $verificationSwitch.on('change', function(e) {
+        if (isUpdating) return;
+
+        const $this = $(this);
+
+        // Check if the switch is disabled (already verified)
+        if ($this.prop('disabled')) {
+            e.preventDefault();
+            return false;
+        }
+
+        const isChecked = $this.is(':checked');
+        const currentState = !isChecked; // Previous state
+
+        // If trying to uncheck (undo verification), prevent it
+        if (currentState === true && isChecked === false) {
+            $this.prop('checked', true);
+            Swal.fire({
+                title: 'Tidak Dapat Dibatalkan',
+                text: 'Verifikasi yang sudah dilakukan tidak dapat dibatalkan.',
+                icon: 'warning',
+                confirmButtonText: 'OK'
+            });
+            return false;
+        }
+
+        // Prevent the change temporarily for confirmation
+        $this.prop('checked', currentState);
+
+        const title = isChecked ? 'Verifikasi Data Pengiriman' : 'Batalkan Verifikasi';
+        const text = isChecked ?
+            'Apakah Anda yakin ingin memverifikasi data pengiriman ini?' :
+            'Apakah Anda yakin ingin membatalkan verifikasi data pengiriman ini?';
+        const confirmButtonText = isChecked ? 'Ya, Verifikasi' : 'Ya, Batalkan';
+        const icon = isChecked ? 'question' : 'warning';
+
+        Swal.fire({
+            title: title,
+            text: text,
+            icon: icon,
+            showCancelButton: true,
+            confirmButtonColor: isChecked ? '#28a745' : '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: confirmButtonText,
+            cancelButtonText: 'Batal',
+            allowOutsideClick: false,
+            allowEscapeKey: false
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // User confirmed, proceed with the verification
+                updateVerificationStatus(isChecked);
+            }
+            // If cancelled, the switch will remain in its previous state
+        });
+    });
+
+    function updateVerificationStatus(verified) {
+        isUpdating = true;
+
+        // Show loading state
+        Swal.fire({
+            title: 'Memproses...',
+            text: 'Sedang memperbarui status verifikasi',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            showConfirmButton: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        const requestData = {
+            verif_kemenkes: verified
+        };
+        console.log('Sending verification data:', requestData);
+
+        $.ajax({
+            url: updateUrl,
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+            data: requestData,
+            timeout: 10000
+        }).done(function(res) {
+            if (res && res.success) {
+                // Update the switch state
+                $verificationSwitch.prop('checked', verified);
+
+                // If verified, disable the switch and update label
+                if (verified) {
+                    $verificationSwitch.prop('disabled', true);
+                    $verificationSwitch.next('label').text('Verified ✓');
+                }
+
+                // Update the verification date in the table if provided
+                if (res.data && res.data.tgl_verif_kemenkes !== undefined) {
+                    const $verifDateCell = $('tr:contains("Tanggal Verifikasi") td:last');
+                    $verifDateCell.text(res.data.tgl_verif_kemenkes || '-');
+                }
+
+                // Show success message
+                Swal.fire({
+                    title: 'Berhasil!',
+                    text: res.message,
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+
+                // Reload page after a short delay to update progress timeline
+                setTimeout(() => {
+                    location.reload();
+                }, 2500);
+
+            } else {
+                // Reset switch state
+                $verificationSwitch.prop('checked', !verified);
+                Swal.fire({
+                    title: 'Gagal!',
+                    text: res.message || 'Gagal memperbarui status verifikasi',
+                    icon: 'error'
+                });
+            }
+        }).fail(function(xhr, status) {
+            // Reset switch state
+            $verificationSwitch.prop('checked', !verified);
+
+            let errorMessage = 'Terjadi kesalahan sistem';
+
+            if (status === 'timeout') {
+                errorMessage = 'Permintaan timeout, periksa koneksi internet Anda';
+            } else if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.message) {
+                errorMessage = xhr.responseJSON.message;
+            } else if (xhr.status === 404) {
+                errorMessage = 'Data tidak ditemukan';
+            } else if (xhr.status === 403) {
+                errorMessage = 'Anda tidak memiliki akses untuk melakukan tindakan ini';
+            }
+
+            Swal.fire({
+                title: 'Gagal!',
+                text: errorMessage,
+                icon: 'error'
+            });
+        }).always(function() {
+            isUpdating = false;
+        });
+    }
 });
 </script>
 @endsection

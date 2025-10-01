@@ -32,6 +32,7 @@ Route::middleware(['auth', 'roles:2,3'])->prefix('api-verification-request')->na
     Route::POST('/delivery-information/{id}', [App\Http\Controllers\VerificationRequest\API\APIVerificationRequestController::class, 'editDeliveryInformation'])->name('delivery-information');
     Route::POST('/uji-fungsi-information/{id}', [App\Http\Controllers\VerificationRequest\API\APIVerificationRequestController::class, 'editUjiFungsiInformation'])->name('uji-fungsi-information');
     Route::POST('/document-information/{id}', [App\Http\Controllers\VerificationRequest\API\APIVerificationRequestController::class, 'editDocumentInformation'])->name('document-information');
+    Route::POST('/delivery-verification/{id}', [App\Http\Controllers\VerificationRequest\API\APIVerificationRequestController::class, 'updateDeliveryVerification'])->name('delivery-verification');
 });
 Route::middleware(['auth', 'roles:2,3'])->prefix('raised-issue')->name('raised-issue.')->group(function () {
     Route::get('/', [App\Http\Controllers\RaisedIssue\RaisedIssueController::class, 'index'])->name('index');
