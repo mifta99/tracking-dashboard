@@ -45,8 +45,108 @@
 @endsection
 
 @section('content')
+    @php $d = optional($puskesmas->district); $r = optional($d->regency); $pv = optional($r->province); $peng = optional($puskesmas->pengiriman); @endphp
+
+    <div class="card mb-3 shadow-sm">
+        <div class="card-header py-2 pr-1 text-white d-flex align-items-center bg-warning">
+            <span class="section-title-bar" style="color: white;">Current Progress</span>
+        </div>
+        <div class="card-body p-3">
+            @php
+                // Determine current progress based on Tahapan table and pengiriman status
+                $showTimeline = false;
+                $currentStep = 0;
+                $stepMeta = [];
+
+                // Build step metadata from Tahapan table
+                if($tahapan && $tahapan->count() > 0) {
+                    foreach($tahapan as $t) {
+                        $stepMeta[$t->tahap_ke] = [
+                            'label' => $t->tahapan,
+                            'icon' => $t->tahap_ke == 1 ? 'fas fa-box-open' :
+                                     ($t->tahap_ke == 2 ? 'fas fa-truck' :
+                                     ($t->tahap_ke == 3 ? 'fas fa-box' :
+                                     ($t->tahap_ke == 4 ? 'fas fa-tools' :
+                                     ($t->tahap_ke == 5 ? 'fas fa-pen-square' :
+                                     ($t->tahap_ke == 6 ? 'fas fa-chalkboard-teacher' :
+                                     ($t->tahap_ke == 7 ? 'fas fa-clipboard-check' : 'fas fa-check-circle'))))))
+                        ];
+                    }
+                }
+
+                // Determine current progress based on pengiriman data
+                if($peng) {
+                    $showTimeline = true;
+
+                    // Check conditions for each stage
+                    $hasShipping = !empty($peng->tgl_pengiriman);
+                    $hasResi = !empty($peng->resi);
+                    $hasReceipt = !empty($peng->tgl_diterima) || !empty($peng->link_tanda_terima);
+                    $hasInstallation = $puskesmas->ujiFungsi && !empty($puskesmas->ujiFungsi->tgl_instalasi);
+                    $hasTest = $puskesmas->ujiFungsi && !empty($puskesmas->ujiFungsi->tgl_uji_fungsi);
+                    $hasVerification = !empty($peng->verif_kemenkes);
+
+                    // Set current step based on tahapan_id or progress conditions
+                    if($peng->tahapan_id) {
+                        $currentStep = $peng->tahapan_id;
+                    } else {
+                        // Fallback logic if tahapan_id is not set
+                        if(!$hasShipping) {
+                            $currentStep = 0; // Not started
+                        } elseif($hasShipping && !$hasResi) {
+                            $currentStep = 1; // Preparation/Shipping
+                        } elseif($hasResi && !$hasReceipt) {
+                            $currentStep = 2; // Delivery
+                        } elseif($hasReceipt && !$hasTest) {
+                            $currentStep = 3; // Installation/Testing
+                        } elseif($hasTest && !$hasVerification) {
+                            $currentStep = 4; // Documentation
+                        } else {
+                            $currentStep = count($stepMeta); // Completed
+                        }
+                    }
+                }
+            @endphp
+
+            @if($showTimeline && $currentStep > 0 && !empty($stepMeta))
+                <div class="shipment-status-flow" aria-label="Project Progress">
+                    @foreach($stepMeta as $i => $meta)
+                        @php
+                            $cls = 'pending';
+                            if($i < $currentStep) {
+                                $cls = 'done';
+                            } elseif($i == $currentStep) {
+                                $cls = ($currentStep == count($stepMeta)) ? 'done final' : 'active';
+                            }
+                        @endphp
+                        <div class="sf-step {{ $cls }} {{ $i == count($stepMeta) ? 'final' : '' }}" data-step="{{ $i }}">
+                            <div class="sf-circle"><i class="{{ $meta['icon'] }}"></i></div>
+                            <div class="sf-label">{{ $meta['label'] }}</div>
+                        </div>
+                    @endforeach
+                </div>
+
+                <div class="mt-3">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <small class="text-muted">Current Stage: <strong>{{ $stepMeta[$currentStep]['label'] ?? 'Unknown' }}</strong></small>
+                        </div>
+                        <div class="col-md-6 text-right">
+                            <small class="text-muted">Progress: {{ $currentStep }}/{{ count($stepMeta) }}</small>
+                        </div>
+                    </div>
+                </div>
+            @else
+                <div class="text-center text-muted py-4">
+                    <i class="fas fa-info-circle fa-2x mb-2"></i>
+                    <p class="mb-0">No progress data available</p>
+                    <small>Progress will be shown once shipping information is added</small>
+                </div>
+            @endif
+        </div>
+    </div>
+
     <div class="row g-3 mb-3">
-        @php $d = optional($puskesmas->district); $r = optional($d->regency); $pv = optional($r->province); $peng = optional($puskesmas->pengiriman); @endphp
         <div class="col-lg-6">
             <div class="card h-100 shadow-sm">
             <div class="card-header py-2 pr-1 bg-primary text-white d-flex align-items-center">
@@ -276,8 +376,8 @@
     @if(!empty($peng->resi))
     <div class="card shadow-sm mb-4" id="trackingCard" data-initial-do="{{ $peng->resi }}">
         <div class="card-header py-2 pr-1 bg-info text-white d-flex align-items-center">
-            <span class="section-title-bar">Tracking Pengiriman (Delivery Order Logs)</span>
-            <button class="btn btn-sm btn-light ml-auto" id="btn-refresh-tracking"><i class="fas fa-sync"></i> Refresh</button>
+            <span class="section-title-bar">Delivery Progress Tracking</span>
+            <button class="btn btn-sm btn-info ml-auto" id="btn-refresh-tracking"><i class="fas fa-sync"></i> Refresh</button>
         </div>
         <div class="card-body p-3">
             <form id="trackingForm" class="mb-3">
@@ -313,52 +413,6 @@
             </div>
         </div>
     </div>
-    @endif
-
-    {{-- Bottom Shipment Status Flow --}}
-    @php
-        $showTimeline = false;
-        $currentStep = 0; // 0 means hidden
-        $stepMeta = [
-            1 => ['label' => 'On Shipment', 'icon' => 'fas fa-box-open'],
-            2 => ['label' => 'Delivery', 'icon' => 'fas fa-truck'],
-            3 => ['label' => 'Shipment Success', 'icon' => 'fas fa-check-circle'],
-        ];
-        if($peng && $peng->tgl_pengiriman){
-            $showTimeline = true;
-            $hasResi = !empty($peng->resi);
-            $hasReceipt = !empty($peng->tgl_diterima) || !empty($peng->link_tanda_terima);
-            if($peng->tgl_pengiriman && !$hasResi){
-                $currentStep = 1; // On Shipment
-            }
-            if($peng->tgl_pengiriman && $hasResi && !$hasReceipt){
-                $currentStep = 2; // Delivery in progress
-            }
-            if($peng->tgl_pengiriman && $hasResi && $hasReceipt){
-                $currentStep = 3; // Completed
-            }
-        }
-    @endphp
-    @if($showTimeline && $currentStep>0)
-        <div class="shipment-status-flow-wrapper">
-            <div class="card shadow-sm">
-                <div class="card-body py-3">
-                    <div class="shipment-status-flow" aria-label="Shipment Status Progress">
-                        @foreach($stepMeta as $i => $meta)
-                            @php
-                                $cls = 'pending';
-                                if($i < $currentStep) $cls = 'done';
-                                elseif($i === $currentStep) $cls = ($currentStep === 3 ? 'done final' : 'active');
-                            @endphp
-                            <div class="sf-step {{ $cls }} {{ $i === 3 ? 'final' : '' }}" data-step="{{ $i }}">
-                                <div class="sf-circle"><i class="{{ $meta['icon'] }}"></i></div>
-                                <div class="sf-label">{{ $meta['label'] }}</div>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-            </div>
-        </div>
     @endif
 
     <!-- Modal Delivery Information -->
