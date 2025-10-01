@@ -11,7 +11,8 @@ class UjiFungsi extends Model
 {
     use HasFactory, SoftDeletes;
     protected $primaryKey = 'id';
-protected $table = 'uji_fungsi';
+    protected $table = 'uji_fungsi';
+    public $timestamps = true;
     /**
      * The attributes that are mass assignable.
      *

@@ -54,6 +54,25 @@ class APIPuskesmasController extends Controller
                 });
             }
             
+            // Filter by status (tahapan_id in pengiriman)
+            if ($request->has('status') && $request->status !== '') {
+                $statusId = $request->status;
+                if ($statusId == '0') {
+                    // Status "Belum Diproses" - no pengiriman record or tahapan_id is null
+                    $query->where(function($q) {
+                        $q->whereDoesntHave('pengiriman')
+                          ->orWhereHas('pengiriman', function($subQ) {
+                              $subQ->whereNull('tahapan_id');
+                          });
+                    });
+                } else {
+                    // Specific status - has pengiriman with matching tahapan_id
+                    $query->whereHas('pengiriman', function($q) use ($statusId) {
+                        $q->where('tahapan_id', $statusId);
+                    });
+                }
+            }
+            
             $data = $query->get();
             
             

@@ -119,6 +119,21 @@
                     </select>
                 </div>
                 <div class="col-md-2">
+                    <label class="small mb-1">Status</label>
+                    <select class="form-control form-control-sm" id="status" name="status">
+                        <option value="">Semua Status</option>
+                        <option value="0">Belum Diproses</option>
+                        <option value="1">Shipment Process</option>
+                        <option value="2">On Delivery</option>
+                        <option value="3">Received</option>
+                        <option value="4">Instalasi</option>
+                        <option value="5">Uji Fungsi</option>
+                        <option value="6">Pelatihan Alat</option>
+                        <option value="7">BASTO</option>
+                        <option value="8">ASPAK</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
                     <label class="small mb-1">&nbsp;</label>
                     <div>
                         <button type="button" class="btn btn-primary btn-sm" onclick="refreshTableData()">
@@ -146,7 +161,7 @@
                                 <th style="font-size: 11pt;">Kecamatan</th>
                                 <th style="font-size: 11pt;">Nama Puskesmas</th>
                                 <th style="font-size: 11pt;">Tanggal Pengiriman</th>
-                                <th style="font-size: 11pt;">Status</th>
+                                <th class="text-center" style="font-size: 11pt;">Status</th>
                                 <th class="text-center" style="font-size: 11pt;">Actions</th>
                             </tr>
                         </thead>
@@ -241,24 +256,38 @@
                     }
                 },
                 {
-                    targets: 6, // Status
+                    targets: 6,
                     render: function (data, type, row) {
                         if (row.pengiriman) {
-                            if (row.pengiriman.tgl_diterima) {
-                                return '<span class="badge badge-success badge-sm">Diterima</span>';
-                            } else if (row.pengiriman.tgl_pengiriman) {
-                                return '<span class="badge badge-warning badge-sm">Dalam Pengiriman</span>';
-                            } else {
-                                return '<span class="badge badge-info badge-sm">Siap Kirim</span>';
+                            const tahapId = row.pengiriman.tahapan_id;
+                            switch(tahapId) {
+                                case 1:
+                                    return '<div class="d-flex justify-content-center align-items-center"><span class="badge badge-info badge-sm">Shipment Process</span></div>';
+                                case 2:
+                                    return '<div class="d-flex justify-content-center align-items-center"><span class="badge badge-warning badge-sm">On Delivery</span></div>';
+                                case 3:
+                                    return '<div class="d-flex justify-content-center align-items-center"><span class="badge badge-success badge-sm">Received</span></div>';
+                                case 4:
+                                    return '<div class="d-flex justify-content-center align-items-center"><span class="badge badge-primary badge-sm">Instalasi</span></div>';
+                                case 5:
+                                    return '<div class="d-flex justify-content-center align-items-center"><span class="badge badge-dark badge-sm">Uji Fungsi</span></div>';
+                                case 6:
+                                    return '<div class="d-flex justify-content-center align-items-center"><span class="badge badge-light badge-sm text-dark">Pelatihan Alat</span></div>';
+                                case 7:
+                                    return '<div class="d-flex justify-content-center align-items-center"><span class="badge badge-danger badge-sm">BASTO</span></div>';
+                                case 8:
+                                    return '<div class="d-flex justify-content-center align-items-center"><span class="badge badge-success badge-sm">ASPAK</span></div>';
+                                default:
+                                    return '<div class="d-flex justify-content-center align-items-center"><span class="badge badge-secondary badge-sm">Belum Diproses</span></div>';
                             }
                         }
-                        return '<span class="badge badge-secondary badge-sm">Belum Diproses</span>';
+                        return '<div class="d-flex justify-content-center align-items-center"><span class="badge badge-secondary badge-sm">Belum Diproses</span></div>';
                     }
                 },
                 {
                     targets: 7, // Actions
                     render: function (data, type, row) {
-                        const detailUrl = '{{ route('verification-request.show', ':id') }}'.replace(':id', row.id);
+                        const detailUrl = '{{ route('verification-request.detail', ':id') }}'.replace(':id', row.id);
                         return `<div class="d-flex justify-content-center align-items-center">
                                     <a href="${detailUrl}" class="text-secondary" title="Lihat Detail">
                                         <i class="fas fa-search"></i>
@@ -301,6 +330,11 @@
         
         // District change handler
         $('#kecamatan').on('change', function() {
+            loadTableData();
+        });
+        
+        // Status change handler
+        $('#status').on('change', function() {
             loadTableData();
         });
         
@@ -368,10 +402,12 @@
             const provinceId = $('#provinsi').val();
             const regencyId = $('#kabupaten').val();
             const districtId = $('#kecamatan').val();
+            const statusId = $('#status').val();
             
             if (provinceId) filters.province_id = provinceId;
             if (regencyId) filters.regency_id = regencyId;
             if (districtId) filters.district_id = districtId;
+            if (statusId) filters.status = statusId;
             
             // Show loading message
             $('#reported-incidents-table tbody').html('<tr><td colspan="8" class="text-center"><i class="fas fa-spinner fa-spin"></i> Memuat data...</td></tr>');

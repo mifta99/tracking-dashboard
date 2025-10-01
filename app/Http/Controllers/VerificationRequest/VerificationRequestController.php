@@ -62,7 +62,7 @@ class VerificationRequestController extends Controller
     /**
      * Return JSON list filtered by province/regency/district while still requiring tgl_pengiriman not null
      */
-    public function fetch(Request $request)
+    public function fetch(Request $request, $statusVerifikasi=null)
     {
         $provinceId = $request->get('province_id');
         $regencyId  = $request->get('regency_id');
@@ -73,10 +73,21 @@ class VerificationRequestController extends Controller
                 'district.regency.province',
                 'pengiriman:id,puskesmas_id,tgl_pengiriman,verif_kemenkes,tgl_verif_kemenkes',
                 'document:id,puskesmas_id,verif_kemenkes,tgl_verif_kemenkes'
-            ])
-            ->whereHas('pengiriman', function ($q) {
-                $q->whereNotNull('tgl_pengiriman');
-            });
+            ]);
+
+        if($statusVerifikasi == 'uji-fungsi'){
+             $query->whereHas('pengiriman')
+            ->whereHas('ujiFungsi')
+            ->whereDoesntHave('document');
+        }else if($statusVerifikasi == 'documents'){
+             $query->whereHas('pengiriman')
+            ->whereHas('ujiFungsi')
+            ->whereHas('document');
+        }else{
+             $query->whereHas('pengiriman')
+            ->whereDoesntHave('ujiFungsi')
+            ->whereDoesntHave('document');
+        }
 
         if ($districtId) {
             $query->where('district_id', $districtId);
@@ -89,6 +100,7 @@ class VerificationRequestController extends Controller
                 $q->where('id', $provinceId);
             });
         }
+
 
         $data = $query->orderBy('name')->get()->map(function($p){
             return [
@@ -112,7 +124,7 @@ class VerificationRequestController extends Controller
     /**
      * Show detail page for a specific Puskesmas.
      */
-    public function show(string $id)
+    public function detail(string $id)
     {
         $puskesmas = Puskesmas::with([
             'district.regency.province',
@@ -124,7 +136,7 @@ class VerificationRequestController extends Controller
 
         $tahapan = Tahapan::orderBy('tahap_ke')->get();
 
-        return view('verification-request.show', [
+        return view('verification-request.detail', [
             'puskesmas' => $puskesmas,
             'tahapan' => $tahapan,
         ]);

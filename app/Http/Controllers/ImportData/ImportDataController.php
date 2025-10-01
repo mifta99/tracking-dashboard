@@ -292,9 +292,16 @@ class ImportDataController extends Controller
                 return redirect()->back()->with('error', 'Invalid action specified.');
         }
     }
-    function downloadExcel()
+    function downloadExcel(Request $request)
     {
-        $export = new PuskesmasMasterExport(auth()->user()->role_id);
+        $additionalColumns = [];
+        
+        // Get additional columns selection for Endo role
+        if (auth()->user()->role_id == 3 && $request->has('additional_columns')) {
+            $additionalColumns = $request->input('additional_columns', []);
+        }
+        
+        $export = new PuskesmasMasterExport(auth()->user()->role_id, $additionalColumns);
         return Excel::download($export, auth()->user()->role_id == 2 ? 'Kemenkes - Template Import Puskesmas.xlsx' : 'Endo - Template Import Puskesmas.xlsx');
     }
 }
