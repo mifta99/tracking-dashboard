@@ -65,6 +65,11 @@
             background-color: #e9ecef;
             border-color: #ced4da;
         }
+
+        /* Ensure consistent header height even when buttons are not present */
+        .card-header.d-flex.align-items-center {
+            min-height: 46px; /* Minimum height to accommodate button size */
+        }
     </style>
 @endsection
 
@@ -72,7 +77,7 @@
     @php $d = optional($puskesmas->district); $r = optional($d->regency); $pv = optional($r->province); $peng = optional($puskesmas->pengiriman); @endphp
 
     <div class="card mb-3 shadow-sm">
-        <div class="card-header py-2 pr-1 text-white d-flex align-items-center bg-warning">
+        <div class="card-header py-2 pr-1 text-white d-flex align-items-center" style="background:#ee8c0b;">
             <span class="section-title-bar" style="color: white;">Current Progress</span>
         </div>
         <div class="card-body p-3">
@@ -462,6 +467,89 @@
         </div>
     </div>
     @endif
+
+    <!-- Equipment Issue -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header py-2 pr-1 bg-danger text-white d-flex align-items-center">
+            <span class="section-title-bar">Equipment Issue</span>
+        </div>
+        <div class="card-body p-3">
+            <div class="table-responsive">
+                <table class="table table-sm table-striped table-bordered mb-0">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>Reported Date</th>
+                            <th>Reported Issue</th>
+                            <th>Downtime Category</th>
+                            <th>Resolved Date</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">
+                                <i class="fas fa-info-circle"></i> No equipment issues reported yet
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Incident Management -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header py-2 pr-1 d-flex align-items-center" style="background:#e226d2;">
+            <span class="section-title-bar text-white">Incident Management</span>
+        </div>
+        <div class="card-body p-3">
+            <div class="table-responsive">
+                <table class="table table-sm table-striped table-bordered mb-0">
+                    <thead class="thead-light">
+                        <tr>
+                            <th rowspan="3" class="align-middle text-center" style="width:40px">NO</th>
+                            <th rowspan="3" class="align-middle text-center" style="width:120px">TANGGAL KEJADIAN</th>
+                            <th rowspan="3" class="align-middle text-center" style="width:150px">NAMA</th>
+                            <th rowspan="3" class="align-middle text-center" style="width:120px">BAGIAN</th>
+                            <th rowspan="3" class="align-middle text-center" style="width:150px">KRONOLOGIS KEJADIAN</th>
+                            <th colspan="6" class="text-center">TINDAKAN KOREKSI</th>
+                            <th colspan="6" class="text-center">TINDAKAN KOREKTIF</th>
+                        </tr>
+                        <tr>
+                            <!-- Tindakan Koreksi columns -->
+                            <th rowspan="2" class="align-middle text-center" style="width:120px">RENCANA TINDAKAN KOREKSI</th>
+                            <th rowspan="2" class="align-middle text-center" style="width:100px">PELAKSANA TINDAKAN</th>
+                            <th rowspan="2" class="align-middle text-center" style="width:100px">TANGGAL SELESAI</th>
+                            <th colspan="3" class="text-center">VERIFIKASI</th>
+                            <!-- Tindakan Korektif columns -->
+                            <th rowspan="2" class="align-middle text-center" style="width:120px">RENCANA TINDAKAN KOREKTIF</th>
+                            <th rowspan="2" class="align-middle text-center" style="width:100px">PELAKSANA TINDAKAN</th>
+                            <th rowspan="2" class="align-middle text-center" style="width:100px">TANGGAL SELESAI</th>
+                            <th colspan="3" class="text-center">VERIFIKASI</th>
+                        </tr>
+                        <tr>
+                            <!-- Verifikasi sub-columns for Tindakan Koreksi -->
+                            <th class="text-center" style="width:80px">HASIL</th>
+                            <th class="text-center" style="width:100px">TANGGAL</th>
+                            <th class="text-center" style="width:100px">PELAKSANA</th>
+                            <!-- Verifikasi sub-columns for Tindakan Korektif -->
+                            <th class="text-center" style="width:80px">HASIL</th>
+                            <th class="text-center" style="width:100px">TANGGAL</th>
+                            <th class="text-center" style="width:100px">PELAKSANA</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="17" class="text-center text-muted py-4">
+                                <i class="fas fa-info-circle"></i> No incidents reported yet
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
     <!-- Modal Delivery Information -->
     @if(auth()->user() && auth()->user()->role->role_name == 'endo')
