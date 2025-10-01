@@ -3,7 +3,11 @@
 namespace App\Http\Controllers\VerificationRequest\API;
 
 use App\Http\Controllers\Controller;
+use App\Models\Document;
+use App\Models\Equipment;
+use App\Models\Pengiriman;
 use App\Models\Puskesmas;
+use App\Models\UjiFungsi;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
@@ -123,12 +127,379 @@ class APIVerificationRequestController extends Controller
         }
     }
 
-    /**
-     * Store a newly created verification request.
+   /**
+     * Update delivery information for a puskesmas.
      */
-    public function putDeliveryInformation(Request $request): JsonResponse
+    public function editDeliveryInformation(Request $request, string $id): JsonResponse
     {
-       return response()->json(['message' => 'Index of verification requests']);
+        try {
+            // Find the puskesmas
+            $puskesmas = Puskesmas::with('pengiriman')->find($id);
+            if (!$puskesmas) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data puskesmas tidak ditemukan'
+                ], 404);
+            }
+
+            // Validate input
+            $validated = $request->validate([
+                'tgl_pengiriman' => 'nullable|date',
+                'eta' => 'nullable|integer|min:0',
+                'resi' => 'nullable|string|max:255',
+                'serial_number' => 'nullable|string|max:255',
+                'target_tgl' => 'nullable|date',
+                'tgl_diterima' => 'nullable|date',
+                'nama_penerima' => 'nullable|string|max:255',
+                'jabatan_penerima' => 'nullable|string|max:255',
+                'instansi_penerima' => 'nullable|string|max:255',
+                'nomor_penerima' => 'nullable|string|max:20',
+                'link_tanda_terima' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120', // 5MB max
+                'catatan' => 'nullable|string|max:1000',
+            ], [
+                'tgl_pengiriman.date' => 'Format tanggal pengiriman tidak valid',
+                'eta.integer' => 'ETA harus berupa angka',
+                'eta.min' => 'ETA tidak boleh kurang dari 0',
+                'resi.max' => 'Nomor resi maksimal 255 karakter',
+                'tracking_link.url' => 'Format URL tracking tidak valid',
+                'serial_number.max' => 'Serial number maksimal 255 karakter',
+                'target_tgl.date' => 'Format tanggal target tidak valid',
+                'tgl_diterima.date' => 'Format tanggal diterima tidak valid',
+                'nama_penerima.max' => 'Nama penerima maksimal 255 karakter',
+                'jabatan_penerima.max' => 'Jabatan penerima maksimal 255 karakter',
+                'instansi_penerima.max' => 'Instansi penerima maksimal 255 karakter',
+                'nomor_penerima.max' => 'Nomor HP penerima maksimal 20 karakter',
+                'link_tanda_terima.file' => 'File tanda terima tidak valid',
+                'link_tanda_terima.mimes' => 'File tanda terima harus berformat PDF, JPG, JPEG, atau PNG',
+                'link_tanda_terima.max' => 'Ukuran file tanda terima maksimal 5MB',
+                'tahapan_id.exists' => 'Tahapan yang dipilih tidak valid',
+                'catatan.max' => 'Catatan maksimal 1000 karakter',
+            ]);
+
+            // Handle equipment creation/update if serial number is provided
+            $equipmentId = null;
+            if (!empty($validated['serial_number'])) {
+                $equipment = Equipment::firstOrCreate(
+                    ['serial_number' => $validated['serial_number']],
+                    ['name' => null] // Can be updated later
+                );
+                $equipmentId = $equipment->id;
+            }
+
+            // Handle file upload
+            $tandaTerimaPath = null;
+            if ($request->hasFile('link_tanda_terima')) {
+                $file = $request->file('link_tanda_terima');
+                $tandaTerimaPath = $file->store('tanda-terima', 'public');
+            }
+
+            // Prepare update data
+            $updateData = [];
+            $updatedFields = [];
+
+            foreach (['tgl_pengiriman', 'eta', 'resi', 'tracking_link', 'target_tgl', 'tgl_diterima', 'nama_penerima', 'jabatan_penerima', 'instansi_penerima', 'nomor_penerima', 'tahapan_id', 'catatan'] as $field) {
+                if (array_key_exists($field, $validated)) {
+                    $updateData[$field] = $validated[$field];
+                    $updatedFields[] = str_replace('_', ' ', $field);
+                }
+            }
+
+            // Add equipment_id if we created/found equipment
+            if ($equipmentId) {
+                $updateData['equipment_id'] = $equipmentId;
+                $updatedFields[] = 'Serial Number';
+            }
+
+            // Add file path if uploaded
+            if ($tandaTerimaPath) {
+                $updateData['link_tanda_terima'] = $tandaTerimaPath;
+                $updatedFields[] = 'tanda terima';
+            }
+
+            // Add updated_by
+            $updateData['updated_by'] = auth()->id();
+
+            // Get or create pengiriman record
+            if ($puskesmas->pengiriman) {
+                $puskesmas->pengiriman->update($updateData);
+                $pengiriman = $puskesmas->pengiriman;
+            } else {
+                $updateData['puskesmas_id'] = $puskesmas->id;
+                $updateData['created_by'] = auth()->id();
+                $pengiriman = Pengiriman::create($updateData);
+            }
+
+            // Refresh with relationships
+            $pengiriman->load(['equipment', 'tahapan']);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data pengiriman berhasil diperbarui',
+                'data' => [
+                    'tgl_pengiriman' => $pengiriman->tgl_pengiriman ? $pengiriman->tgl_pengiriman->format('d F Y') : null,
+                    'eta' => $pengiriman->eta,
+                    'resi' => $pengiriman->resi,
+                    'tracking_link' => $pengiriman->tracking_link,
+                    'serial_number' => $pengiriman->equipment->serial_number ?? null,
+                    'target_tgl' => $pengiriman->target_tgl ? $pengiriman->target_tgl->format('d F Y') : null,
+                    'tgl_diterima' => $pengiriman->tgl_diterima ? $pengiriman->tgl_diterima->format('d F Y') : null,
+                    'nama_penerima' => $pengiriman->nama_penerima,
+                    'jabatan_penerima' => $pengiriman->jabatan_penerima,
+                    'instansi_penerima' => $pengiriman->instansi_penerima,
+                    'nomor_penerima' => $pengiriman->nomor_penerima,
+                    'catatan' => $pengiriman->catatan,
+                    'tahapan_name' => $pengiriman->tahapan->tahapan ?? null,
+                ],
+                'updated_fields' => $updatedFields
+            ], 200);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data yang dimasukkan tidak valid',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat memperbarui data: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+
+    /**
+     * Edit uji fungsi information for a puskesmas.
+     */
+    public function editUjiFungsiInformation(Request $request, string $id): JsonResponse
+    {
+        try {
+            // Find the puskesmas
+            $puskesmas = Puskesmas::with('ujiFungsi')->find($id);
+            if (!$puskesmas) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data puskesmas tidak ditemukan'
+                ], 404);
+            }
+
+            // Validate input
+            $validated = $request->validate([
+                'tgl_instalasi' => 'nullable|date',
+                'target_tgl_uji_fungsi' => 'nullable|date',
+                'tgl_uji_fungsi' => 'nullable|date',
+                'tgl_pelatihan' => 'nullable|date',
+                'doc_instalasi' => 'nullable|file|mimes:pdf|max:5120', // 5MB max
+                'doc_uji_fungsi' => 'nullable|file|mimes:pdf|max:5120',
+                'doc_pelatihan' => 'nullable|file|mimes:pdf|max:5120',
+                'catatan' => 'nullable|string',
+            ], [
+                'tgl_instalasi.date' => 'Format tanggal instalasi tidak valid',
+                'target_tgl_uji_fungsi.date' => 'Format target tanggal uji fungsi tidak valid',
+                'tgl_uji_fungsi.date' => 'Format tanggal uji fungsi tidak valid',
+                'tgl_pelatihan.date' => 'Format tanggal pelatihan tidak valid',
+                'doc_instalasi.file' => 'File berita acara instalasi tidak valid',
+                'doc_instalasi.mimes' => 'File berita acara instalasi harus berformat PDF',
+                'doc_instalasi.max' => 'Ukuran file berita acara instalasi maksimal 5MB',
+                'doc_uji_fungsi.file' => 'File berita acara uji fungsi tidak valid',
+                'doc_uji_fungsi.mimes' => 'File berita acara uji fungsi harus berformat PDF',
+                'doc_uji_fungsi.max' => 'Ukuran file berita acara uji fungsi maksimal 5MB',
+                'doc_pelatihan.file' => 'File berita acara pelatihan tidak valid',
+                'doc_pelatihan.mimes' => 'File berita acara pelatihan harus berformat PDF',
+                'doc_pelatihan.max' => 'Ukuran file berita acara pelatihan maksimal 5MB',
+            ]);
+
+            // Handle file uploads
+            $fileFields = ['doc_instalasi', 'doc_uji_fungsi', 'doc_pelatihan'];
+            foreach ($fileFields as $field) {
+                if ($request->hasFile($field)) {
+                    $file = $request->file($field);
+                    
+                    // Create directory if it doesn't exist
+                    $uploadPath = 'uploads/uji-fungsi';
+                    $fullPath = storage_path('app/public/' . $uploadPath);
+                    if (!file_exists($fullPath)) {
+                        mkdir($fullPath, 0755, true);
+                    }
+                    
+                    // Generate unique filename
+                    $fileName = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+                    
+                    // Store file
+                    $file->storeAs($uploadPath, $fileName, 'public');
+                    
+                    // Store relative path
+                    $validated[$field] = $uploadPath . '/' . $fileName;
+                }
+            }
+
+            // Prepare update data
+            $updateData = [];
+            $updatedFields = [];
+
+            foreach (['tgl_instalasi', 'target_tgl_uji_fungsi', 'tgl_uji_fungsi', 'tgl_pelatihan', 'catatan', 'doc_instalasi', 'doc_uji_fungsi', 'doc_pelatihan'] as $field) {
+                if (array_key_exists($field, $validated)) {
+                    $updateData[$field] = $validated[$field];
+                    $updatedFields[] = str_replace(['_', 'doc_'], [' ', 'dokumen '], $field);
+                }
+            }
+
+            // Add updated_by
+            $updateData['updated_by'] = auth()->id();
+
+            // Get or create uji fungsi record
+            if ($puskesmas->ujiFungsi) {
+                $puskesmas->ujiFungsi->update($updateData);
+                $ujiFungsi = $puskesmas->ujiFungsi;
+            } else {
+                $updateData['puskesmas_id'] = $puskesmas->id;
+                $updateData['created_by'] = auth()->id();
+                $ujiFungsi = UjiFungsi::create($updateData);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data uji fungsi berhasil diperbarui',
+                'data' => [
+                    'tgl_instalasi' => $ujiFungsi->tgl_instalasi ? $ujiFungsi->tgl_instalasi->format('d F Y') : null,
+                    'target_tgl_uji_fungsi' => $ujiFungsi->target_tgl_uji_fungsi ? $ujiFungsi->target_tgl_uji_fungsi->format('d F Y') : null,
+                    'tgl_uji_fungsi' => $ujiFungsi->tgl_uji_fungsi ? $ujiFungsi->tgl_uji_fungsi->format('d F Y') : null,
+                    'tgl_pelatihan' => $ujiFungsi->tgl_pelatihan ? $ujiFungsi->tgl_pelatihan->format('d F Y') : null,
+                    'doc_instalasi' => $ujiFungsi->doc_instalasi,
+                    'doc_uji_fungsi' => $ujiFungsi->doc_uji_fungsi,
+                    'doc_pelatihan' => $ujiFungsi->doc_pelatihan,
+                    'catatan' => $ujiFungsi->catatan,
+                ],
+                'updated_fields' => $updatedFields
+            ], 200);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data yang dimasukkan tidak valid',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Edit document information for a puskesmas.
+     */
+    public function editDocumentInformation(Request $request, string $id): JsonResponse
+    {
+        try {
+            // Find the puskesmas
+            $puskesmas = Puskesmas::with('document')->find($id);
+            if (!$puskesmas) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data puskesmas tidak ditemukan'
+                ], 404);
+            }
+
+            // Validate input
+            $validated = $request->validate([
+                'basto' => 'nullable|file|mimes:pdf|max:5120', // 5MB max
+                'kalibrasi' => 'nullable|file|mimes:pdf|max:5120',
+                'bast' => 'nullable|file|mimes:pdf|max:5120',
+                'aspak' => 'nullable|file|mimes:pdf|max:5120',
+                'update_aspak' => 'nullable|file|mimes:pdf|max:5120',
+            ], [
+                'basto.file' => 'File berita acara BASTO tidak valid',
+                'basto.mimes' => 'File berita acara BASTO harus berformat PDF',
+                'basto.max' => 'Ukuran file berita acara BASTO maksimal 5MB',
+                'kalibrasi.file' => 'File berita acara kalibrasi tidak valid',
+                'kalibrasi.mimes' => 'File berita acara kalibrasi harus berformat PDF',
+                'kalibrasi.max' => 'Ukuran file berita acara kalibrasi maksimal 5MB',
+                'bast.file' => 'File berita acara BAST tidak valid',
+                'bast.mimes' => 'File berita acara BAST harus berformat PDF',
+                'bast.max' => 'Ukuran file berita acara BAST maksimal 5MB',
+                'aspak.file' => 'File berita acara ASPAK tidak valid',
+                'aspak.mimes' => 'File berita acara ASPAK harus berformat PDF',
+                'aspak.max' => 'Ukuran file berita acara ASPAK maksimal 5MB',
+                'update_aspak.file' => 'File update ASPAK tidak valid',
+                'update_aspak.mimes' => 'File update ASPAK harus berformat PDF',
+                'update_aspak.max' => 'Ukuran file update ASPAK maksimal 5MB',
+            ]);
+
+            // Handle file uploads
+            $fileFields = ['basto', 'kalibrasi', 'bast', 'aspak', 'update_aspak'];
+            foreach ($fileFields as $field) {
+                if ($request->hasFile($field)) {
+                    $file = $request->file($field);
+                    
+                    // Create directory if it doesn't exist
+                    $uploadPath = 'uploads/documents';
+                    $fullPath = storage_path('app/public/' . $uploadPath);
+                    if (!file_exists($fullPath)) {
+                        mkdir($fullPath, 0755, true);
+                    }
+                    
+                    // Generate unique filename
+                    $fileName = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+                    
+                    // Store file
+                    $file->storeAs($uploadPath, $fileName, 'public');
+                    
+                    // Store relative path
+                    $validated[$field] = $uploadPath . '/' . $fileName;
+                }
+            }
+
+            // Prepare update data
+            $updateData = [];
+            $updatedFields = [];
+
+            foreach ($fileFields as $field) {
+                if (array_key_exists($field, $validated)) {
+                    $updateData[$field] = $validated[$field];
+                    $updatedFields[] = str_replace('_', ' ', $field);
+                }
+            }
+
+            // Add updated_by
+            $updateData['updated_by'] = auth()->id();
+
+            // Get or create document record
+            if ($puskesmas->document) {
+                $puskesmas->document->update($updateData);
+                $document = $puskesmas->document;
+            } else {
+                $updateData['puskesmas_id'] = $puskesmas->id;
+                $updateData['created_by'] = auth()->id();
+                $document = Document::create($updateData);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data dokumen berhasil diperbarui',
+                'data' => [
+                    'basto' => $document->basto,
+                    'kalibrasi' => $document->kalibrasi,
+                    'bast' => $document->bast,
+                    'aspak' => $document->aspak,
+                    'update_aspak' => $document->update_aspak,
+                ],
+                'updated_fields' => $updatedFields
+            ], 200);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data yang dimasukkan tidak valid',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**

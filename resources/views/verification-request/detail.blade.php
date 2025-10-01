@@ -268,7 +268,7 @@
                         <tr><td>Instansi Penerima</td><td>{{ $peng->instansi_penerima ?? '-' }}</td></tr>
                         <tr><td>Nomor HP Penerima</td><td>{{ $peng->nomor_penerima ?? '-' }}</td></tr>
                         <tr><td>Status Penerimaan</td><td>{{ ($peng && $peng->tgl_diterima) ? 'Diterima' : '-' }}</td></tr>
-                        <tr><td>Bukti Tanda Terima</td><td>@if($peng && $peng->link_tanda_terima)<a class="text-decoration-none" target="_blank" href="{{ $peng->link_tanda_terima }}">View Here</a>@else - @endif</td></tr>
+                        <tr><td>Bukti Tanda Terima</td><td>@if($peng && $peng->link_tanda_terima)<a class="text-decoration-none" target="_blank" href="{{ asset('storage/' . $peng->link_tanda_terima) }}">View Here</a>@else - @endif</td></tr>
                         <tr><td>Catatan</td><td>{{ $peng->catatan ?? '-' }}</td></tr>
                         <tr>
                             <td>Verifikasi Kemenkes</td>
@@ -303,12 +303,12 @@
                 <div class="col-md-6">
                     <table class="table table-sm table-borderless table-kv mb-0">
                         <tr><td>Tanggal Instalasi</td><td>{{ optional($uji->tgl_instalasi)->format('d F Y') ?? '-' }}</td></tr>
-                        <tr><td>Berita Acara Instalasi</td><td>@if($uji && $uji->doc_instalasi)<a class="text-decoration-none" target="_blank" href="{{ $uji->doc_instalasi }}">View Here</a>@else - @endif</td></tr>
+                        <tr><td>Berita Acara Instalasi</td><td>@if($uji && $uji->doc_instalasi)<a class="text-decoration-none" target="_blank" href="{{ asset('storage/' . $uji->doc_instalasi) }}">View Here</a>@else - @endif</td></tr>
                         <tr><td>Target Tanggal Uji Fungsi</td><td>{{ optional($uji->target_tgl_uji_fungsi)->format('d F Y') ?? '-' }}</td></tr>
                         <tr><td>Tanggal Uji Fungsi</td><td>{{ optional($uji->tgl_uji_fungsi)->format('d F Y') ?? '-' }}</td></tr>
-                        <tr><td>Berita Acara Uji Fungsi</td><td>@if($uji && $uji->doc_uji_fungsi)<a class="text-decoration-none" target="_blank" href="{{ $uji->doc_uji_fungsi }}">View Here</a>@else - @endif</td></tr>
+                        <tr><td>Berita Acara Uji Fungsi</td><td>@if($uji && $uji->doc_uji_fungsi)<a class="text-decoration-none" target="_blank" href="{{ asset('storage/' . $uji->doc_uji_fungsi) }}">View Here</a>@else - @endif</td></tr>
                         <tr><td>Tanggal Pelatihan Alat</td><td>{{ optional($uji->tgl_pelatihan)->format('d F Y') ?? '-' }}</td></tr>
-                        <tr><td>Berita Acara Pelatihan Alat</td><td>@if($uji && $uji->doc_pelatihan)<a class="text-decoration-none" target="_blank" href="{{ $uji->doc_pelatihan }}">View Here</a>@else - @endif</td></tr>
+                        <tr><td>Berita Acara Pelatihan Alat</td><td>@if($uji && $uji->doc_pelatihan)<a class="text-decoration-none" target="_blank" href="{{ asset('storage/' . $uji->doc_pelatihan) }}">View Here</a>@else - @endif</td></tr>
                         <tr><td>Catatan</td><td>{{ $uji->catatan ?? '-' }}</td></tr>
                     </table>
                 </div>
@@ -344,10 +344,10 @@
             <div class="row">
                 <div class="col-md-6">
                     <table class="table table-sm table-borderless table-kv mb-0">
-                        <tr><td>Berita Acara BASTO</td><td>@if($doc && $doc->basto)<a class="text-decoration-none" target="_blank" href="{{ $doc->basto }}">View Here</a>@else - @endif</td></tr>
-                        <tr><td>Berita Acara Kalibrasi</td><td>@if($doc && $doc->kalibrasi)<a class="text-decoration-none" target="_blank" href="{{ $doc->kalibrasi }}">View Here</a>@else - @endif</td></tr>
-                        <tr><td>Berita Acara BAST</td><td>@if($doc && $doc->bast)<a class="text-decoration-none" target="_blank" href="{{ $doc->bast }}">View Here</a>@else - @endif</td></tr>
-                        <tr><td>Berita Acara ASPAK</td><td>@if($doc && $doc->aspak)<a class="text-decoration-none" target="_blank" href="{{ $doc->aspak }}">View Here</a>@else - @endif</td></tr>
+                        <tr><td>Berita Acara BASTO</td><td>@if($doc && $doc->basto)<a class="text-decoration-none" target="_blank" href="{{ asset('storage/' . $doc->basto) }}">View Here</a>@else - @endif</td></tr>
+                        <tr><td>Berita Acara Kalibrasi</td><td>@if($doc && $doc->kalibrasi)<a class="text-decoration-none" target="_blank" href="{{ asset('storage/' . $doc->kalibrasi) }}">View Here</a>@else - @endif</td></tr>
+                        <tr><td>Berita Acara BAST</td><td>@if($doc && $doc->bast)<a class="text-decoration-none" target="_blank" href="{{ asset('storage/' . $doc->bast) }}">View Here</a>@else - @endif</td></tr>
+                        <tr><td>Berita Acara ASPAK</td><td>@if($doc && $doc->aspak)<a class="text-decoration-none" target="_blank" href="{{ asset('storage/' . $doc->aspak) }}">View Here</a>@else - @endif</td></tr>
                     </table>
                 </div>
                 <div class="col-md-6">
@@ -446,7 +446,8 @@
                             </div>
                             <div class="form-group col-md-3">
                                 <label class="small mb-1">Serial Number</label>
-                                <input type="text" class="form-control form-control-sm" name="serial_number" value="{{ $peng->serial_number }}">
+                                <input type="text" class="form-control form-control-sm" name="serial_number" value="{{ $peng->equipment->serial_number ?? '' }}" placeholder="Enter serial number">
+                                <small class="form-text text-muted">System will create equipment record if new</small>
                             </div>
                             <div class="form-group col-md-3">
                                 <label class="small mb-1">Target Alat Diterima</label>
@@ -479,7 +480,7 @@
                                 <label class="small mb-1 d-flex align-items-center">Upload Tanda Terima <span class="ml-1 badge badge-light border">pdf/jpg/png</span></label>
                                 <input type="file" class="form-control-file" name="link_tanda_terima" accept="application/pdf,image/jpeg,image/png">
                                 @if($peng && $peng->link_tanda_terima)
-                                    <small class="d-block mt-1"><a target="_blank" href="{{ $peng->link_tanda_terima }}">File saat ini</a></small>
+                                    <small class="d-block mt-1"><a target="_blank" href="{{ asset('storage/' . $peng->link_tanda_terima) }}">File saat ini</a></small>
                                 @endif
                             </div>
                         </div>
@@ -536,17 +537,17 @@
                             <div class="form-group col-md-4">
                                 <label class="small mb-1 d-flex align-items-center">Berita Acara Instalasi <span class="ml-1 badge badge-light border">pdf</span></label>
                                 <input type="file" name="doc_instalasi" class="form-control-file" accept="application/pdf">
-                                @if($uji && $uji->doc_instalasi)<small class="d-block mt-1"><a target="_blank" href="{{ $uji->doc_instalasi }}">Lihat Saat Ini</a></small>@endif
+                                @if($uji && $uji->doc_instalasi)<small class="d-block mt-1"><a target="_blank" href="{{ asset('storage/' . $uji->doc_instalasi) }}">Lihat Saat Ini</a></small>@endif
                             </div>
                             <div class="form-group col-md-4">
                                 <label class="small mb-1 d-flex align-items-center">Berita Acara Uji Fungsi <span class="ml-1 badge badge-light border">pdf</span></label>
                                 <input type="file" name="doc_uji_fungsi" class="form-control-file" accept="application/pdf">
-                                @if($uji && $uji->doc_uji_fungsi)<small class="d-block mt-1"><a target="_blank" href="{{ $uji->doc_uji_fungsi }}">Lihat Saat Ini</a></small>@endif
+                                @if($uji && $uji->doc_uji_fungsi)<small class="d-block mt-1"><a target="_blank" href="{{ asset('storage/' . $uji->doc_uji_fungsi) }}">Lihat Saat Ini</a></small>@endif
                             </div>
                             <div class="form-group col-md-4">
                                 <label class="small mb-1 d-flex align-items-center">Berita Acara Pelatihan Alat<span class="ml-1 badge badge-light border">pdf</span></label>
                                 <input type="file" name="doc_pelatihan" class="form-control-file" accept="application/pdf">
-                                @if($uji && $uji->doc_pelatihan)<small class="d-block mt-1"><a target="_blank" href="{{ $uji->doc_pelatihan }}">Lihat Saat Ini</a></small>@endif
+                                @if($uji && $uji->doc_pelatihan)<small class="d-block mt-1"><a target="_blank" href="{{ asset('storage/' . $uji->doc_pelatihan) }}">Lihat Saat Ini</a></small>@endif
                             </div>
                         </div>
                         <div class="mb-2 mt-3 pb-1 border-bottom"><strong class="text-muted small">Catatan</strong></div>
@@ -582,22 +583,22 @@
                             <div class="form-group col-md-6">
                                 <label class="small mb-1 d-flex align-items-center">Berita Acara BASTO <span class="ml-1 badge badge-light border">pdf</span></label>
                                 <input type="file" name="basto" class="form-control-file" accept="application/pdf">
-                                @if($doc && $doc->basto)<small class="d-block mt-1"><a target="_blank" href="{{ $doc->basto }}">File Saat Ini</a></small>@endif
+                                @if($doc && $doc->basto)<small class="d-block mt-1"><a target="_blank" href="{{ asset('storage/' . $doc->basto) }}">File Saat Ini</a></small>@endif
                             </div>
                             <div class="form-group col-md-6">
                                 <label class="small mb-1 d-flex align-items-center">Berita Acara Kalibrasi<span class="ml-1 badge badge-light border">pdf</span></label>
                                 <input type="file" name="kalibrasi" class="form-control-file" accept="application/pdf">
-                                @if($doc && $doc->kalibrasi)<small class="d-block mt-1"><a target="_blank" href="{{ $doc->kalibrasi }}">File Saat Ini</a></small>@endif
+                                @if($doc && $doc->kalibrasi)<small class="d-block mt-1"><a target="_blank" href="{{ asset('storage/' . $doc->kalibrasi) }}">File Saat Ini</a></small>@endif
                             </div>
                             <div class="form-group col-md-6">
                                 <label class="small mb-1 d-flex align-items-center">Berita Acara BAST <span class="ml-1 badge badge-light border">pdf</span></label>
                                 <input type="file" name="bast" class="form-control-file" accept="application/pdf">
-                                @if($doc && $doc->bast)<small class="d-block mt-1"><a target="_blank" href="{{ $doc->bast }}">File Saat Ini</a></small>@endif
+                                @if($doc && $doc->bast)<small class="d-block mt-1"><a target="_blank" href="{{ asset('storage/' . $doc->bast) }}">File Saat Ini</a></small>@endif
                             </div>
                             <div class="form-group col-md-6">
                                 <label class="small mb-1 d-flex align-items-center">Berita Acara ASPAK <span class="ml-1 badge badge-light border">pdf</span></label>
                                 <input type="file" name="aspak" class="form-control-file" accept="application/pdf">
-                                @if($doc && $doc->aspak)<small class="d-block mt-1"><a target="_blank" href="{{ $doc->aspak }}">File Saat Ini</a></small>@endif
+                                @if($doc && $doc->aspak)<small class="d-block mt-1"><a target="_blank" href="{{ asset('storage/' . $doc->aspak) }}">File Saat Ini</a></small>@endif
                             </div>
                         </div>
                         <small class="text-muted">*Kosongkan jika tidak mengubah dokumen.</small>
@@ -973,6 +974,351 @@ $(function(){
         $doInput.val(initialDo);
         fetchLogs(initialDo);
     }
+});
+
+// Delivery Information form submission handler
+$(function(){
+    const $modal = $('#deliveryModal');
+    const $form = $('#deliveryForm');
+    if(!$modal.length || !$form.length) return;
+
+    const updateUrl = '{{ route('api-verification-request.delivery-information', ['id' => $puskesmas->id]) }}';
+
+    function notifySuccess(msg){
+        if(window.toastr){ toastr.success(msg); return; }
+        if(window.Swal){ Swal.fire({icon:'success',title:'Berhasil',text:msg,timer:1400,showConfirmButton:false}); return; }
+        alert(msg);
+    }
+    function notifyError(msg){
+        if(window.toastr){ toastr.error(msg); return; }
+        if(window.Swal){ Swal.fire({icon:'error',title:'Gagal',text:msg}); return; }
+        alert(msg);
+    }
+
+    $form.on('submit', function(e){
+        e.preventDefault();
+        const $submitBtn = $form.find('button[type="submit"]');
+        const originalHtml = $submitBtn.html();
+        $submitBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm mr-1"></span>Menyimpan...');
+
+        const formData = new FormData(this);
+
+        // Clear previous error states
+        $form.find('.is-invalid').removeClass('is-invalid');
+        $form.find('.invalid-feedback').remove();
+
+        $.ajax({
+            url: updateUrl,
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            timeout: 30000, // 30 seconds for file upload
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
+        }).done(function(res){
+            if(res && res.success){
+                // Update visible table values without reload
+                const data = res.data || {};
+                const $deliveryTable = $('.card-header:contains("Delivery Information")').next('.card-body').find('table.table-kv');
+
+                // Update delivery information fields
+                if(data.tgl_pengiriman !== undefined) $deliveryTable.find('tr:contains("Tanggal Pengiriman") td:last').text(data.tgl_pengiriman || '-');
+                if(data.eta !== undefined) $deliveryTable.find('tr:contains("ETA") td:last').text(data.eta ? data.eta + ' Days' : '-');
+                if(data.resi !== undefined) $deliveryTable.find('tr:contains("RESI") td:last').text(data.resi || '-');
+                if(data.tracking_link !== undefined) {
+                    const trackingCell = $deliveryTable.find('tr:contains("Link Tracking") td:last');
+                    if(data.tracking_link) {
+                        trackingCell.html(`<a class="text-decoration-none" target="_blank" href="${data.tracking_link}">View Here</a>`);
+                    } else {
+                        trackingCell.text('-');
+                    }
+                }
+                if(data.serial_number !== undefined) $deliveryTable.find('tr:contains("Serial Number") td:last').text(data.serial_number || '-');
+                if(data.target_tgl !== undefined) $deliveryTable.find('tr:contains("Target Alat Diterima") td:last').text(data.target_tgl || '-');
+                if(data.tgl_diterima !== undefined) $deliveryTable.find('tr:contains("Tanggal Diterima") td:last').text(data.tgl_diterima || '-');
+                if(data.nama_penerima !== undefined) $deliveryTable.find('tr:contains("Nama Penerima") td:last').text(data.nama_penerima || '-');
+                if(data.jabatan_penerima !== undefined) $deliveryTable.find('tr:contains("Jabatan Penerima") td:last').text(data.jabatan_penerima || '-');
+                if(data.instansi_penerima !== undefined) $deliveryTable.find('tr:contains("Instansi Penerima") td:last').text(data.instansi_penerima || '-');
+                if(data.nomor_penerima !== undefined) $deliveryTable.find('tr:contains("Nomor HP Penerima") td:last').text(data.nomor_penerima || '-');
+                if(data.catatan !== undefined) $deliveryTable.find('tr:contains("Catatan") td:last').text(data.catatan || '-');
+
+                // Update tanda terima link
+                if(data.link_tanda_terima !== undefined) {
+                    const tandaTerimaCell = $deliveryTable.find('tr:contains("Bukti Tanda Terima") td:last');
+                    if(data.link_tanda_terima) {
+                        const storageUrl = '{{ asset("storage/") }}/' + data.link_tanda_terima;
+                        tandaTerimaCell.html(`<a class="text-decoration-none" target="_blank" href="${storageUrl}">View Here</a>`);
+                    } else {
+                        tandaTerimaCell.text('-');
+                    }
+                }
+
+                // Update status penerimaan
+                const statusText = data.tgl_diterima ? 'Diterima' : '-';
+                $deliveryTable.find('tr:contains("Status Penerimaan") td:last').text(statusText);
+
+                notifySuccess(res.message || 'Data pengiriman berhasil diperbarui');
+                $modal.modal('hide');
+
+                // Refresh page after 1 second to update progress timeline
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            } else {
+                notifyError((res && res.message) || 'Gagal memperbarui data pengiriman');
+            }
+        }).fail(function(xhr, status){
+            if(status === 'timeout'){
+                notifyError('Permintaan timeout, periksa koneksi Anda');
+                return;
+            }
+            if(xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors){
+                const errs = xhr.responseJSON.errors;
+                Object.keys(errs).forEach(f => {
+                    const input = $form.find(`[name='${f}']`);
+                    input.addClass('is-invalid');
+                    if(input.next('.invalid-feedback').length===0){
+                        input.after(`<div class="invalid-feedback">${errs[f][0]}</div>`);
+                    } else {
+                        input.next('.invalid-feedback').text(errs[f][0]);
+                    }
+                });
+                notifyError('Periksa kembali input Anda');
+            } else if(xhr.status === 404){
+                notifyError('Data tidak ditemukan');
+            } else {
+                notifyError('Terjadi kesalahan server');
+            }
+        }).always(function(){
+            $submitBtn.prop('disabled', false).html(originalHtml);
+        });
+    });
+});
+
+// Uji Fungsi form submission handler
+$(function(){
+    const $modal = $('#ujiFungsiModal');
+    const $form = $('#ujiFungsiForm');
+    if(!$modal.length || !$form.length) return;
+
+    const updateUrl = '{{ route('api-verification-request.uji-fungsi-information', ['id' => $puskesmas->id]) }}';
+
+    function notifySuccess(msg){
+        if(window.toastr){ toastr.success(msg); return; }
+        if(window.Swal){ Swal.fire({icon:'success',title:'Berhasil',text:msg,timer:1400,showConfirmButton:false}); return; }
+        alert(msg);
+    }
+    function notifyError(msg){
+        if(window.toastr){ toastr.error(msg); return; }
+        if(window.Swal){ Swal.fire({icon:'error',title:'Gagal',text:msg}); return; }
+        alert(msg);
+    }
+
+    $form.on('submit', function(e){
+        e.preventDefault();
+        const $submitBtn = $form.find('button[type="submit"]');
+        const originalHtml = $submitBtn.html();
+        $submitBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm mr-1"></span>Menyimpan...');
+
+        const formData = new FormData(this);
+
+        // Clear previous error states
+        $form.find('.is-invalid').removeClass('is-invalid');
+        $form.find('.invalid-feedback').remove();
+
+        $.ajax({
+            url: updateUrl,
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            timeout: 30000, // 30 seconds for file upload
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
+        }).done(function(res){
+            if(res && res.success){
+                // Update visible table values without reload
+                const data = res.data || {};
+                const $ujiFungsiTable = $('.card-header:contains("Uji Fungsi")').next('.card-body').find('table.table-kv');
+
+                // Update uji fungsi information fields
+                if(data.tgl_instalasi !== undefined) $ujiFungsiTable.find('tr:contains("Tanggal Instalasi") td:last').text(data.tgl_instalasi || '-');
+                if(data.target_tgl_uji_fungsi !== undefined) $ujiFungsiTable.find('tr:contains("Target Tanggal Uji Fungsi") td:last').text(data.target_tgl_uji_fungsi || '-');
+                if(data.tgl_uji_fungsi !== undefined) $ujiFungsiTable.find('tr:contains("Tanggal Uji Fungsi") td:last').text(data.tgl_uji_fungsi || '-');
+                if(data.tgl_pelatihan !== undefined) $ujiFungsiTable.find('tr:contains("Tanggal Pelatihan Alat") td:last').text(data.tgl_pelatihan || '-');
+                if(data.catatan !== undefined) $ujiFungsiTable.find('tr:contains("Catatan") td:last').text(data.catatan || '-');
+
+                // Update document links
+                if(data.doc_instalasi !== undefined) {
+                    const docInstalasiCell = $ujiFungsiTable.find('tr:contains("Berita Acara Instalasi") td:last');
+                    if(data.doc_instalasi) {
+                        const storageUrl = '{{ asset("storage/") }}/' + data.doc_instalasi;
+                        docInstalasiCell.html(`<a class="text-decoration-none" target="_blank" href="${storageUrl}">View Here</a>`);
+                    } else {
+                        docInstalasiCell.text('-');
+                    }
+                }
+
+                if(data.doc_uji_fungsi !== undefined) {
+                    const docUjiFungsiCell = $ujiFungsiTable.find('tr:contains("Berita Acara Uji Fungsi") td:last');
+                    if(data.doc_uji_fungsi) {
+                        const storageUrl = '{{ asset("storage/") }}/' + data.doc_uji_fungsi;
+                        docUjiFungsiCell.html(`<a class="text-decoration-none" target="_blank" href="${storageUrl}">View Here</a>`);
+                    } else {
+                        docUjiFungsiCell.text('-');
+                    }
+                }
+
+                if(data.doc_pelatihan !== undefined) {
+                    const docPelatihanCell = $ujiFungsiTable.find('tr:contains("Berita Acara Pelatihan Alat") td:last');
+                    if(data.doc_pelatihan) {
+                        const storageUrl = '{{ asset("storage/") }}/' + data.doc_pelatihan;
+                        docPelatihanCell.html(`<a class="text-decoration-none" target="_blank" href="${storageUrl}">View Here</a>`);
+                    } else {
+                        docPelatihanCell.text('-');
+                    }
+                }
+
+                notifySuccess(res.message || 'Data uji fungsi berhasil diperbarui');
+                $modal.modal('hide');
+
+                // Refresh page after 1 second to update progress timeline
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            } else {
+                notifyError((res && res.message) || 'Gagal memperbarui data uji fungsi');
+            }
+        }).fail(function(xhr, status){
+            if(status === 'timeout'){
+                notifyError('Permintaan timeout, periksa koneksi Anda');
+                return;
+            }
+            if(xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors){
+                const errs = xhr.responseJSON.errors;
+                Object.keys(errs).forEach(f => {
+                    const input = $form.find(`[name='${f}']`);
+                    input.addClass('is-invalid');
+                    if(input.next('.invalid-feedback').length===0){
+                        input.after(`<div class="invalid-feedback">${errs[f][0]}</div>`);
+                    } else {
+                        input.next('.invalid-feedback').text(errs[f][0]);
+                    }
+                });
+                notifyError('Periksa kembali input Anda');
+            } else if(xhr.status === 404){
+                notifyError('Data tidak ditemukan');
+            } else {
+                notifyError('Terjadi kesalahan server');
+            }
+        }).always(function(){
+            $submitBtn.prop('disabled', false).html(originalHtml);
+        });
+    });
+});
+
+// Documents form submission handler
+$(function(){
+    const $modal = $('#documentsModal');
+    const $form = $('#documentsForm');
+    if(!$modal.length || !$form.length) return;
+
+    const updateUrl = '{{ route('api-verification-request.document-information', ['id' => $puskesmas->id]) }}';
+
+    function notifySuccess(msg){
+        if(window.toastr){ toastr.success(msg); return; }
+        if(window.Swal){ Swal.fire({icon:'success',title:'Berhasil',text:msg,timer:1400,showConfirmButton:false}); return; }
+        alert(msg);
+    }
+    function notifyError(msg){
+        if(window.toastr){ toastr.error(msg); return; }
+        if(window.Swal){ Swal.fire({icon:'error',title:'Gagal',text:msg}); return; }
+        alert(msg);
+    }
+
+    $form.on('submit', function(e){
+        e.preventDefault();
+        const $submitBtn = $form.find('button[type="submit"]');
+        const originalHtml = $submitBtn.html();
+        $submitBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm mr-1"></span>Menyimpan...');
+
+        const formData = new FormData(this);
+
+        // Clear previous error states
+        $form.find('.is-invalid').removeClass('is-invalid');
+        $form.find('.invalid-feedback').remove();
+
+        $.ajax({
+            url: updateUrl,
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            timeout: 30000, // 30 seconds for file upload
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
+        }).done(function(res){
+            if(res && res.success){
+                // Update visible table values without reload
+                const data = res.data || {};
+                const $documentsTable = $('.card-header:contains("Dokumen")').next('.card-body').find('table.table-kv');
+
+                // Update document links
+                const documentFields = ['basto', 'kalibrasi', 'bast', 'aspak', 'update_aspak'];
+                const documentLabels = {
+                    'basto': 'Berita Acara BASTO',
+                    'kalibrasi': 'Berita Acara Kalibrasi',
+                    'bast': 'Berita Acara BAST',
+                    'aspak': 'Berita Acara ASPAK',
+                    'update_aspak': 'Update ASPAK'
+                };
+
+                documentFields.forEach(field => {
+                    if(data[field] !== undefined) {
+                        const docCell = $documentsTable.find(`tr:contains("${documentLabels[field]}") td:last`);
+                        if(data[field]) {
+                            const storageUrl = '{{ asset("storage/") }}/' + data[field];
+                            docCell.html(`<a class="text-decoration-none" target="_blank" href="${storageUrl}">View Here</a>`);
+                        } else {
+                            docCell.text('-');
+                        }
+                    }
+                });
+
+                notifySuccess(res.message || 'Data dokumen berhasil diperbarui');
+                $modal.modal('hide');
+
+                // Refresh page after 1 second to update any related status
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            } else {
+                notifyError((res && res.message) || 'Gagal memperbarui data dokumen');
+            }
+        }).fail(function(xhr, status){
+            if(status === 'timeout'){
+                notifyError('Permintaan timeout, periksa koneksi Anda');
+                return;
+            }
+            if(xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors){
+                const errs = xhr.responseJSON.errors;
+                Object.keys(errs).forEach(f => {
+                    const input = $form.find(`[name='${f}']`);
+                    input.addClass('is-invalid');
+                    if(input.next('.invalid-feedback').length===0){
+                        input.after(`<div class="invalid-feedback">${errs[f][0]}</div>`);
+                    } else {
+                        input.next('.invalid-feedback').text(errs[f][0]);
+                    }
+                });
+                notifyError('Periksa kembali input Anda');
+            } else if(xhr.status === 404){
+                notifyError('Data tidak ditemukan');
+            } else {
+                notifyError('Terjadi kesalahan server');
+            }
+        }).always(function(){
+            $submitBtn.prop('disabled', false).html(originalHtml);
+        });
+    });
 });
 </script>
 @endsection
