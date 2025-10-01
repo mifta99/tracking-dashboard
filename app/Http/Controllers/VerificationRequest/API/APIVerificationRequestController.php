@@ -11,6 +11,7 @@ use App\Models\UjiFungsi;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 
 class APIVerificationRequestController extends Controller
 {
@@ -225,9 +226,18 @@ class APIVerificationRequestController extends Controller
                 $puskesmas->pengiriman->update($updateData);
                 $pengiriman = $puskesmas->pengiriman;
             } else {
-                $updateData['puskesmas_id'] = $puskesmas->id;
-                $updateData['created_by'] = auth()->id();
-                $pengiriman = Pengiriman::create($updateData);
+                // Ensure we have required data for creating new record
+                $createData = $updateData;
+                $createData['puskesmas_id'] = $puskesmas->id;
+                $createData['tahapan_id'] = 1;
+                $createData['created_by'] = auth()->id();
+
+                // Add default values if no data provided
+                if (empty($createData) || count($createData) <= 3) { // Only has puskesmas_id, created_by, updated_by
+                    $createData['verif_kemenkes'] = false;
+                }
+
+                $pengiriman = Pengiriman::create($createData);
             }
 
             // Refresh with relationships
@@ -315,20 +325,20 @@ class APIVerificationRequestController extends Controller
             foreach ($fileFields as $field) {
                 if ($request->hasFile($field)) {
                     $file = $request->file($field);
-                    
+
                     // Create directory if it doesn't exist
                     $uploadPath = 'uploads/uji-fungsi';
                     $fullPath = storage_path('app/public/' . $uploadPath);
                     if (!file_exists($fullPath)) {
                         mkdir($fullPath, 0755, true);
                     }
-                    
+
                     // Generate unique filename
                     $fileName = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-                    
+
                     // Store file
                     $file->storeAs($uploadPath, $fileName, 'public');
-                    
+
                     // Store relative path
                     $validated[$field] = $uploadPath . '/' . $fileName;
                 }
@@ -353,9 +363,17 @@ class APIVerificationRequestController extends Controller
                 $puskesmas->ujiFungsi->update($updateData);
                 $ujiFungsi = $puskesmas->ujiFungsi;
             } else {
-                $updateData['puskesmas_id'] = $puskesmas->id;
-                $updateData['created_by'] = auth()->id();
-                $ujiFungsi = UjiFungsi::create($updateData);
+                // Ensure we have required data for creating new record
+                $createData = $updateData;
+                $createData['puskesmas_id'] = $puskesmas->id;
+                $createData['created_by'] = auth()->id();
+
+                // Add default values if no data provided
+                if (empty($createData) || count($createData) <= 3) { // Only has puskesmas_id, created_by, updated_by
+                    $createData['verif_kemenkes'] = false;
+                }
+
+                $ujiFungsi = UjiFungsi::create($createData);
             }
 
             return response()->json([
@@ -433,20 +451,20 @@ class APIVerificationRequestController extends Controller
             foreach ($fileFields as $field) {
                 if ($request->hasFile($field)) {
                     $file = $request->file($field);
-                    
+
                     // Create directory if it doesn't exist
                     $uploadPath = 'uploads/documents';
                     $fullPath = storage_path('app/public/' . $uploadPath);
                     if (!file_exists($fullPath)) {
                         mkdir($fullPath, 0755, true);
                     }
-                    
+
                     // Generate unique filename
                     $fileName = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-                    
+
                     // Store file
                     $file->storeAs($uploadPath, $fileName, 'public');
-                    
+
                     // Store relative path
                     $validated[$field] = $uploadPath . '/' . $fileName;
                 }
@@ -471,9 +489,17 @@ class APIVerificationRequestController extends Controller
                 $puskesmas->document->update($updateData);
                 $document = $puskesmas->document;
             } else {
-                $updateData['puskesmas_id'] = $puskesmas->id;
-                $updateData['created_by'] = auth()->id();
-                $document = Document::create($updateData);
+                // Ensure we have required data for creating new record
+                $createData = $updateData;
+                $createData['puskesmas_id'] = $puskesmas->id;
+                $createData['created_by'] = auth()->id();
+
+                // Add default values if no data provided
+                if (empty($createData) || count($createData) <= 3) { // Only has puskesmas_id, created_by, updated_by
+                    $createData['verif_kemenkes'] = false;
+                }
+
+                $document = Document::create($createData);
             }
 
             return response()->json([
@@ -521,24 +547,16 @@ class APIVerificationRequestController extends Controller
                 ], 404);
             }
 
-            // Check if pengiriman exists
-            if (!$puskesmas->pengiriman) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Data pengiriman tidak ditemukan'
-                ], 404);
-            }
-
             // Get and validate the verification status
             $verifKemenkes = $request->input('verif_kemenkes');
-            
+
             if ($verifKemenkes === null) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Status verifikasi wajib diisi'
                 ], 422);
             }
-            
+
             // Convert to boolean - handle various formats
             if (is_bool($verifKemenkes)) {
                 $verifStatus = $verifKemenkes;
@@ -548,8 +566,8 @@ class APIVerificationRequestController extends Controller
                 $verifStatus = (bool) $verifKemenkes;
             }
 
-            // Check if already verified and trying to unverify
-            if ($puskesmas->pengiriman->verif_kemenkes && !$verifStatus) {
+            // Check if pengiriman exists and if already verified
+            if ($puskesmas->pengiriman && $puskesmas->pengiriman->verif_kemenkes && !$verifStatus) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Verifikasi yang sudah dilakukan tidak dapat dibatalkan'
@@ -569,17 +587,25 @@ class APIVerificationRequestController extends Controller
                 $updateData['tgl_verif_kemenkes'] = null;
             }
 
-            $puskesmas->pengiriman->update($updateData);
+            // Get or create pengiriman record
+            if ($puskesmas->pengiriman) {
+                $puskesmas->pengiriman->update($updateData);
+                $pengiriman = $puskesmas->pengiriman;
+            } else {
+                $updateData['puskesmas_id'] = $puskesmas->id;
+                $updateData['created_by'] = auth()->id();
+                $pengiriman = Pengiriman::create($updateData);
+            }
 
             return response()->json([
                 'success' => true,
-                'message' => $verifStatus ? 
-                    'Data pengiriman berhasil diverifikasi' : 
+                'message' => $verifStatus ?
+                    'Data pengiriman berhasil diverifikasi' :
                     'Verifikasi data pengiriman berhasil dibatalkan',
                 'data' => [
-                    'verif_kemenkes' => $puskesmas->pengiriman->verif_kemenkes,
-                    'tgl_verif_kemenkes' => $puskesmas->pengiriman->tgl_verif_kemenkes ? 
-                        $puskesmas->pengiriman->tgl_verif_kemenkes->format('d F Y H:i') : null,
+                    'verif_kemenkes' => $pengiriman->verif_kemenkes,
+                    'tgl_verif_kemenkes' => $pengiriman->tgl_verif_kemenkes ?
+                        $pengiriman->tgl_verif_kemenkes->format('d F Y H:i') : null,
                 ]
             ], 200);
 
@@ -615,24 +641,16 @@ class APIVerificationRequestController extends Controller
                 ], 404);
             }
 
-            // Check if uji fungsi exists
-            if (!$puskesmas->ujiFungsi) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Data uji fungsi tidak ditemukan'
-                ], 404);
-            }
-
             // Get and validate the verification status
             $verifKemenkes = $request->input('verif_kemenkes');
-            
+
             if ($verifKemenkes === null) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Status verifikasi wajib diisi'
                 ], 422);
             }
-            
+
             // Convert to boolean - handle various formats
             if (is_bool($verifKemenkes)) {
                 $verifStatus = $verifKemenkes;
@@ -642,8 +660,8 @@ class APIVerificationRequestController extends Controller
                 $verifStatus = (bool) $verifKemenkes;
             }
 
-            // Check if already verified and trying to unverify
-            if ($puskesmas->ujiFungsi->verif_kemenkes && !$verifStatus) {
+            // Check if uji fungsi exists and if already verified
+            if ($puskesmas->ujiFungsi && $puskesmas->ujiFungsi->verif_kemenkes && !$verifStatus) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Verifikasi yang sudah dilakukan tidak dapat dibatalkan'
@@ -663,17 +681,25 @@ class APIVerificationRequestController extends Controller
                 $updateData['tgl_verif_kemenkes'] = null;
             }
 
-            $puskesmas->ujiFungsi->update($updateData);
+            // Get or create uji fungsi record
+            if ($puskesmas->ujiFungsi) {
+                $puskesmas->ujiFungsi->update($updateData);
+                $ujiFungsi = $puskesmas->ujiFungsi;
+            } else {
+                $updateData['puskesmas_id'] = $puskesmas->id;
+                $updateData['created_by'] = auth()->id();
+                $ujiFungsi = UjiFungsi::create($updateData);
+            }
 
             return response()->json([
                 'success' => true,
-                'message' => $verifStatus ? 
-                    'Data uji fungsi berhasil diverifikasi' : 
+                'message' => $verifStatus ?
+                    'Data uji fungsi berhasil diverifikasi' :
                     'Verifikasi data uji fungsi berhasil dibatalkan',
                 'data' => [
-                    'verif_kemenkes' => $puskesmas->ujiFungsi->verif_kemenkes,
-                    'tgl_verif_kemenkes' => $puskesmas->ujiFungsi->tgl_verif_kemenkes ? 
-                        $puskesmas->ujiFungsi->tgl_verif_kemenkes->format('d F Y H:i') : null,
+                    'verif_kemenkes' => $ujiFungsi->verif_kemenkes,
+                    'tgl_verif_kemenkes' => $ujiFungsi->tgl_verif_kemenkes ?
+                        $ujiFungsi->tgl_verif_kemenkes->format('d F Y H:i') : null,
                 ]
             ], 200);
 
@@ -706,20 +732,12 @@ class APIVerificationRequestController extends Controller
                 ], 404);
             }
 
-            // Check if document exists
-            if (!$puskesmas->document) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Data dokumen tidak ditemukan'
-                ], 404);
-            }
-
             // Get verification status
             $verifKemenkes = $request->input('verif_kemenkes');
             $verifStatus = filter_var($verifKemenkes, FILTER_VALIDATE_BOOLEAN);
 
-            // Check if already verified and trying to unverify
-            if ($puskesmas->document->verif_kemenkes && !$verifStatus) {
+            // Check if document exists and if already verified
+            if ($puskesmas->document && $puskesmas->document->verif_kemenkes && !$verifStatus) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Verifikasi yang sudah dilakukan tidak dapat dibatalkan'
@@ -734,22 +752,30 @@ class APIVerificationRequestController extends Controller
 
             // Set verification date
             if ($verifStatus) {
-                $updateData['tgl_verif_kemenkes'] = now();
+                $updateData['tgl_verif_kemenkes'] = Carbon::now('Asia/Jakarta');
             } else {
                 $updateData['tgl_verif_kemenkes'] = null;
             }
 
-            $puskesmas->document->update($updateData);
+            // Get or create document record
+            if ($puskesmas->document) {
+                $puskesmas->document->update($updateData);
+                $document = $puskesmas->document;
+            } else {
+                $updateData['puskesmas_id'] = $puskesmas->id;
+                $updateData['created_by'] = auth()->id();
+                $document = Document::create($updateData);
+            }
 
             return response()->json([
                 'success' => true,
-                'message' => $verifStatus ? 
-                    'Data dokumen berhasil diverifikasi' : 
+                'message' => $verifStatus ?
+                    'Data dokumen berhasil diverifikasi' :
                     'Verifikasi data dokumen berhasil dibatalkan',
                 'data' => [
-                    'verif_kemenkes' => $puskesmas->document->verif_kemenkes,
-                    'tgl_verif_kemenkes' => $puskesmas->document->tgl_verif_kemenkes ? 
-                        $puskesmas->document->tgl_verif_kemenkes->format('d F Y H:i') : null,
+                    'verif_kemenkes' => $document->verif_kemenkes,
+                    'tgl_verif_kemenkes' => $document->tgl_verif_kemenkes ?
+                        $document->tgl_verif_kemenkes->format('d F Y H:i') : null,
                 ]
             ], 200);
 
