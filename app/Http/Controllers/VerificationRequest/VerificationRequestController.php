@@ -11,20 +11,47 @@ class VerificationRequestController extends Controller
     /**
      * Display a listing of Puskesmas that have shipment date (tgl_pengiriman) filled.
      */
-    public function index(Request $request)
+    public function index( $statusVerifikasi=null)
     {
         // Optional filters could be added later (province, regency, etc.)
-        $puskesmas = Puskesmas::query()
+        if($statusVerifikasi == 'uji-fungsi'){
+            $puskesmas = Puskesmas::query()
+            ->with([
+                'district.regency.province',
+                'ujiFungsi:id,puskesmas_id,verif_kemenkes,tgl_verif_kemenkes',
+                'document:id,puskesmas_id,verif_kemenkes,tgl_verif_kemenkes'
+            ])
+            ->whereHas('pengiriman')
+            ->whereHas('ujiFungsi')
+            ->whereDoesntHave('document')
+            ->orderBy('name')
+            ->get();
+        }else if($statusVerifikasi == 'documents'){
+            $puskesmas = Puskesmas::query()
+            ->with([
+                'district.regency.province',
+                'ujiFungsi:id,puskesmas_id,verif_kemenkes,tgl_verif_kemenkes',
+                'document:id,puskesmas_id,verif_kemenkes,tgl_verif_kemenkes'
+            ])
+            ->whereHas('pengiriman')
+            ->whereHas('ujiFungsi')
+            ->whereHas('document')
+            ->orderBy('name')
+            ->get();
+        }else{
+                $puskesmas = Puskesmas::query()
             ->with([
                 'district.regency.province',
                 'pengiriman:id,puskesmas_id,tgl_pengiriman,verif_kemenkes,tgl_verif_kemenkes',
                 'document:id,puskesmas_id,verif_kemenkes,tgl_verif_kemenkes'
             ])
-            ->whereHas('pengiriman', function ($q) {
-                $q->whereNotNull('tgl_pengiriman');
-            })
+            ->whereHas('pengiriman')
+            ->whereDoesntHave('ujiFungsi')
+            ->whereDoesntHave('document')
             ->orderBy('name')
             ->get();
+    
+        }
 
         return view('verification-request.index', [
             'verificationRequests' => $puskesmas,
@@ -92,9 +119,6 @@ class VerificationRequestController extends Controller
             'ujiFungsi',
             'document'
         ])
-        // ->whereHas('pengiriman', function($q){
-        //     $q->whereNotNull('tgl_pengiriman');
-        // })
         ->findOrFail($id);
 
         return view('verification-request.show', [

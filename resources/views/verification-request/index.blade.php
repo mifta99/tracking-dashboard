@@ -14,6 +14,17 @@
 				<i class="fas fa-filter mr-1"></i><span class="txt">Tampilkan Filter</span>
 			</button>
 		</div>
+		<ul class="nav nav-fill nav-tabs" role="tablist">
+			<li class="nav-item" role="presentation">
+				<a class="nav-link {{ request()->is('*/') || request('status') == null ? 'active' : '' }}" id="fill-tab-0" data-bs-toggle="tab" href="{{route('verification-request.index')}}" role="tab" aria-controls="fill-tabpanel-0" aria-selected="true"> Pengiriman </a>
+			</li>
+			<li class="nav-item" role="presentation">
+				<a class="nav-link {{ request()->is('*/uji-fungsi') || request('status') == 'uji-fungsi' ? 'active' : '' }}" id="fill-tab-1" data-bs-toggle="tab" href="{{route('verification-request.index', ['status' => 'uji-fungsi'])}}" role="tab" aria-controls="fill-tabpanel-1" aria-selected="false"> Uji Fungsi </a>
+			</li>
+			<li class="nav-item" role="presentation">
+				<a class="nav-link {{ request()->is('*/documents') || request('status') == 'documents' ? 'active' : '' }}" id="fill-tab-2" data-bs-toggle="tab" href="{{route('verification-request.index', ['status' => 'documents'])}}" role="tab" aria-controls="fill-tabpanel-2" aria-selected="false"> Dokumen </a>
+			</li>
+			</ul>
 		<div class="card-body ">
 			<div id="filterPanel" class="mb-3 collapse-hide p-3 border rounded bg-light">
 				<div class="row">
@@ -78,7 +89,7 @@
 						@empty
 							<tr>
 								<td colspan="8" class="text-center">
-									<div class="alert alert-info mb-0 py-2">Belum ada data puskesmas dengan tanggal pengiriman.</div>
+									<div class="alert alert-secondary mb-0 py-2">Belum ada data puskesmas dengan tanggal pengiriman.</div>
 								</td>
 							</tr>
 						@endforelse
@@ -113,54 +124,93 @@
 		let sProvince, sRegency, sDistrict;
 
 		function initDataTable(){
-			if(!$.fn.DataTable.isDataTable('#verificationTable')){
-				dataTable = $('#verificationTable').DataTable({
-				pageLength: 25,
-				ordering: true,
-				responsive: false,
-				autoWidth:false,
-				language: {
-					emptyTable: 'Tidak ada data',
-					lengthMenu: 'Tampilkan _MENU_ baris',
-					search: 'Cari:',
-					info: 'Menampilkan _START_ - _END_ dari _TOTAL_ data',
-					infoEmpty: 'Tidak ada data',
-					paginate: { previous: 'Sebelumnya', next: 'Berikutnya' }
+			try {
+				// Check if table has any data rows (not just message rows)
+				const dataRows = $('#verificationTable tbody tr').not(':has(.alert)');
+				if(dataRows.length === 0){
+					console.log('No data rows found, skipping DataTable initialization');
+					return;
 				}
+				
+				// Ensure we're starting fresh
+				if($.fn.DataTable.isDataTable('#verificationTable')){
+					$('#verificationTable').DataTable().destroy();
+					$('#verificationTable').removeClass('dataTable');
+				}
+				
+				dataTable = $('#verificationTable').DataTable({
+					pageLength: 25,
+					ordering: true,
+					responsive: false,
+					autoWidth: false,
+					destroy: true,
+					deferRender: true,
+					language: {
+						emptyTable: 'Tidak ada data',
+						lengthMenu: 'Tampilkan _MENU_ baris',
+						search: 'Cari:',
+						info: 'Menampilkan _START_ - _END_ dari _TOTAL_ data',
+						infoEmpty: 'Tidak ada data',
+						paginate: { previous: 'Sebelumnya', next: 'Berikutnya' }
+					}
 				});
-			} else {
-				dataTable = $('#verificationTable').DataTable();
+			} catch (e) {
+				console.error('DataTable initialization error:', e);
+				// Remove any partial DataTable classes/attributes
+				$('#verificationTable').removeClass('dataTable');
+				$('#verificationTable_wrapper').remove();
 			}
 		}
 
 		function rebuildTable(rows){
 			console.log('Rebuild table with rows:', rows ? rows.length : 'undefined');
-			initDataTable();
-			dataTable.clear();
+			
+			// Completely destroy DataTable
+			if($.fn.DataTable.isDataTable('#verificationTable')){
+				$('#verificationTable').DataTable().destroy();
+				$('#verificationTable').removeClass('dataTable');
+			}
+			
+			// Clear the table body
+			$('#verificationTable tbody').empty();
+			
 			if(!Array.isArray(rows)){
 				console.warn('Rows is not array. Raw value:', rows);
-				dataTable.rows.add([]).draw();
 				$('#verificationTable tbody').html('<tr><td colspan="8" class="text-center"><div class="alert alert-warning mb-0 py-2">Format data tidak valid.</div></td></tr>');
+				// Don't reinitialize DataTable for error state
 				return;
 			}
+			
 			if(rows.length === 0){
-				dataTable.rows.add([]).draw();
 				$('#verificationTable tbody').html('<tr><td colspan="8" class="text-center"><div class="alert alert-info mb-0 py-2">Tidak ada data hasil filter.</div></td></tr>');
+				// Don't reinitialize DataTable for empty state
 				return;
 			}
-			const mapped = rows.map(function(r,i){
-				return [
-					(i+1),
-					r.name,
-					r.province,
-					r.regency,
-					r.district,
-					(r.tgl_pengiriman ?? '-'),
-					(r.verif_kemenkes ? '<span class="badge badge-success">Sudah</span>' : '<span class="badge badge-secondary">Belum</span>'),
-					('<a href="'+Laravel.routes.verificationShow.replace('ID_PLACEHOLDER', r.id)+'" class=""><i class="fas fa-search"></i></a>')
-				];
+			
+			// Build table rows HTML
+			let html = '';
+			rows.forEach(function(r, i){
+				html += '<tr>';
+				html += '<td class="text-center align-middle">' + (i+1) + '</td>';
+				html += '<td class="align-middle">' + (r.name || '-') + '</td>';
+				html += '<td class="align-middle">' + (r.province || '-') + '</td>';
+				html += '<td class="align-middle">' + (r.regency || '-') + '</td>';
+				html += '<td class="align-middle">' + (r.district || '-') + '</td>';
+				html += '<td class="text-center align-middle">' + (r.tgl_pengiriman || '-') + '</td>';
+				html += '<td class="text-center align-middle">' + (r.verif_kemenkes ? '<span class="badge badge-success">Sudah</span>' : '<span class="badge badge-secondary">Belum</span>') + '</td>';
+				html += '<td class="text-center align-middle"><a href="' + Laravel.routes.verificationShow.replace('ID_PLACEHOLDER', r.id) + '" class=""><i class="fas fa-search"></i></a></td>';
+				html += '</tr>';
 			});
-			dataTable.rows.add(mapped).draw();
+			
+			// Insert HTML
+			$('#verificationTable tbody').html(html);
+			
+			// Only reinitialize DataTable if we have actual data rows
+			if(rows.length > 0){
+				setTimeout(function(){
+					initDataTable();
+				}, 100);
+			}
 		}
 
 		function fetchFiltered(){
@@ -247,7 +297,11 @@
 		}
 
 		$(function(){
-			initDataTable();
+			// Only initialize DataTable if we have actual data rows
+			const hasDataRows = $('#verificationTable tbody tr').not(':has(.alert)').length > 0;
+			if(hasDataRows){
+				initDataTable();
+			}
 			// Restore filter visibility state
 			const stored = localStorage.getItem('vr_filter_hidden');
 			if(stored === '1'){

@@ -22,9 +22,13 @@ Route::post('/login', [App\Http\Controllers\Auth\LoginController::class, 'loginP
 Route::post('/logout', [App\Http\Controllers\Auth\LoginController::class, 'logout'])->name('logout');
 
 Route::middleware(['auth', 'roles:2,3'])->prefix('verification-request')->name('verification-request.')->group(function () {
-    Route::get('/', [App\Http\Controllers\VerificationRequest\VerificationRequestController::class, 'index'])->name('index');
-    Route::get('/fetch', [App\Http\Controllers\VerificationRequest\VerificationRequestController::class, 'fetch'])->name('fetch');
-    Route::get('/{id}', [App\Http\Controllers\VerificationRequest\VerificationRequestController::class, 'show'])->name('show');
+    Route::get('/api/fetch', [App\Http\Controllers\VerificationRequest\VerificationRequestController::class, 'fetch'])->name('fetch');
+    Route::get('/{status?}', [App\Http\Controllers\VerificationRequest\VerificationRequestController::class, 'index'])->name('index');
+    Route::get('/show/{id}', [App\Http\Controllers\VerificationRequest\VerificationRequestController::class, 'show'])->name('show');
+});
+
+Route::middleware(['auth', 'roles:2,3'])->prefix('api-verification-request')->name('api-verification-request.')->group(function () {
+    Route::POST('/basic-information/{id}', [App\Http\Controllers\VerificationRequest\API\APIVerificationRequestController::class, 'editBasicInformation'])->name('basic-information');
 });
 Route::middleware(['auth', 'roles:2,3'])->prefix('raised-issue')->name('raised-issue.')->group(function () {
     Route::get('/', function () {
@@ -53,10 +57,6 @@ Route::middleware(['auth', 'roles:2,3'])->prefix('api-puskesmas')->name('api-pus
     Route::get('/regencies', [App\Http\Controllers\Puskesmas\API\APIPuskesmasController::class, 'fetchRegencies'])->name('regencies');
     Route::get('/districts', [App\Http\Controllers\Puskesmas\API\APIPuskesmasController::class, 'fetchDistricts'])->name('districts');
     Route::get('/test', [App\Http\Controllers\Puskesmas\API\APIPuskesmasController::class, 'testConnection'])->name('test');
-});
-
-Route::middleware(['auth', 'roles:2,3'])->prefix('api-verification-request')->name('api-verification-request.')->group(function () {
-    Route::POST('/basic-information/{id}', [App\Http\Controllers\VerificationRequest\API\APIVerificationRequestController::class, 'editBasicInformation'])->name('basic-information');
 });
 Route::middleware(['auth', 'roles:2,3'])->get('/detail', function () {
         return view('detail');

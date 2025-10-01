@@ -30,10 +30,8 @@ class APIPuskesmasController extends Controller
         }
     public function fetchData(Request $request)
     {
-        try {
-            Log::info('API fetchData called', $request->all());
-            
-            $query = Puskesmas::with(['district.regency.province']);
+        try {            
+            $query = Puskesmas::with(['district.regency.province', 'pengiriman']);
             
             // Filter by province
             if ($request->has('province_id') && !empty($request->province_id)) {

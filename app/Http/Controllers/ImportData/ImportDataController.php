@@ -130,7 +130,7 @@ class ImportDataController extends Controller
                         Puskesmas::pluck('id')->toArray()
                     );
 
-                    Puskesmas::create([
+                    $puskesmasId = Puskesmas::create([
                         'id' => $newId,
                         'name' => $item['nama_puskesmas'] ?? null,
                         'pic' => $item['pic_puskesmas_petugas_aspak'] ?? null,
@@ -138,6 +138,11 @@ class ImportDataController extends Controller
                         'pic_dinkes_prov' => $item['pic_dinas_kesehatan_provinsi'] ?? null,
                         'pic_dinkes_kab' => $item['pic_kabupaten_kota'] ?? null,
                         'district_id' => $districtId,
+                        'created_by' => $user_id,
+                    ]);
+                    Pengiriman::create([
+                        'puskesmas_id' => $puskesmasId->id,
+                        'tahapan_id' => 1,
                         'created_by' => $user_id,
                     ]);
                 }
@@ -166,12 +171,6 @@ class ImportDataController extends Controller
             Excel::import($import, $file);
             $user_id = Auth::user()->id;
             $data = $import->getData();
-            // foreach ($data as $d) {
-            //     dd(Date::excelToDateTimeObject($d['tanggal_pengiriman'] ?? 0)->format('Y-m-d'));
-            //     if (empty($d['nama_puskesmas']) || empty($d['kabupaten_kota']) || empty($d['kecamatan'])) {
-            //         return redirect()->back()->with('error', 'Import failed: Nama Puskesmas, Kabupaten/Kota, dan Kecamatan tidak boleh kosong.');
-            //     }
-            // }
            
 
             $query = DB::table('districts')
@@ -181,7 +180,7 @@ class ImportDataController extends Controller
             $districtMap = $query->pluck('id', 'regency_district'); // key => id for direct lookup
             $districtsList = $query->get()->map(function ($d) {
                 return ['name' => $d->regency_district, 'id' => $d->id];
-            })->toArray(); // array of ['name' => ..., 'id' => ...] for fuzzy matching
+            })->toArray(); 
 
             foreach ($data as $item) {
                 $key = ($item['kabupaten_kota'] ?? '') . '-' . ($item['kecamatan'] ?? '');
@@ -296,6 +295,6 @@ class ImportDataController extends Controller
     function downloadExcel()
     {
         $export = new PuskesmasMasterExport(auth()->user()->role_id);
-        return Excel::download($export, 'Template Import Puskesmas.xlsx');
+        return Excel::download($export, auth()->user()->role_id == 2 ? 'Kemenkes - Template Import Puskesmas.xlsx' : 'Endo - Template Import Puskesmas.xlsx');
     }
 }
