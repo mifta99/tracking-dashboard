@@ -55,7 +55,7 @@
             background-color: #007bff;
             border-color: #007bff;
         }
-        
+
         /* Unverified disabled switches - Gray/inactive styling */
         .custom-control-input:disabled:not(:checked) ~ .custom-control-label {
             color: #6c757d;
@@ -188,6 +188,8 @@
                 <tr><td>Kecamatan</td><td>{{ $d->name ?? '-' }}</td></tr>
                 <tr><td>Nama Puskesmas</td><td>{{ $puskesmas->name }}</td></tr>
                 <tr><td>PIC Puskesmas</td><td>{{ $puskesmas->pic ?? '-' }}</td></tr>
+                <tr><td>No. HP PIC Puskesmas</td><td>{{ $puskesmas->no_hp ?? '-' }}</td></tr>
+                <tr><td>No. HP Alternatif PIC Puskesmas</td><td>{{ $puskesmas->no_hp_alternatif ?? '-' }}</td></tr>
                 <tr><td>Kepala Puskesmas</td><td>{{ $puskesmas->kepala ?? '-' }}</td></tr>
                 <tr><td>PIC Dinas Kesehatan Kabupaten/Kota</td><td>{{ $puskesmas->pic_dinkes_kab ?? '-' }}</td></tr>
                 <tr><td>PIC Dinas Kesehatan Provinsi</td><td>{{ $puskesmas->pic_dinkes_prov ?? '-' }}</td></tr>
