@@ -337,7 +337,7 @@ return [
             'text' => 'Verification Request',
             'url'  => '/verification-request',
             'icon' => 'fas fa-fw fa-check-circle',
-            'can'   => ['endo','kemenkes']
+            'can'   => ['kemenkes']
         ],
                 [
             'text' => 'Raised Issue',
@@ -361,7 +361,7 @@ return [
             'text' => 'Master Puskesmas',
             'url'  => '/master-puskesmas',
             'icon' => 'fas fa-fw fa-hospital',
-            'can'   => ['endo','kemenkes']
+            'can'   => ['kemenkes']
         ],
 
         // ['header' => 'account_settings'],

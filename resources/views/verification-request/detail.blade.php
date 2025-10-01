@@ -151,9 +151,11 @@
             <div class="card h-100 shadow-sm">
             <div class="card-header py-2 pr-1 bg-primary text-white d-flex align-items-center">
                 <span class="section-title-bar">Basic Information</span>
+                @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes')
                 <button class="btn btn-sm btn-primary ml-auto" data-toggle="modal" data-target="#basicInfoModal">
                     <i class="fas fa-edit"></i> Edit
                 </button>
+                @endif
             </div>
             <div class="card-body p-3">
                 <table class="table table-sm table-borderless table-kv mb-0">
@@ -170,6 +172,7 @@
             </div>
         </div>
 
+        @if(auth()->user() && auth()->user()->role->role_name === 'kemenkes')
         <!-- Modal Basic Information -->
         <div class="modal fade" id="basicInfoModal" tabindex="-1" role="dialog"
             data-provinces-url="{{ route('api-puskesmas.provinces') }}"
@@ -246,13 +249,15 @@
             </div>
             </div>
         </div>
-
+        @endif
 
         <div class="col-lg-6">
             <div class="card h-100 shadow-sm">
                 <div class="card-header py-2 pr-1 bg-success text-white d-flex align-items-center">
                     <span class="section-title-bar">Delivery Information</span>
+                    @if(auth()->user() && auth()->user()->role->role_name == 'endo')
                     <button class="btn btn-sm btn-success ml-auto" data-toggle="modal" data-target="#deliveryModal"><i class="fas fa-edit"></i> Edit</button>
+                    @endif
                 </div>
                 <div class="card-body p-3">
                     <table class="table table-sm table-borderless table-kv mb-0">
@@ -291,7 +296,7 @@
             </div>
         </div>
     </div>
-
+    
     <div class="card mb-3 shadow-sm">
         <div class="card-header py-2 pr-1 text-white d-flex align-items-center" style="background:#3f0fa8;">
             <span class="section-title-bar">Uji Fungsi</span>
@@ -416,6 +421,7 @@
     @endif
 
     <!-- Modal Delivery Information -->
+    @if(auth()->user() && auth()->user()->role->role_name == 'endo')
     <div class="modal fade" id="deliveryModal" tabindex="-1" role="dialog">
         <div class="modal-dialog modal-xl" role="document">
             <div class="modal-content">
@@ -501,7 +507,7 @@
             </div>
         </div>
     </div>
-
+    
     <!-- Modal Uji Fungsi -->
     <div class="modal fade" id="ujiFungsiModal" tabindex="-1" role="dialog">
         <div class="modal-dialog modal-xl" role="document">
@@ -611,6 +617,7 @@
             </div>
         </div>
     </div>
+    @endif
 @endsection
 
 @section('js')
