@@ -17,49 +17,35 @@
         </div>
     </div>
     <div class="card-body">
-        <!-- Filter Section -->
-        <div class="row mb-4">
-            <div class="col-md-12">
-                <div class="card card-outline card-primary">
-                    <div class="card-header">
-                        <h5 class="card-title"><i class="fas fa-filter"></i> Filter Data Puskesmas</h5>
-                        <div class="card-tools">
-                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                                <i class="fas fa-minus"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-3">
-                                <label for="provinceSelect" class="form-label">Provinsi:</label>
-                                <select id="provinceSelect" class="">
-                                    <option value="">Semua Provinsi</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label for="regencySelect" class="form-label">Kabupaten/Kota:</label>
-                                <select id="regencySelect" class="" disabled>
-                                    <option value="">Pilih Provinsi Dulu</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label for="districtSelect" class="form-label">Kecamatan:</label>
-                                <select id="districtSelect" class="" disabled>
-                                    <option value="">Pilih Kabupaten Dulu</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3 d-flex align-items-end">
-                                <div class="btn-group w-100">
-                                    <button type="button" id="filterBtn" class="btn btn-primary">
-                                        <i class="fas fa-search"></i> Cari Data
-                                    </button>
-                                    <button type="button" id="resetBtn" class="btn btn-secondary" title="Reset Filter">
-                                        <i class="fas fa-sync-alt"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+        <!-- Unified Filter Section (Matching Raised Issues Style) -->
+        <div class="mb-3 p-3 border rounded" style="background:#f8f9fc;">
+            <div class="form-row">
+                <div class="form-group col-md-3 mb-2">
+                    <label class="small font-weight-bold mb-1" for="provinceSelect">Provinsi</label>
+                    <select id="provinceSelect" class="">
+                        <option value="">Semua Provinsi</option>
+                    </select>
+                </div>
+                <div class="form-group col-md-3 mb-2">
+                    <label class="small font-weight-bold mb-1" for="regencySelect">Kabupaten</label>
+                    <select id="regencySelect" class="" disabled>
+                        <option value="">Pilih Provinsi Dulu</option>
+                    </select>
+                </div>
+                <div class="form-group col-md-3 mb-2">
+                    <label class="small font-weight-bold mb-1" for="districtSelect">Kecamatan</label>
+                    <select id="districtSelect" class="" disabled>
+                        <option value="">Pilih Kabupaten Dulu</option>
+                    </select>
+                </div>
+                <div class="form-group col-md-3 mb-2 d-flex align-items-end">
+                    <div class="btn-group w-100">
+                        <button type="button" id="filterBtn" class="btn btn-primary btn-sm">
+                            <i class="fas fa-search"></i> Cari Data
+                        </button>
+                        <button type="button" id="resetBtn" class="btn btn-secondary btn-sm" title="Reset Filter">
+                            <i class="fas fa-undo"></i>
+                        </button>
                     </div>
                 </div>
             </div>

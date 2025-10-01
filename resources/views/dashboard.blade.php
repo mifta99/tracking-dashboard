@@ -86,7 +86,7 @@
                 <div class="col-md-6">
                     <div class="card">
                         <div class="card-header bg-danger text-white">
-                            Monthly Issue Report
+                            Monthly Issue & Incident Report
                         </div>
                         <div class="card-body">
                             <div id="monthlyIssueChart" style="height:300px; width:100%;"></div>
@@ -540,12 +540,18 @@
             // Placeholder static data (replace with API response later)
             // Example endpoint suggestion: route('api-issues.monthly') returning [{month:'2025-06', total:12}, ...]
             const issueData = [5, 9, 4, 11, 7];
+            const incidentData = [2, 3, 1, 4, 2]; 
 
             const option = {
                 backgroundColor: 'transparent',
                 tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
                 grid: { left: '5%', right: '5%', top: 40, bottom: 50, containLabel: true },
-                title: { text: 'Jumlah Keluhan 5 Bulan Terakhir', left: 'center', top: 5, textStyle:{ fontSize:14, fontWeight:600 } },
+                title: { text: 'Keluhan & Insiden 5 Bulan Terakhir', left: 'center', top: 5, textStyle:{ fontSize:14, fontWeight:600 } },
+                legend: {
+                    data: ['Keluhan', 'Insiden'],
+                    top: 25,
+                    textStyle: { fontSize: 12 }
+                },
                 xAxis: {
                     type: 'category',
                     data: monthLabels,
@@ -554,7 +560,7 @@
                 },
                 yAxis: {
                     type: 'value',
-                    name: 'Keluhan',
+                    name: 'Jumlah',
                     nameTextStyle:{ color:'#475569', padding:[0,0,5,0]},
                     axisLine: { show:false },
                     splitLine: { lineStyle: { color: 'rgba(148,163,184,0.25)' } },
@@ -565,10 +571,21 @@
                         name: 'Keluhan',
                         type: 'bar',
                         data: issueData,
-                        barWidth: '45%',
+                        barWidth: '20%',
                         itemStyle: {
                             borderRadius: [6,6,0,0],
-                            color: '#007bff'
+                            color: '#dc3545'
+                        },
+                        label: { show: true, position: 'top', color: '#334155', fontWeight: 600 }
+                    },
+                    {
+                        name: 'Insiden',
+                        type: 'bar',
+                        data: incidentData,
+                        barWidth: '20%',
+                        itemStyle: {
+                            borderRadius: [6,6,0,0],
+                            color: '#ffc107'
                         },
                         label: { show: true, position: 'top', color: '#334155', fontWeight: 600 }
                     }
