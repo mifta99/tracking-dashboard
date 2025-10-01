@@ -268,7 +268,7 @@
                         <tr><td>Instansi Penerima</td><td>{{ $peng->instansi_penerima ?? '-' }}</td></tr>
                         <tr><td>Nomor HP Penerima</td><td>{{ $peng->nomor_penerima ?? '-' }}</td></tr>
                         <tr><td>Status Penerimaan</td><td>{{ ($peng && $peng->tgl_diterima) ? 'Diterima' : '-' }}</td></tr>
-                        <tr><td>Bukti Tanda Terima</td><td>@if($peng && $peng->link_tanda_terima)<a class="text-decoration-none" target="_blank" href="{{ $peng->link_tanda_terima }}">View Here</a>@else - @endif</td></tr>
+                        <tr><td>Bukti Tanda Terima</td><td>@if($peng && $peng->link_tanda_terima)<a class="text-decoration-none" target="_blank" href="{{ asset('storage/' . $peng->link_tanda_terima) }}">View Here</a>@else - @endif</td></tr>
                         <tr><td>Catatan</td><td>{{ $peng->catatan ?? '-' }}</td></tr>
                         <tr>
                             <td>Verifikasi Kemenkes</td>
@@ -446,7 +446,8 @@
                             </div>
                             <div class="form-group col-md-3">
                                 <label class="small mb-1">Serial Number</label>
-                                <input type="text" class="form-control form-control-sm" name="serial_number" value="{{ $peng->serial_number }}">
+                                <input type="text" class="form-control form-control-sm" name="serial_number" value="{{ $peng->equipment->serial_number ?? '' }}" placeholder="Enter serial number">
+                                <small class="form-text text-muted">System will create equipment record if new</small>
                             </div>
                             <div class="form-group col-md-3">
                                 <label class="small mb-1">Target Alat Diterima</label>
@@ -479,7 +480,7 @@
                                 <label class="small mb-1 d-flex align-items-center">Upload Tanda Terima <span class="ml-1 badge badge-light border">pdf/jpg/png</span></label>
                                 <input type="file" class="form-control-file" name="link_tanda_terima" accept="application/pdf,image/jpeg,image/png">
                                 @if($peng && $peng->link_tanda_terima)
-                                    <small class="d-block mt-1"><a target="_blank" href="{{ $peng->link_tanda_terima }}">File saat ini</a></small>
+                                    <small class="d-block mt-1"><a target="_blank" href="{{ asset('storage/' . $peng->link_tanda_terima) }}">File saat ini</a></small>
                                 @endif
                             </div>
                         </div>
@@ -973,6 +974,125 @@ $(function(){
         $doInput.val(initialDo);
         fetchLogs(initialDo);
     }
+});
+
+// Delivery Information form submission handler
+$(function(){
+    const $modal = $('#deliveryModal');
+    const $form = $('#deliveryForm');
+    if(!$modal.length || !$form.length) return;
+
+    const updateUrl = '{{ route('api-verification-request.delivery-information', ['id' => $puskesmas->id]) }}';
+
+    function notifySuccess(msg){
+        if(window.toastr){ toastr.success(msg); return; }
+        if(window.Swal){ Swal.fire({icon:'success',title:'Berhasil',text:msg,timer:1400,showConfirmButton:false}); return; }
+        alert(msg);
+    }
+    function notifyError(msg){
+        if(window.toastr){ toastr.error(msg); return; }
+        if(window.Swal){ Swal.fire({icon:'error',title:'Gagal',text:msg}); return; }
+        alert(msg);
+    }
+
+    $form.on('submit', function(e){
+        e.preventDefault();
+        const $submitBtn = $form.find('button[type="submit"]');
+        const originalHtml = $submitBtn.html();
+        $submitBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm mr-1"></span>Menyimpan...');
+
+        const formData = new FormData(this);
+
+        // Clear previous error states
+        $form.find('.is-invalid').removeClass('is-invalid');
+        $form.find('.invalid-feedback').remove();
+
+        $.ajax({
+            url: updateUrl,
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            timeout: 30000, // 30 seconds for file upload
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
+        }).done(function(res){
+            if(res && res.success){
+                // Update visible table values without reload
+                const data = res.data || {};
+                const $deliveryTable = $('.card-header:contains("Delivery Information")').next('.card-body').find('table.table-kv');
+
+                // Update delivery information fields
+                if(data.tgl_pengiriman !== undefined) $deliveryTable.find('tr:contains("Tanggal Pengiriman") td:last').text(data.tgl_pengiriman || '-');
+                if(data.eta !== undefined) $deliveryTable.find('tr:contains("ETA") td:last').text(data.eta ? data.eta + ' Days' : '-');
+                if(data.resi !== undefined) $deliveryTable.find('tr:contains("RESI") td:last').text(data.resi || '-');
+                if(data.tracking_link !== undefined) {
+                    const trackingCell = $deliveryTable.find('tr:contains("Link Tracking") td:last');
+                    if(data.tracking_link) {
+                        trackingCell.html(`<a class="text-decoration-none" target="_blank" href="${data.tracking_link}">View Here</a>`);
+                    } else {
+                        trackingCell.text('-');
+                    }
+                }
+                if(data.serial_number !== undefined) $deliveryTable.find('tr:contains("Serial Number") td:last').text(data.serial_number || '-');
+                if(data.target_tgl !== undefined) $deliveryTable.find('tr:contains("Target Alat Diterima") td:last').text(data.target_tgl || '-');
+                if(data.tgl_diterima !== undefined) $deliveryTable.find('tr:contains("Tanggal Diterima") td:last').text(data.tgl_diterima || '-');
+                if(data.nama_penerima !== undefined) $deliveryTable.find('tr:contains("Nama Penerima") td:last').text(data.nama_penerima || '-');
+                if(data.jabatan_penerima !== undefined) $deliveryTable.find('tr:contains("Jabatan Penerima") td:last').text(data.jabatan_penerima || '-');
+                if(data.instansi_penerima !== undefined) $deliveryTable.find('tr:contains("Instansi Penerima") td:last').text(data.instansi_penerima || '-');
+                if(data.nomor_penerima !== undefined) $deliveryTable.find('tr:contains("Nomor HP Penerima") td:last').text(data.nomor_penerima || '-');
+                if(data.catatan !== undefined) $deliveryTable.find('tr:contains("Catatan") td:last').text(data.catatan || '-');
+
+                // Update tanda terima link
+                if(data.link_tanda_terima !== undefined) {
+                    const tandaTerimaCell = $deliveryTable.find('tr:contains("Bukti Tanda Terima") td:last');
+                    if(data.link_tanda_terima) {
+                        const storageUrl = '{{ asset("storage/") }}/' + data.link_tanda_terima;
+                        tandaTerimaCell.html(`<a class="text-decoration-none" target="_blank" href="${storageUrl}">View Here</a>`);
+                    } else {
+                        tandaTerimaCell.text('-');
+                    }
+                }
+
+                // Update status penerimaan
+                const statusText = data.tgl_diterima ? 'Diterima' : '-';
+                $deliveryTable.find('tr:contains("Status Penerimaan") td:last').text(statusText);
+
+                notifySuccess(res.message || 'Data pengiriman berhasil diperbarui');
+                $modal.modal('hide');
+
+                // Refresh page after 1 second to update progress timeline
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            } else {
+                notifyError((res && res.message) || 'Gagal memperbarui data pengiriman');
+            }
+        }).fail(function(xhr, status){
+            if(status === 'timeout'){
+                notifyError('Permintaan timeout, periksa koneksi Anda');
+                return;
+            }
+            if(xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors){
+                const errs = xhr.responseJSON.errors;
+                Object.keys(errs).forEach(f => {
+                    const input = $form.find(`[name='${f}']`);
+                    input.addClass('is-invalid');
+                    if(input.next('.invalid-feedback').length===0){
+                        input.after(`<div class="invalid-feedback">${errs[f][0]}</div>`);
+                    } else {
+                        input.next('.invalid-feedback').text(errs[f][0]);
+                    }
+                });
+                notifyError('Periksa kembali input Anda');
+            } else if(xhr.status === 404){
+                notifyError('Data tidak ditemukan');
+            } else {
+                notifyError('Terjadi kesalahan server');
+            }
+        }).always(function(){
+            $submitBtn.prop('disabled', false).html(originalHtml);
+        });
+    });
 });
 </script>
 @endsection
