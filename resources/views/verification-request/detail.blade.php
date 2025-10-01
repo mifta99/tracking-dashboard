@@ -163,7 +163,7 @@
                 <tr><td>Kabupaten / Kota</td><td>{{ $r->name ?? '-' }}</td></tr>
                 <tr><td>Kecamatan</td><td>{{ $d->name ?? '-' }}</td></tr>
                 <tr><td>Nama Puskesmas</td><td>{{ $puskesmas->name }}</td></tr>
-                <tr><td>PIC Puskesmas (Petugas ASPAK)</td><td>{{ $puskesmas->pic ?? '-' }}</td></tr>
+                <tr><td>PIC Puskesmas</td><td>{{ $puskesmas->pic ?? '-' }}</td></tr>
                 <tr><td>Kepala Puskesmas</td><td>{{ $puskesmas->kepala ?? '-' }}</td></tr>
                 <tr><td>PIC Dinas Kesehatan Kabupaten/Kota</td><td>{{ $puskesmas->pic_dinkes_kab ?? '-' }}</td></tr>
                 <tr><td>PIC Dinas Kesehatan Provinsi</td><td>{{ $puskesmas->pic_dinkes_prov ?? '-' }}</td></tr>
@@ -300,7 +300,9 @@
     <div class="card mb-3 shadow-sm">
         <div class="card-header py-2 pr-1 text-white d-flex align-items-center" style="background:#3f0fa8;">
             <span class="section-title-bar">Uji Fungsi</span>
+            @if(auth()->user() && auth()->user()->role->role_name == 'endo')
             <button class="btn btn-sm ml-auto" style="background:#3f0fa8; color:white;" data-toggle="modal" data-target="#ujiFungsiModal"><i class="fas fa-edit"></i> Edit</button>
+            @endif
         </div>
         @php $uji = optional($puskesmas->ujiFungsi); @endphp
         <div class="card-body p-3">
@@ -343,7 +345,9 @@
     <div class="card shadow-sm mb-4">
         <div class="card-header py-2 pr-1 bg-secondary text-white d-flex align-items-center">
             <span class="section-title-bar">Dokumen</span>
+            @if(auth()->user() && auth()->user()->role->role_name == 'endo')
             <button class="btn btn-sm btn-secondary ml-auto" data-toggle="modal" data-target="#documentsModal"><i class="fas fa-edit"></i> Edit</button>
+            @endif
         </div>
         <div class="card-body p-3">
             <div class="row">
