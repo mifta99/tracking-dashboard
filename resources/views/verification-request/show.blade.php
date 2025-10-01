@@ -34,7 +34,7 @@
         .shipment-status-flow .sf-step.active .sf-circle{background:#28a745;color:#fff;}
         .shipment-status-flow .sf-step.done:not(:last-child):after,
         .shipment-status-flow .sf-step.active:not(:last-child):after{background:#28a745;}
-        .shipment-status-flow .sf-step.final.done .sf-circle{box-shadow:0 0 0 4px #fff inset,0 0 0 4px #28a745,0 2px 8px rgba(0,0,0,.3);} 
+        .shipment-status-flow .sf-step.final.done .sf-circle{box-shadow:0 0 0 4px #fff inset,0 0 0 4px #28a745,0 2px 8px rgba(0,0,0,.3);}
         @media (max-width:640px){
             .shipment-status-flow{flex-direction:column;align-items:stretch;}
             .shipment-status-flow .sf-step{padding:0 0 1.2rem 2.7rem;text-align:left;}
@@ -51,8 +51,8 @@
             <div class="card h-100 shadow-sm">
             <div class="card-header py-2 pr-1 bg-primary text-white d-flex align-items-center">
                 <span class="section-title-bar">Basic Information</span>
-                <button class="btn btn-sm btn-light ml-auto" data-toggle="modal" data-target="#basicInfoModal">
-                <i class="fas fa-edit"></i> Edit
+                <button class="btn btn-sm btn-primary ml-auto" data-toggle="modal" data-target="#basicInfoModal">
+                    <i class="fas fa-edit"></i> Edit
                 </button>
             </div>
             <div class="card-body p-3">
@@ -63,8 +63,8 @@
                 <tr><td>Nama Puskesmas</td><td>{{ $puskesmas->name }}</td></tr>
                 <tr><td>PIC Puskesmas (Petugas ASPAK)</td><td>{{ $puskesmas->pic ?? '-' }}</td></tr>
                 <tr><td>Kepala Puskesmas</td><td>{{ $puskesmas->kepala ?? '-' }}</td></tr>
+                <tr><td>PIC Dinas Kesehatan Kabupaten/Kota</td><td>{{ $puskesmas->pic_dinkes_kab ?? '-' }}</td></tr>
                 <tr><td>PIC Dinas Kesehatan Provinsi</td><td>{{ $puskesmas->pic_dinkes_prov ?? '-' }}</td></tr>
-                <tr><td>PIC DINKES</td><td>{{ $puskesmas->pic_dinkes_kab ?? '-' }}</td></tr>
                 </table>
             </div>
             </div>
@@ -128,15 +128,15 @@
                         <input type="text" class="form-control form-control-sm" name="kepala" value="{{ $puskesmas->kepala }}">
                      </div>
                      <div class="form-group col-md-6">
+                        <label class="small mb-1">PIC Dinkes Kabupaten/Kota</label>
+                        <input type="text" class="form-control form-control-sm" name="pic_dinkes_kab" value="{{ $puskesmas->pic_dinkes_kab }}">
+                     </div>
+                     <div class="form-group col-md-6">
                         <label class="small mb-1">PIC Dinkes Provinsi</label>
                         <input type="text" class="form-control form-control-sm" name="pic_dinkes_prov" value="{{ $puskesmas->pic_dinkes_prov }}">
                      </div>
-                     <div class="form-group col-md-6">
-                        <label class="small mb-1">PIC Dinkes Kabupaten</label>
-                        <input type="text" class="form-control form-control-sm" name="pic_dinkes_kab" value="{{ $puskesmas->pic_dinkes_kab }}">
-                     </div>
                   </div>
-                  <small class="text-muted d-block mt-2">Kolom yang tidak diubah biarkan kosong atau tetap nilainya.</small>
+                  <small class="text-muted d-block mt-2">*Kolom yang tidak diubah biarkan kosong atau tetap nilainya.</small>
                </div>
                <div class="modal-footer">
                   <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
@@ -147,12 +147,12 @@
             </div>
         </div>
 
-       
+
         <div class="col-lg-6">
             <div class="card h-100 shadow-sm">
                 <div class="card-header py-2 pr-1 bg-success text-white d-flex align-items-center">
                     <span class="section-title-bar">Delivery Information</span>
-                    <button class="btn btn-sm btn-light ml-auto" data-toggle="modal" data-target="#deliveryModal"><i class="fas fa-edit"></i> Edit</button>
+                    <button class="btn btn-sm btn-success ml-auto" data-toggle="modal" data-target="#deliveryModal"><i class="fas fa-edit"></i> Edit</button>
                 </div>
                 <div class="card-body p-3">
                     <table class="table table-sm table-borderless table-kv mb-0">
@@ -162,15 +162,30 @@
                         <tr><td>Link Tracking</td><td>@if($peng && $peng->tracking_link)<a class="text-decoration-none" target="_blank" href="{{ $peng->tracking_link }}">View Here</a>@else - @endif</td></tr>
                         <tr><td>Serial Number</td><td>{{ $peng->equipment->serial_number ?? '-' }}</td></tr>
                         <tr><td>Target Alat Diterima</td><td>{{ optional($peng->target_tgl)->format('d F Y') ?? '-' }}</td></tr>
-                        <tr><td>Perubahan Tanggal Alat Diterima</td><td>{{ optional($peng->perubahan_tanggal_alat_diterima)->format('d F Y') ?? '-' }}</td></tr>
                         <tr><td>Tanggal Diterima</td><td>{{ optional($peng->tgl_diterima)->format('d F Y') ?? '-' }}</td></tr>
-                        <tr><td>Nama Penerima / Jabatan / Instansi / Nomor Telp</td><td>{{ $peng->nama_penerima ?? '-' }}</td></tr>
+                        <tr><td>Nama Penerima</td><td>{{ $peng->nama_penerima ?? '-' }}</td></tr>
+                        <tr><td>Jabatan Penerima</td><td>{{ $peng->jabatan_penerima ?? '-' }}</td></tr>
+                        <tr><td>Instansi Penerima</td><td>{{ $peng->instansi_penerima ?? '-' }}</td></tr>
+                        <tr><td>Nomor HP Penerima</td><td>{{ $peng->nomor_penerima ?? '-' }}</td></tr>
                         <tr><td>Status Penerimaan</td><td>{{ ($peng && $peng->tgl_diterima) ? 'Diterima' : '-' }}</td></tr>
-                        <tr><td>Link Tanda Terima</td><td>@if($peng && $peng->link_tanda_terima)<a class="text-decoration-none" target="_blank" href="{{ $peng->link_tanda_terima }}">View Here</a>@else - @endif</td></tr>
+                        <tr><td>Bukti Tanda Terima</td><td>@if($peng && $peng->link_tanda_terima)<a class="text-decoration-none" target="_blank" href="{{ $peng->link_tanda_terima }}">View Here</a>@else - @endif</td></tr>
                         <tr><td>Catatan</td><td>{{ $peng->catatan ?? '-' }}</td></tr>
-                        <tr><td>Verifikasi Dinkes Provinsi</td><td>@include('verification-request.partials.status-badge',['on'=>$peng->verif_dinkes_prov ?? false])</td></tr>
-                        <tr><td>Verifikasi Dinkes Pusat</td><td>@include('verification-request.partials.status-badge',['on'=>$peng->verif_dinkes_pusat ?? false])</td></tr>
-                        <tr><td>Verifikasi SOPHI</td><td>@include('verification-request.partials.status-badge',['on'=>$peng->verif_sophi ?? false])</td></tr>
+                        <tr>
+                            <td>Verifikasi Kemenkes</td>
+                            <td>
+                                <form id="verifDeliveryForm">
+                                    @csrf
+                                    <div class="form-group">
+                                        <div class="custom-control custom-switch">
+                                            <input type="checkbox" class="custom-control-input" id="verifiedDelivery" {{ ($peng && $peng->verif_kemenkes) ? 'checked' : '' }}>
+                                            <label class="custom-control-label" for="verifiedDelivery">Verified</label>
+                                        </div>
+                                    </div>
+                                </form>
+                            </td>
+                        </tr>
+
+                        <tr><td>Tanggal Verifikasi</td><td>{{ $peng->tgl_verif_kemenkes ?? '-' }}</td></tr>
                     </table>
                 </div>
             </div>
@@ -180,25 +195,39 @@
     <div class="card mb-3 shadow-sm">
         <div class="card-header py-2 pr-1 text-white d-flex align-items-center" style="background:#3f0fa8;">
             <span class="section-title-bar">Uji Fungsi</span>
-            <button class="btn btn-sm btn-light ml-auto" data-toggle="modal" data-target="#ujiFungsiModal"><i class="fas fa-edit"></i> Edit</button>
+            <button class="btn btn-sm ml-auto" style="background:#3f0fa8; color:white;" data-toggle="modal" data-target="#ujiFungsiModal"><i class="fas fa-edit"></i> Edit</button>
         </div>
         @php $uji = optional($puskesmas->ujiFungsi); @endphp
         <div class="card-body p-3">
             <div class="row">
                 <div class="col-md-6">
                     <table class="table table-sm table-borderless table-kv mb-0">
+                        <tr><td>Tanggal Instalasi</td><td>{{ optional($uji->tgl_instalasi)->format('d F Y') ?? '-' }}</td></tr>
+                        <tr><td>Berita Acara Instalasi</td><td>@if($uji && $uji->doc_instalasi)<a class="text-decoration-none" target="_blank" href="{{ $uji->doc_instalasi }}">View Here</a>@else - @endif</td></tr>
                         <tr><td>Target Tanggal Uji Fungsi</td><td>{{ optional($uji->target_tgl_uji_fungsi)->format('d F Y') ?? '-' }}</td></tr>
-                        <tr><td>Perubahan Tanggal Uji Fungsi + Pelatihan Alat</td><td>{{ optional($uji->perubahan_target)->format('d F Y') ?? '-' }}</td></tr>
+                        <tr><td>Tanggal Uji Fungsi</td><td>{{ optional($uji->tgl_uji_fungsi)->format('d F Y') ?? '-' }}</td></tr>
+                        <tr><td>Berita Acara Uji Fungsi</td><td>@if($uji && $uji->doc_uji_fungsi)<a class="text-decoration-none" target="_blank" href="{{ $uji->doc_uji_fungsi }}">View Here</a>@else - @endif</td></tr>
+                        <tr><td>Tanggal Pelatihan Alat</td><td>{{ optional($uji->tgl_pelatihan)->format('d F Y') ?? '-' }}</td></tr>
+                        <tr><td>Berita Acara Pelatihan Alat</td><td>@if($uji && $uji->doc_pelatihan)<a class="text-decoration-none" target="_blank" href="{{ $uji->doc_pelatihan }}">View Here</a>@else - @endif</td></tr>
                         <tr><td>Catatan</td><td>{{ $uji->catatan ?? '-' }}</td></tr>
-                        <tr><td>Tanggal Instalasi + Uji Fungsi</td><td>{{ optional($uji->tanggal_instalasi)->format('d F Y') ?? '-' }}</td></tr>
-                        <tr><td>Link BA + Uji Fungsi</td><td>@if($uji && $uji->link_ba_uji_fungsi)<a class="text-decoration-none" target="_blank" href="{{ $uji->link_ba_uji_fungsi }}">View Here</a>@else - @endif</td></tr>
                     </table>
                 </div>
                 <div class="col-md-6">
                     <table class="table table-sm table-borderless table-kv mb-0">
-                        <tr><td>Verifikasi Dinkes Daerah</td><td>@include('verification-request.partials.status-badge',['on'=>$uji->verif_dinkes_daerah ?? false])</td></tr>
-                        <tr><td>Verifikasi Dinkes Pusat</td><td>@include('verification-request.partials.status-badge',['on'=>$uji->verif_dinkes_pusat ?? false])</td></tr>
-                        <tr><td>Verifikasi SOPHI</td><td>@include('verification-request.partials.status-badge',['on'=>$uji->verif_sophi ?? false])</td></tr>
+                        <tr>
+                            <td>Verifikasi Kemenkes</td>
+                            <td>
+                                <form id="verifUjiFungsiForm">
+                                    @csrf
+                                    <div class="form-group">
+                                        <div class="custom-control custom-switch">
+                                            <input type="checkbox" class="custom-control-input" id="verifiedUjiFungsi" {{ ($uji && $uji->verif_kemenkes) ? 'checked' : '' }}>
+                                            <label class="custom-control-label" for="verifiedUjiFungsi">Verified</label>
+                                        </div>
+                                    </div>
+                                </form>
+                            </td>
+                        </tr>
                     </table>
                 </div>
             </div>
@@ -209,22 +238,34 @@
     <div class="card shadow-sm mb-4">
         <div class="card-header py-2 pr-1 bg-secondary text-white d-flex align-items-center">
             <span class="section-title-bar">Dokumen</span>
-            <button class="btn btn-sm btn-light ml-auto" data-toggle="modal" data-target="#documentsModal"><i class="fas fa-edit"></i> Edit</button>
+            <button class="btn btn-sm btn-secondary ml-auto" data-toggle="modal" data-target="#documentsModal"><i class="fas fa-edit"></i> Edit</button>
         </div>
         <div class="card-body p-3">
             <div class="row">
                 <div class="col-md-6">
                     <table class="table table-sm table-borderless table-kv mb-0">
-                        <tr><td>Link BASTO</td><td>@if($doc && $doc->basto)<a class="text-decoration-none" target="_blank" href="{{ $doc->basto }}">View Here</a>@else - @endif</td></tr>
-                        <tr><td>Link BAST</td><td>@if($doc && $doc->bast)<a class="text-decoration-none" target="_blank" href="{{ $doc->bast }}">View Here</a>@else - @endif</td></tr>
-                        <tr><td>Link Berita Acara ASPAK</td><td>@if($doc && $doc->aspak)<a class="text-decoration-none" target="_blank" href="{{ $doc->aspak }}">View Here</a>@else - @endif</td></tr>
+                        <tr><td>Berita Acara BASTO</td><td>@if($doc && $doc->basto)<a class="text-decoration-none" target="_blank" href="{{ $doc->basto }}">View Here</a>@else - @endif</td></tr>
+                        <tr><td>Berita Acara Kalibrasi</td><td>@if($doc && $doc->kalibrasi)<a class="text-decoration-none" target="_blank" href="{{ $doc->kalibrasi }}">View Here</a>@else - @endif</td></tr>
+                        <tr><td>Berita Acara BAST</td><td>@if($doc && $doc->bast)<a class="text-decoration-none" target="_blank" href="{{ $doc->bast }}">View Here</a>@else - @endif</td></tr>
+                        <tr><td>Berita Acara ASPAK</td><td>@if($doc && $doc->aspak)<a class="text-decoration-none" target="_blank" href="{{ $doc->aspak }}">View Here</a>@else - @endif</td></tr>
                     </table>
                 </div>
                 <div class="col-md-6">
                     <table class="table table-sm table-borderless table-kv mb-0">
-                        <tr><td>Verifikasi Dinkes Provinsi</td><td>@include('verification-request.partials.status-badge',['on'=>$doc->verif_kemenkes ?? false])</td></tr>
-                        <tr><td>Verifikasi Dinkes Pusat</td><td>@include('verification-request.partials.status-badge',['on'=>$doc->verif_kemenkes_update_aspak ?? false])</td></tr>
-                        <tr><td>Verifikasi SOPHI</td><td>@include('verification-request.partials.status-badge',['on'=>false])</td></tr>
+                        <tr>
+                            <td>Verifikasi Kemenkes</td>
+                            <td>
+                                <form id="verifDocumentForm">
+                                    @csrf
+                                    <div class="form-group">
+                                        <div class="custom-control custom-switch">
+                                            <input type="checkbox" class="custom-control-input" id="verifiedDocument" {{ ($doc && $doc->verif_kemenkes) ? 'checked' : '' }}>
+                                            <label class="custom-control-label" for="verifiedDocument">Verified</label>
+                                        </div>
+                                    </div>
+                                </form>
+                            </td>
+                        </tr>
                     </table>
                 </div>
             </div>
@@ -357,10 +398,6 @@
                                 <label class="small mb-1">Target Alat Diterima</label>
                                 <input type="date" class="form-control form-control-sm" name="target_tgl" value="{{ optional($peng->target_tgl)->format('Y-m-d') }}">
                             </div>
-                            <div class="form-group col-md-3">
-                                <label class="small mb-1">Perubahan Tgl Diterima</label>
-                                <input type="date" class="form-control form-control-sm" name="perubahan_tanggal_alat_diterima" value="{{ optional($peng->perubahan_tanggal_alat_diterima)->format('Y-m-d') }}">
-                            </div>
                         </div>
                         <div class="mb-2 mt-3 pb-1 border-bottom"><strong class="text-muted small">Penerimaan</strong></div>
                         <div class="form-row">
@@ -381,7 +418,7 @@
                                 <input type="text" class="form-control form-control-sm" name="instansi_penerima" value="{{ $peng->instansi_penerima }}">
                             </div>
                             <div class="form-group col-md-3">
-                                <label class="small mb-1">Nomor Telp Penerima</label>
+                                <label class="small mb-1">Nomor HP Penerima</label>
                                 <input type="text" class="form-control form-control-sm" name="nomor_penerima" value="{{ $peng->nomor_penerima }}">
                             </div>
                             <div class="form-group col-md-5">
@@ -398,24 +435,8 @@
                                 <label class="small mb-1">Catatan</label>
                                 <textarea class="form-control form-control-sm" rows="2" name="catatan">{{ $peng->catatan }}</textarea>
                             </div>
-                            <div class="form-group col-md-12">
-                                <div class="d-flex flex-wrap small">
-                                    <div class="custom-control custom-checkbox mr-3 mb-1">
-                                        <input type="checkbox" class="custom-control-input" id="verif_dinkes_prov_cb" name="verif_dinkes_prov" value="1" {{ ($peng->verif_dinkes_prov ?? false) ? 'checked' : '' }}>
-                                        <label class="custom-control-label" for="verif_dinkes_prov_cb">Verif Dinkes Prov</label>
-                                    </div>
-                                    <div class="custom-control custom-checkbox mr-3 mb-1">
-                                        <input type="checkbox" class="custom-control-input" id="verif_dinkes_pusat_cb" name="verif_dinkes_pusat" value="1" {{ ($peng->verif_dinkes_pusat ?? false) ? 'checked' : '' }}>
-                                        <label class="custom-control-label" for="verif_dinkes_pusat_cb">Verif Dinkes Pusat</label>
-                                    </div>
-                                    <div class="custom-control custom-checkbox mr-3 mb-1">
-                                        <input type="checkbox" class="custom-control-input" id="verif_sophi_cb" name="verif_sophi" value="1" {{ ($peng->verif_sophi ?? false) ? 'checked' : '' }}>
-                                        <label class="custom-control-label" for="verif_sophi_cb">Verif SOPHI</label>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
-                        <small class="text-muted">Biarkan kosong jika tidak ingin mengubah nilai tertentu.</small>
+                        <small class="text-muted">*Kolom yang tidak diubah biarkan kosong atau tetap nilainya.</small>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
@@ -440,59 +461,38 @@
                         <div class="mb-2 pb-1 border-bottom"><strong class="text-muted small">Jadwal</strong></div>
                         <div class="form-row">
                             <div class="form-group col-md-3">
-                                <label class="small mb-1">Target Tgl Uji Fungsi</label>
+                                <label class="small mb-1">Tanggal Instalasi</label>
+                                <input type="date" name="tgl_instalasi" class="form-control form-control-sm" value="{{ optional($uji->tgl_instalasi)->format('Y-m-d') }}">
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label class="small mb-1">Target Tanggal Uji Fungsi</label>
                                 <input type="date" name="target_tgl_uji_fungsi" class="form-control form-control-sm" value="{{ optional($uji->target_tgl_uji_fungsi)->format('Y-m-d') }}">
                             </div>
                             <div class="form-group col-md-3">
-                                <label class="small mb-1">Perubahan Target</label>
-                                <input type="date" name="perubahan_target" class="form-control form-control-sm" value="{{ optional($uji->perubahan_target)->format('Y-m-d') }}">
+                                <label class="small mb-1">Tanggal Uji Fungsi</label>
+                                <input type="date" name="tgl_uji_fungsi" class="form-control form-control-sm" value="{{ optional($uji->tgl_uji_fungsi)->format('Y-m-d') }}">
                             </div>
                             <div class="form-group col-md-3">
-                                <label class="small mb-1">Tanggal Instalasi</label>
-                                <input type="date" name="tanggal_instalasi" class="form-control form-control-sm" value="{{ optional($uji->tanggal_instalasi)->format('Y-m-d') }}">
+                                <label class="small mb-1">Tanggal Pelatihan Alat</label>
+                                <input type="date" name="tgl_pelatihan" class="form-control form-control-sm" value="{{ optional($uji->tgl_pelatihan)->format('Y-m-d') }}">
                             </div>
                         </div>
                         <div class="mb-2 mt-3 pb-1 border-bottom"><strong class="text-muted small">Dokumen</strong></div>
                         <div class="form-row">
                             <div class="form-group col-md-4">
-                                <label class="small mb-1 d-flex align-items-center">Dok Instalasi <span class="ml-1 badge badge-light border">pdf/jpg/png</span></label>
-                                <input type="file" name="doc_instalasi" class="form-control-file" accept="application/pdf,image/jpeg,image/png">
+                                <label class="small mb-1 d-flex align-items-center">Berita Acara Instalasi <span class="ml-1 badge badge-light border">pdf</span></label>
+                                <input type="file" name="doc_instalasi" class="form-control-file" accept="application/pdf">
                                 @if($uji && $uji->doc_instalasi)<small class="d-block mt-1"><a target="_blank" href="{{ $uji->doc_instalasi }}">Lihat Saat Ini</a></small>@endif
                             </div>
                             <div class="form-group col-md-4">
-                                <label class="small mb-1 d-flex align-items-center">Dok Pelatihan <span class="ml-1 badge badge-light border">pdf/jpg/png</span></label>
-                                <input type="file" name="doc_pelatihan" class="form-control-file" accept="application/pdf,image/jpeg,image/png">
-                                @if($uji && $uji->doc_pelatihan)<small class="d-block mt-1"><a target="_blank" href="{{ $uji->doc_pelatihan }}">Lihat Saat Ini</a></small>@endif
-                            </div>
-                            <div class="form-group col-md-4">
-                                <label class="small mb-1 d-flex align-items-center">Dok Uji Fungsi <span class="ml-1 badge badge-light border">pdf/jpg/png</span></label>
-                                <input type="file" name="doc_uji_fungsi" class="form-control-file" accept="application/pdf,image/jpeg,image/png">
+                                <label class="small mb-1 d-flex align-items-center">Berita Acara Uji Fungsi <span class="ml-1 badge badge-light border">pdf</span></label>
+                                <input type="file" name="doc_uji_fungsi" class="form-control-file" accept="application/pdf">
                                 @if($uji && $uji->doc_uji_fungsi)<small class="d-block mt-1"><a target="_blank" href="{{ $uji->doc_uji_fungsi }}">Lihat Saat Ini</a></small>@endif
                             </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group col-md-6">
-                                <label class="small mb-1">Link BA + Uji Fungsi</label>
-                                <input type="text" name="link_ba_uji_fungsi" class="form-control form-control-sm" value="{{ $uji->link_ba_uji_fungsi }}">
-                            </div>
-                        </div>
-                        <div class="mb-2 mt-3 pb-1 border-bottom"><strong class="text-muted small">Verifikasi</strong></div>
-                        <div class="form-row">
-                            <div class="form-group col-md-12">
-                                <div class="d-flex flex-wrap small">
-                                    <div class="custom-control custom-checkbox mr-3 mb-1">
-                                        <input type="checkbox" class="custom-control-input" id="verif_dinkes_daerah_uji" name="verif_dinkes_daerah" value="1" {{ ($uji->verif_dinkes_daerah ?? false) ? 'checked' : '' }}>
-                                        <label class="custom-control-label" for="verif_dinkes_daerah_uji">Verif Dinkes Daerah</label>
-                                    </div>
-                                    <div class="custom-control custom-checkbox mr-3 mb-1">
-                                        <input type="checkbox" class="custom-control-input" id="verif_dinkes_pusat_uji" name="verif_dinkes_pusat" value="1" {{ ($uji->verif_dinkes_pusat ?? false) ? 'checked' : '' }}>
-                                        <label class="custom-control-label" for="verif_dinkes_pusat_uji">Verif Dinkes Pusat</label>
-                                    </div>
-                                    <div class="custom-control custom-checkbox mr-3 mb-1">
-                                        <input type="checkbox" class="custom-control-input" id="verif_sophi_uji" name="verif_sophi" value="1" {{ ($uji->verif_sophi ?? false) ? 'checked' : '' }}>
-                                        <label class="custom-control-label" for="verif_sophi_uji">Verif SOPHI</label>
-                                    </div>
-                                </div>
+                            <div class="form-group col-md-4">
+                                <label class="small mb-1 d-flex align-items-center">Berita Acara Pelatihan Alat<span class="ml-1 badge badge-light border">pdf</span></label>
+                                <input type="file" name="doc_pelatihan" class="form-control-file" accept="application/pdf">
+                                @if($uji && $uji->doc_pelatihan)<small class="d-block mt-1"><a target="_blank" href="{{ $uji->doc_pelatihan }}">Lihat Saat Ini</a></small>@endif
                             </div>
                         </div>
                         <div class="mb-2 mt-3 pb-1 border-bottom"><strong class="text-muted small">Catatan</strong></div>
@@ -501,7 +501,7 @@
                                 <textarea class="form-control form-control-sm" name="catatan" rows="2">{{ $uji->catatan }}</textarea>
                             </div>
                         </div>
-                        <small class="text-muted">Biarkan kosong jika tidak mengubah.</small>
+                        <small class="text-muted">*Kolom yang tidak diubah biarkan kosong atau tetap nilainya.</small>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
@@ -525,42 +525,28 @@
                     <div class="modal-body">
                         <div class="mb-2 pb-1 border-bottom"><strong class="text-muted small">Dokumen</strong></div>
                         <div class="form-row">
-                            <div class="form-group col-md-4">
-                                <label class="small mb-1 d-flex align-items-center">BASTO <span class="ml-1 badge badge-light border">pdf/jpg/png</span></label>
-                                <input type="file" name="basto" class="form-control-file" accept="application/pdf,image/jpeg,image/png">
+                            <div class="form-group col-md-6">
+                                <label class="small mb-1 d-flex align-items-center">Berita Acara BASTO <span class="ml-1 badge badge-light border">pdf</span></label>
+                                <input type="file" name="basto" class="form-control-file" accept="application/pdf">
                                 @if($doc && $doc->basto)<small class="d-block mt-1"><a target="_blank" href="{{ $doc->basto }}">File Saat Ini</a></small>@endif
                             </div>
-                            <div class="form-group col-md-4">
-                                <label class="small mb-1 d-flex align-items-center">BAST <span class="ml-1 badge badge-light border">pdf/jpg/png</span></label>
-                                <input type="file" name="bast" class="form-control-file" accept="application/pdf,image/jpeg,image/png">
+                            <div class="form-group col-md-6">
+                                <label class="small mb-1 d-flex align-items-center">Berita Acara Kalibrasi<span class="ml-1 badge badge-light border">pdf</span></label>
+                                <input type="file" name="kalibrasi" class="form-control-file" accept="application/pdf">
+                                @if($doc && $doc->kalibrasi)<small class="d-block mt-1"><a target="_blank" href="{{ $doc->kalibrasi }}">File Saat Ini</a></small>@endif
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label class="small mb-1 d-flex align-items-center">Berita Acara BAST <span class="ml-1 badge badge-light border">pdf</span></label>
+                                <input type="file" name="bast" class="form-control-file" accept="application/pdf">
                                 @if($doc && $doc->bast)<small class="d-block mt-1"><a target="_blank" href="{{ $doc->bast }}">File Saat Ini</a></small>@endif
                             </div>
-                            <div class="form-group col-md-4">
-                                <label class="small mb-1 d-flex align-items-center">Berita Acara ASPAK <span class="ml-1 badge badge-light border">pdf/jpg/png</span></label>
-                                <input type="file" name="aspak" class="form-control-file" accept="application/pdf,image/jpeg,image/png">
+                            <div class="form-group col-md-6">
+                                <label class="small mb-1 d-flex align-items-center">Berita Acara ASPAK <span class="ml-1 badge badge-light border">pdf</span></label>
+                                <input type="file" name="aspak" class="form-control-file" accept="application/pdf">
                                 @if($doc && $doc->aspak)<small class="d-block mt-1"><a target="_blank" href="{{ $doc->aspak }}">File Saat Ini</a></small>@endif
                             </div>
                         </div>
-                        <div class="mb-2 mt-3 pb-1 border-bottom"><strong class="text-muted small">Verifikasi</strong></div>
-                        <div class="form-row">
-                            <div class="form-group col-md-12">
-                                <div class="d-flex flex-wrap small">
-                                    <div class="custom-control custom-checkbox mr-3 mb-1">
-                                        <input type="checkbox" class="custom-control-input" id="verif_kemenkes_doc" name="verif_kemenkes" value="1" {{ ($doc->verif_kemenkes ?? false) ? 'checked' : '' }}>
-                                        <label class="custom-control-label" for="verif_kemenkes_doc">Verif Dinkes Provinsi</label>
-                                    </div>
-                                    <div class="custom-control custom-checkbox mr-3 mb-1">
-                                        <input type="checkbox" class="custom-control-input" id="verif_kemenkes_update_doc" name="verif_kemenkes_update_aspak" value="1" {{ ($doc->verif_kemenkes_update_aspak ?? false) ? 'checked' : '' }}>
-                                        <label class="custom-control-label" for="verif_kemenkes_update_doc">Verif Dinkes Pusat</label>
-                                    </div>
-                                    <div class="custom-control custom-checkbox mr-3 mb-1">
-                                        <input type="checkbox" class="custom-control-input" id="verif_sophi_doc" name="verif_sophi_doc" value="1" {{ ($doc->verif_sophi_doc ?? false) ? 'checked' : '' }}>
-                                        <label class="custom-control-label" for="verif_sophi_doc">Verif SOPHI</label>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <small class="text-muted">Kosongkan jika tidak mengubah dokumen.</small>
+                        <small class="text-muted">*Kosongkan jika tidak mengubah dokumen.</small>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
@@ -601,7 +587,7 @@ $(function(){
     const $modal = $('#basicInfoModal');
     const $form = $('#basicInfoForm');
     if(!$modal.length || !$form.length) return;
-    
+
     const updateUrl = '{{ route('api-verification-request.basic-information', ['id' => $puskesmas->id]) }}';
 
     function notifySuccess(msg){
@@ -650,7 +636,7 @@ $(function(){
                 if(data.kepala !== undefined) $kv.find('tr:contains("Kepala Puskesmas") td:last').text(data.kepala||'-');
                 if(data.pic_dinkes_prov !== undefined) $kv.find('tr:contains("PIC Dinas Kesehatan Provinsi") td:last').text(data.pic_dinkes_prov||'-');
                 if(data.pic_dinkes_kab !== undefined) $kv.find('tr:contains("PIC DINKES") td:last').text(data.pic_dinkes_kab||'-');
-                
+
 
 
                 notifySuccess(res.message || 'Berhasil memperbarui data');
@@ -723,8 +709,8 @@ $(function(){
                     loadRegencies(selectedId, currentRegencyId);
                 }
             }
-        }).fail(()=>{ 
-            console.warn('Failed loading provinces'); 
+        }).fail(()=>{
+            console.warn('Failed loading provinces');
             toastr.warning('Gagal memuat data provinsi');
         });
     }
@@ -733,7 +719,7 @@ $(function(){
         resetSelect($reg, '-- Pilih Kabupaten/Kota --');
         resetSelect($dist, '-- Pilih Kecamatan --');
         if(!provinceId) return Promise.resolve();
-        
+
         return $.get(regencyUrl, { province_id: provinceId }).done(resp => {
             if(!resp.success) return;
             $reg.prop('disabled', false);
@@ -747,8 +733,8 @@ $(function(){
                     loadDistricts(selectedId, currentDistrictId);
                 }
             }
-        }).fail(()=>{ 
-            console.warn('Failed loading regencies'); 
+        }).fail(()=>{
+            console.warn('Failed loading regencies');
             toastr.warning('Gagal memuat data kabupaten/kota');
         });
     }
@@ -756,7 +742,7 @@ $(function(){
     function loadDistricts(regencyId, selectedId){
         resetSelect($dist, '-- Pilih Kecamatan --');
         if(!regencyId) return Promise.resolve();
-        
+
         return $.get(districtUrl, { regency_id: regencyId }).done(resp => {
             if(!resp.success) return;
             $dist.prop('disabled', false);
@@ -767,8 +753,8 @@ $(function(){
             if(selectedId){
                 $dist.val(selectedId);
             }
-        }).fail(()=>{ 
-            console.warn('Failed loading districts'); 
+        }).fail(()=>{
+            console.warn('Failed loading districts');
             toastr.warning('Gagal memuat data kecamatan');
         });
     }
@@ -784,7 +770,7 @@ $(function(){
             resetSelect($dist, '-- Pilih Kecamatan --');
         }
     });
-    
+
     $reg.on('change', function(){
         const rid = $(this).val();
         if(rid) {
