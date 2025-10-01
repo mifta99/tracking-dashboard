@@ -83,7 +83,7 @@
 									@endif
 								</td>
 								<td class="text-center align-middle">
-									<a href="{{ route('verification-request.show', $p->id) }}" class=""><i class="fas fa-search"></i></a>
+									<a href="{{ route('verification-request.detail', $p->id) }}" class=""><i class="fas fa-search"></i></a>
 								</td>
 							</tr>
 						@empty
@@ -117,7 +117,7 @@
 	<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
 	<script>
 		window.Laravel = window.Laravel || { routes: {} };
-		Laravel.routes.verificationShow = "{{ route('verification-request.show', ['id' => 'ID_PLACEHOLDER']) }}";
+		Laravel.routes.verificationShow = "{{ route('verification-request.detail', ['id' => 'ID_PLACEHOLDER']) }}";
 	</script>
 	<script>
 		let dataTable;
@@ -222,7 +222,7 @@
 			};
 			console.log('Filter request params:', params);
 			$.ajax({
-				url: '{{ route('verification-request.fetch') }}',
+				url: '{{ route('verification-request.fetch', request('status')) }}',
 				method: 'GET',
 				data: params,
 				success: function(res){

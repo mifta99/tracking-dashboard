@@ -94,7 +94,7 @@
                             <td class="excel-cell editable align-middle" data-field="pic_dinkes_prov" contenteditable="false">{{ $item->pic_dinkes_prov ?? '-' }}</td>
                             <td class="excel-cell editable align-middle" data-field="pic_dinkes_kab" contenteditable="false">{{ $item->pic_dinkes_kab ?? '-' }}</td>
                             <td class="excel-cell text-center align-middle" data-field="pengiriman" >
-                                {!! empty($item->pengiriman) ? '<a href="'.route('verification-request.show', $item->id).'" class="btn btn-secondary btn-sm px-2" title="Info Pengiriman"><i class="fas fa-info-circle fa-sm"></i></a>' : '<a href="'.route('verification-request.show', $item->id).'" class="btn btn-primary btn-sm px-2" title="Info Pengiriman"><i class="fas fa-info-circle fa-sm"></i></a>' !!}
+                                {!! empty($item->pengiriman) ? '<a href="'.route('verification-request.detail', $item->id).'" class="btn btn-secondary btn-sm px-2" title="Info Pengiriman"><i class="fas fa-info-circle fa-sm"></i></a>' : '<a href="'.route('verification-request.detail', $item->id).'" class="btn btn-primary btn-sm px-2" title="Info Pengiriman"><i class="fas fa-info-circle fa-sm"></i></a>' !!}
                             </td>
                         </tr>
                     @empty

@@ -27,7 +27,7 @@
 
                     <!-- Bagian kanan: tombol -->
                     <div class="ms-3">
-                        <a href="{{ route('import-data.download.template') }}" class="btn btn-light btn-sm shadow-sm px-3 py-2 text-decoration-none d-flex align-items-center text-secondary" onmouseover="this.classList.add('text-dark')" onmouseout="this.classList.remove('text-dark')">
+                        <a href="{{ route('import-data.download.template') }}" id="download-template-btn" class="btn btn-light btn-sm shadow-sm px-3 py-2 text-decoration-none d-flex align-items-center text-secondary" onmouseover="this.classList.add('text-dark')" onmouseout="this.classList.remove('text-dark')">
                             <i class="fas fa-download me-2 text-danger"></i>
                             <span class="fw-semibold px-2">Download Template</span>
                         </a>
@@ -76,6 +76,177 @@
                             </div>
                             <small class="form-text text-muted">Supported formats: .xlsx, .xls, .csv</small>
                         </div>
+
+                        @if(auth()->user() && auth()->user()->role && auth()->user()->role->role_name === 'endo')
+                        <div class="form-group">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="font-weight-bold mb-0">Additional Columns for Export Template <span class="text-muted">(Optional for Endo)</span></label>
+                                <button type="button" class="btn btn-outline-primary btn-sm" id="toggle-additional-columns">
+                                    <i class="fas fa-eye"></i> Show Additional Options
+                                </button>
+                            </div>
+                            <div class="card" id="additional-columns-card" style="display: none;">
+                                <div class="card-body p-3">
+                                    <div class="row">
+                                        <!-- Basic Puskesmas Information -->
+                                        <div class="col-md-6">
+                                            <h6 class="text-primary mb-2"><i class="fas fa-hospital"></i> Basic Information</h6>
+                                            <div class="form-check mb-1">
+                                                <input class="form-check-input" type="checkbox" id="include_pic" name="additional_columns[]" value="pic">
+                                                <label class="form-check-label small" for="include_pic">
+                                                    PIC Puskesmas
+                                                </label>
+                                            </div>
+                                            <div class="form-check mb-1">
+                                                <input class="form-check-input" type="checkbox" id="include_kepala" name="additional_columns[]" value="kepala">
+                                                <label class="form-check-label small" for="include_kepala">
+                                                    Kepala Puskesmas
+                                                </label>
+                                            </div>
+                                            <div class="form-check mb-1">
+                                                <input class="form-check-input" type="checkbox" id="include_pic_dinkes_prov" name="additional_columns[]" value="pic_dinkes_prov">
+                                                <label class="form-check-label small" for="include_pic_dinkes_prov">
+                                                    PIC Dinkes Provinsi
+                                                </label>
+                                            </div>
+                                            <div class="form-check mb-1">
+                                                <input class="form-check-input" type="checkbox" id="include_pic_dinkes_kab" name="additional_columns[]" value="pic_dinkes_kab">
+                                                <label class="form-check-label small" for="include_pic_dinkes_kab">
+                                                    PIC Dinkes Kabupaten/Kota
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        <!-- Delivery Information -->
+                                        <div class="col-md-6">
+                                            <h6 class="text-success mb-2"><i class="fas fa-truck"></i> Delivery Information</h6>
+                                            <div class="form-check mb-1">
+                                                <input class="form-check-input" type="checkbox" id="include_tgl_pengiriman" name="additional_columns[]" value="tgl_pengiriman" checked>
+                                                <label class="form-check-label small" for="include_tgl_pengiriman">
+                                                    Tanggal Pengiriman
+                                                </label>
+                                            </div>
+                                            <div class="form-check mb-1">
+                                                <input class="form-check-input" type="checkbox" id="include_eta" name="additional_columns[]" value="eta" checked>
+                                                <label class="form-check-label small" for="include_eta">
+                                                    ETA (Hari)
+                                                </label>
+                                            </div>
+                                            <div class="form-check mb-1">
+                                                <input class="form-check-input" type="checkbox" id="include_resi" name="additional_columns[]" value="resi" checked>
+                                                <label class="form-check-label small" for="include_resi">
+                                                    Nomor Resi
+                                                </label>
+                                            </div>
+                                            <div class="form-check mb-1">
+                                                <input class="form-check-input" type="checkbox" id="include_target_tgl" name="additional_columns[]" value="target_tgl" checked>
+                                                <label class="form-check-label small" for="include_target_tgl">
+                                                    Target Tanggal Diterima
+                                                </label>
+                                            </div>
+                                            <div class="form-check mb-1">
+                                                <input class="form-check-input" type="checkbox" id="include_catatan" name="additional_columns[]" value="catatan" checked>
+                                                <label class="form-check-label small" for="include_catatan">
+                                                    Catatan
+                                                </label>
+                                            </div>
+                                            <div class="form-check mb-1">
+                                                <input class="form-check-input" type="checkbox" id="include_tgl_diterima" name="additional_columns[]" value="tgl_diterima" checked>
+                                                <label class="form-check-label small" for="include_tgl_diterima">
+                                                    Tanggal Diterima
+                                                </label>
+                                            </div>
+                                            <div class="form-check mb-1">
+                                                <input class="form-check-input" type="checkbox" id="include_nama_penerima" name="additional_columns[]" value="nama_penerima" checked>
+                                                <label class="form-check-label small" for="include_nama_penerima">
+                                                    Nama Penerima
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row mt-3">
+                                        <!-- Testing Information -->
+                                        <div class="col-md-6">
+                                            <h6 class="text-warning mb-2"><i class="fas fa-cog"></i> Testing & Installation</h6>
+                                            <div class="form-check mb-1">
+                                                <input class="form-check-input" type="checkbox" id="include_tgl_instalasi" name="additional_columns[]" value="tgl_instalasi" checked>
+                                                <label class="form-check-label small" for="include_tgl_instalasi">
+                                                    Tanggal Instalasi
+                                                </label>
+                                            </div>
+                                            <div class="form-check mb-1">
+                                                <input class="form-check-input" type="checkbox" id="include_target_tgl_uji_fungsi" name="additional_columns[]" value="target_tgl_uji_fungsi" checked>
+                                                <label class="form-check-label small" for="include_target_tgl_uji_fungsi">
+                                                    Target Tanggal Uji Fungsi
+                                                </label>
+                                            </div>
+                                            <div class="form-check mb-1">
+                                                <input class="form-check-input" type="checkbox" id="include_tgl_uji_fungsi" name="additional_columns[]" value="tgl_uji_fungsi" checked>
+                                                <label class="form-check-label small" for="include_tgl_uji_fungsi">
+                                                    Tanggal Uji Fungsi
+                                                </label>
+                                            </div>
+                                            <div class="form-check mb-1">
+                                                <input class="form-check-input" type="checkbox" id="include_tgl_pelatihan" name="additional_columns[]" value="tgl_pelatihan" checked>
+                                                <label class="form-check-label small" for="include_tgl_pelatihan">
+                                                    Tanggal Pelatihan
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        <!-- Document Status -->
+                                        <div class="col-md-6">
+                                            <h6 class="text-info mb-2"><i class="fas fa-file-alt"></i> Document Status</h6>
+                                            <div class="form-check mb-1">
+                                                <input class="form-check-input" type="checkbox" id="include_tahapan_id" name="additional_columns[]" value="tahapan_id" checked>
+                                                <label class="form-check-label small" for="include_tahapan_id">
+                                                    Status Tahapan
+                                                </label>
+                                            </div>
+                                            <div class="form-check mb-1">
+                                                <input class="form-check-input" type="checkbox" id="include_verif_kemenkes_pengiriman" name="additional_columns[]" value="verif_kemenkes_pengiriman" checked>
+                                                <label class="form-check-label small" for="include_verif_kemenkes_pengiriman">
+                                                    Verifikasi Kemenkes - Pengiriman
+                                                </label>
+                                            </div>
+                                            <div class="form-check mb-1">
+                                                <input class="form-check-input" type="checkbox" id="include_verif_kemenkes_uji_fungsi" name="additional_columns[]" value="verif_kemenkes_uji_fungsi" checked>
+                                                <label class="form-check-label small" for="include_verif_kemenkes_uji_fungsi">
+                                                    Verifikasi Kemenkes - Uji Fungsi
+                                                </label>
+                                            </div>
+                                            <div class="form-check mb-1">
+                                                <input class="form-check-input" type="checkbox" id="include_verif_kemenkes_dokumen" name="additional_columns[]" value="verif_kemenkes_dokumen" checked>
+                                                <label class="form-check-label small" for="include_verif_kemenkes_dokumen">
+                                                    Verifikasi Kemenkes - Dokumen
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row mt-3">
+                                        <div class="col-12">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <small class="text-muted">
+                                                    <i class="fas fa-info-circle"></i> 
+                                                    Kolom yang dipilih akan ditambahkan ke template export Excel.
+                                                </small>
+                                                <div>
+                                                    <button type="button" class="btn btn-outline-secondary btn-sm" id="select-all-columns">
+                                                        <i class="fas fa-check-square"></i> Select All
+                                                    </button>
+                                                    <button type="button" class="btn btn-outline-secondary btn-sm ml-1" id="deselect-all-columns">
+                                                        <i class="fas fa-square"></i> Deselect All
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @endif
                     </div>
                     <div class="card-footer">
                         <button type="submit" class="btn btn-primary">
@@ -97,6 +268,36 @@
     .custom-file-label::after {
         content: "Browse";
     }
+    
+    .form-check {
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-check-label.small {
+        font-size: 0.875rem;
+        font-weight: normal;
+    }
+    
+    .card .card-body h6 {
+        border-bottom: 2px solid #e9ecef;
+        padding-bottom: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .form-check-input:checked + .form-check-label {
+        font-weight: 500;
+        color: #495057;
+    }
+    
+    .btn-sm {
+        font-size: 0.8rem;
+        padding: 0.25rem 0.75rem;
+    }
+    
+    .card {
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+    }
 </style>
 @stop
 
@@ -108,6 +309,84 @@
             let fileName = $(this).val().split('\\').pop();
             $(this).siblings('.custom-file-label').addClass("selected").html(fileName);
         });
+
+        // Select all additional columns
+        $('#select-all-columns').on('click', function() {
+            $('input[name="additional_columns[]"]').prop('checked', true);
+            $(this).removeClass('btn-outline-secondary').addClass('btn-primary');
+            $('#deselect-all-columns').removeClass('btn-primary').addClass('btn-outline-secondary');
+        });
+
+        // Deselect all additional columns
+        $('#deselect-all-columns').on('click', function() {
+            $('input[name="additional_columns[]"]').prop('checked', false);
+            $(this).removeClass('btn-outline-secondary').addClass('btn-primary');
+            $('#select-all-columns').removeClass('btn-primary').addClass('btn-outline-secondary');
+        });
+
+        // Toggle additional columns section
+        $('#toggle-additional-columns').on('click', function() {
+            const $card = $('#additional-columns-card');
+            const $button = $(this);
+            
+            if ($card.is(':visible')) {
+                $card.slideUp();
+                $button.html('<i class="fas fa-eye"></i> Show Additional Options');
+                $button.removeClass('btn-primary').addClass('btn-outline-primary');
+            } else {
+                $card.slideDown();
+                $button.html('<i class="fas fa-eye-slash"></i> Hide Additional Options');
+                $button.removeClass('btn-outline-primary').addClass('btn-primary');
+            }
+        });
+
+        // Update button states when individual checkboxes change
+        $('input[name="additional_columns[]"]').on('change', function() {
+            const totalCheckboxes = $('input[name="additional_columns[]"]').length;
+            const checkedCheckboxes = $('input[name="additional_columns[]"]:checked').length;
+            
+            if (checkedCheckboxes === 0) {
+                $('#select-all-columns').removeClass('btn-primary').addClass('btn-outline-secondary');
+                $('#deselect-all-columns').removeClass('btn-outline-secondary').addClass('btn-primary');
+            } else if (checkedCheckboxes === totalCheckboxes) {
+                $('#select-all-columns').removeClass('btn-outline-secondary').addClass('btn-primary');
+                $('#deselect-all-columns').removeClass('btn-primary').addClass('btn-outline-secondary');
+            } else {
+                $('#select-all-columns').removeClass('btn-primary').addClass('btn-outline-secondary');
+                $('#deselect-all-columns').removeClass('btn-primary').addClass('btn-outline-secondary');
+            }
+        });
+
+        // Initialize button states on page load
+        $('input[name="additional_columns[]"]').trigger('change');
+
+        // Update download template link when columns change
+        function updateDownloadLink() {
+            const baseUrl = '{{ route("import-data.download.template") }}';
+            const checkedColumns = $('input[name="additional_columns[]"]:checked').map(function() {
+                return this.value;
+            }).get();
+            
+            let url = baseUrl;
+            if (checkedColumns.length > 0) {
+                url += '?' + $.param({
+                    'additional_columns': checkedColumns
+                });
+            }
+            
+            $('#download-template-btn').attr('href', url);
+        }
+
+        // Update link when checkboxes change
+        $('input[name="additional_columns[]"]').on('change', updateDownloadLink);
+        
+        // Update link when select all/deselect all buttons are clicked
+        $('#select-all-columns, #deselect-all-columns').on('click', function() {
+            setTimeout(updateDownloadLink, 100); // Delay to ensure checkboxes are updated first
+        });
+
+        // Initialize download link
+        updateDownloadLink();
     });
 </script>
 @stop
