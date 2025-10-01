@@ -4,6 +4,7 @@ namespace App\Http\Controllers\VerificationRequest;
 
 use App\Http\Controllers\Controller;
 use App\Models\Puskesmas;
+use App\Models\Tahapan;
 use Illuminate\Http\Request;
 
 class VerificationRequestController extends Controller
@@ -115,14 +116,17 @@ class VerificationRequestController extends Controller
     {
         $puskesmas = Puskesmas::with([
             'district.regency.province',
-            'pengiriman',
+            'pengiriman.tahapan',
             'ujiFungsi',
             'document'
         ])
         ->findOrFail($id);
 
+        $tahapan = Tahapan::orderBy('tahap_ke')->get();
+
         return view('verification-request.show', [
             'puskesmas' => $puskesmas,
+            'tahapan' => $tahapan,
         ]);
     }
 }
