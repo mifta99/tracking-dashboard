@@ -598,6 +598,100 @@ class APIVerificationRequestController extends Controller
     }
 
     /**
+     * Update verification status for uji fungsi information.
+     */
+    public function updateUjiFungsiVerification(Request $request, string $id): JsonResponse
+    {
+        try {
+            // Log the incoming request data for debugging
+            Log::info('Uji Fungsi verification request data:', $request->all());
+
+            // Find the puskesmas
+            $puskesmas = Puskesmas::with('ujiFungsi')->find($id);
+            if (!$puskesmas) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data puskesmas tidak ditemukan'
+                ], 404);
+            }
+
+            // Check if uji fungsi exists
+            if (!$puskesmas->ujiFungsi) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data uji fungsi tidak ditemukan'
+                ], 404);
+            }
+
+            // Get and validate the verification status
+            $verifKemenkes = $request->input('verif_kemenkes');
+            
+            if ($verifKemenkes === null) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Status verifikasi wajib diisi'
+                ], 422);
+            }
+            
+            // Convert to boolean - handle various formats
+            if (is_bool($verifKemenkes)) {
+                $verifStatus = $verifKemenkes;
+            } else if (is_string($verifKemenkes)) {
+                $verifStatus = in_array(strtolower($verifKemenkes), ['true', '1', 'yes', 'on']);
+            } else {
+                $verifStatus = (bool) $verifKemenkes;
+            }
+
+            // Check if already verified and trying to unverify
+            if ($puskesmas->ujiFungsi->verif_kemenkes && !$verifStatus) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Verifikasi yang sudah dilakukan tidak dapat dibatalkan'
+                ], 422);
+            }
+
+            // Update verification status
+            $updateData = [
+                'verif_kemenkes' => $verifStatus,
+                'updated_by' => auth()->id(),
+            ];
+
+            // Set verification date
+            if ($verifStatus) {
+                $updateData['tgl_verif_kemenkes'] = now();
+            } else {
+                $updateData['tgl_verif_kemenkes'] = null;
+            }
+
+            $puskesmas->ujiFungsi->update($updateData);
+
+            return response()->json([
+                'success' => true,
+                'message' => $verifStatus ? 
+                    'Data uji fungsi berhasil diverifikasi' : 
+                    'Verifikasi data uji fungsi berhasil dibatalkan',
+                'data' => [
+                    'verif_kemenkes' => $puskesmas->ujiFungsi->verif_kemenkes,
+                    'tgl_verif_kemenkes' => $puskesmas->ujiFungsi->tgl_verif_kemenkes ? 
+                        $puskesmas->ujiFungsi->tgl_verif_kemenkes->format('d F Y H:i') : null,
+                ]
+            ], 200);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data yang dimasukkan tidak valid',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Display the specified verification request.
      */
     public function show(string $id): JsonResponse
