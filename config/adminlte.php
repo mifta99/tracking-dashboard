@@ -351,12 +351,6 @@ return [
             'icon' => 'fas fa-fw fa-heartbeat',
             'can'   => ['endo','kemenkes']
         ],
-        [
-            'text' => 'Reported Incidents',
-            'url'  => '/reported-incidents',
-            'icon' => 'fas fa-fw fa-heartbeat',
-            'can'   => ['endo','kemenkes']
-        ],
                 [
             'text' => 'Import Data',
             'url'  => '/import-data',
