@@ -303,12 +303,12 @@
                 <div class="col-md-6">
                     <table class="table table-sm table-borderless table-kv mb-0">
                         <tr><td>Tanggal Instalasi</td><td>{{ optional($uji->tgl_instalasi)->format('d F Y') ?? '-' }}</td></tr>
-                        <tr><td>Berita Acara Instalasi</td><td>@if($uji && $uji->doc_instalasi)<a class="text-decoration-none" target="_blank" href="{{ $uji->doc_instalasi }}">View Here</a>@else - @endif</td></tr>
+                        <tr><td>Berita Acara Instalasi</td><td>@if($uji && $uji->doc_instalasi)<a class="text-decoration-none" target="_blank" href="{{ asset('storage/' . $uji->doc_instalasi) }}">View Here</a>@else - @endif</td></tr>
                         <tr><td>Target Tanggal Uji Fungsi</td><td>{{ optional($uji->target_tgl_uji_fungsi)->format('d F Y') ?? '-' }}</td></tr>
                         <tr><td>Tanggal Uji Fungsi</td><td>{{ optional($uji->tgl_uji_fungsi)->format('d F Y') ?? '-' }}</td></tr>
-                        <tr><td>Berita Acara Uji Fungsi</td><td>@if($uji && $uji->doc_uji_fungsi)<a class="text-decoration-none" target="_blank" href="{{ $uji->doc_uji_fungsi }}">View Here</a>@else - @endif</td></tr>
+                        <tr><td>Berita Acara Uji Fungsi</td><td>@if($uji && $uji->doc_uji_fungsi)<a class="text-decoration-none" target="_blank" href="{{ asset('storage/' . $uji->doc_uji_fungsi) }}">View Here</a>@else - @endif</td></tr>
                         <tr><td>Tanggal Pelatihan Alat</td><td>{{ optional($uji->tgl_pelatihan)->format('d F Y') ?? '-' }}</td></tr>
-                        <tr><td>Berita Acara Pelatihan Alat</td><td>@if($uji && $uji->doc_pelatihan)<a class="text-decoration-none" target="_blank" href="{{ $uji->doc_pelatihan }}">View Here</a>@else - @endif</td></tr>
+                        <tr><td>Berita Acara Pelatihan Alat</td><td>@if($uji && $uji->doc_pelatihan)<a class="text-decoration-none" target="_blank" href="{{ asset('storage/' . $uji->doc_pelatihan) }}">View Here</a>@else - @endif</td></tr>
                         <tr><td>Catatan</td><td>{{ $uji->catatan ?? '-' }}</td></tr>
                     </table>
                 </div>
@@ -537,17 +537,17 @@
                             <div class="form-group col-md-4">
                                 <label class="small mb-1 d-flex align-items-center">Berita Acara Instalasi <span class="ml-1 badge badge-light border">pdf</span></label>
                                 <input type="file" name="doc_instalasi" class="form-control-file" accept="application/pdf">
-                                @if($uji && $uji->doc_instalasi)<small class="d-block mt-1"><a target="_blank" href="{{ $uji->doc_instalasi }}">Lihat Saat Ini</a></small>@endif
+                                @if($uji && $uji->doc_instalasi)<small class="d-block mt-1"><a target="_blank" href="{{ asset('storage/' . $uji->doc_instalasi) }}">Lihat Saat Ini</a></small>@endif
                             </div>
                             <div class="form-group col-md-4">
                                 <label class="small mb-1 d-flex align-items-center">Berita Acara Uji Fungsi <span class="ml-1 badge badge-light border">pdf</span></label>
                                 <input type="file" name="doc_uji_fungsi" class="form-control-file" accept="application/pdf">
-                                @if($uji && $uji->doc_uji_fungsi)<small class="d-block mt-1"><a target="_blank" href="{{ $uji->doc_uji_fungsi }}">Lihat Saat Ini</a></small>@endif
+                                @if($uji && $uji->doc_uji_fungsi)<small class="d-block mt-1"><a target="_blank" href="{{ asset('storage/' . $uji->doc_uji_fungsi) }}">Lihat Saat Ini</a></small>@endif
                             </div>
                             <div class="form-group col-md-4">
                                 <label class="small mb-1 d-flex align-items-center">Berita Acara Pelatihan Alat<span class="ml-1 badge badge-light border">pdf</span></label>
                                 <input type="file" name="doc_pelatihan" class="form-control-file" accept="application/pdf">
-                                @if($uji && $uji->doc_pelatihan)<small class="d-block mt-1"><a target="_blank" href="{{ $uji->doc_pelatihan }}">Lihat Saat Ini</a></small>@endif
+                                @if($uji && $uji->doc_pelatihan)<small class="d-block mt-1"><a target="_blank" href="{{ asset('storage/' . $uji->doc_pelatihan) }}">Lihat Saat Ini</a></small>@endif
                             </div>
                         </div>
                         <div class="mb-2 mt-3 pb-1 border-bottom"><strong class="text-muted small">Catatan</strong></div>
@@ -1066,6 +1066,127 @@ $(function(){
                 }, 1000);
             } else {
                 notifyError((res && res.message) || 'Gagal memperbarui data pengiriman');
+            }
+        }).fail(function(xhr, status){
+            if(status === 'timeout'){
+                notifyError('Permintaan timeout, periksa koneksi Anda');
+                return;
+            }
+            if(xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors){
+                const errs = xhr.responseJSON.errors;
+                Object.keys(errs).forEach(f => {
+                    const input = $form.find(`[name='${f}']`);
+                    input.addClass('is-invalid');
+                    if(input.next('.invalid-feedback').length===0){
+                        input.after(`<div class="invalid-feedback">${errs[f][0]}</div>`);
+                    } else {
+                        input.next('.invalid-feedback').text(errs[f][0]);
+                    }
+                });
+                notifyError('Periksa kembali input Anda');
+            } else if(xhr.status === 404){
+                notifyError('Data tidak ditemukan');
+            } else {
+                notifyError('Terjadi kesalahan server');
+            }
+        }).always(function(){
+            $submitBtn.prop('disabled', false).html(originalHtml);
+        });
+    });
+});
+
+// Uji Fungsi form submission handler
+$(function(){
+    const $modal = $('#ujiFungsiModal');
+    const $form = $('#ujiFungsiForm');
+    if(!$modal.length || !$form.length) return;
+
+    const updateUrl = '{{ route('api-verification-request.uji-fungsi-information', ['id' => $puskesmas->id]) }}';
+
+    function notifySuccess(msg){
+        if(window.toastr){ toastr.success(msg); return; }
+        if(window.Swal){ Swal.fire({icon:'success',title:'Berhasil',text:msg,timer:1400,showConfirmButton:false}); return; }
+        alert(msg);
+    }
+    function notifyError(msg){
+        if(window.toastr){ toastr.error(msg); return; }
+        if(window.Swal){ Swal.fire({icon:'error',title:'Gagal',text:msg}); return; }
+        alert(msg);
+    }
+
+    $form.on('submit', function(e){
+        e.preventDefault();
+        const $submitBtn = $form.find('button[type="submit"]');
+        const originalHtml = $submitBtn.html();
+        $submitBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm mr-1"></span>Menyimpan...');
+
+        const formData = new FormData(this);
+
+        // Clear previous error states
+        $form.find('.is-invalid').removeClass('is-invalid');
+        $form.find('.invalid-feedback').remove();
+
+        $.ajax({
+            url: updateUrl,
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            timeout: 30000, // 30 seconds for file upload
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
+        }).done(function(res){
+            if(res && res.success){
+                // Update visible table values without reload
+                const data = res.data || {};
+                const $ujiFungsiTable = $('.card-header:contains("Uji Fungsi")').next('.card-body').find('table.table-kv');
+
+                // Update uji fungsi information fields
+                if(data.tgl_instalasi !== undefined) $ujiFungsiTable.find('tr:contains("Tanggal Instalasi") td:last').text(data.tgl_instalasi || '-');
+                if(data.target_tgl_uji_fungsi !== undefined) $ujiFungsiTable.find('tr:contains("Target Tanggal Uji Fungsi") td:last').text(data.target_tgl_uji_fungsi || '-');
+                if(data.tgl_uji_fungsi !== undefined) $ujiFungsiTable.find('tr:contains("Tanggal Uji Fungsi") td:last').text(data.tgl_uji_fungsi || '-');
+                if(data.tgl_pelatihan !== undefined) $ujiFungsiTable.find('tr:contains("Tanggal Pelatihan Alat") td:last').text(data.tgl_pelatihan || '-');
+                if(data.catatan !== undefined) $ujiFungsiTable.find('tr:contains("Catatan") td:last').text(data.catatan || '-');
+                
+                // Update document links
+                if(data.doc_instalasi !== undefined) {
+                    const docInstalasiCell = $ujiFungsiTable.find('tr:contains("Berita Acara Instalasi") td:last');
+                    if(data.doc_instalasi) {
+                        const storageUrl = '{{ asset("storage/") }}/' + data.doc_instalasi;
+                        docInstalasiCell.html(`<a class="text-decoration-none" target="_blank" href="${storageUrl}">View Here</a>`);
+                    } else {
+                        docInstalasiCell.text('-');
+                    }
+                }
+                
+                if(data.doc_uji_fungsi !== undefined) {
+                    const docUjiFungsiCell = $ujiFungsiTable.find('tr:contains("Berita Acara Uji Fungsi") td:last');
+                    if(data.doc_uji_fungsi) {
+                        const storageUrl = '{{ asset("storage/") }}/' + data.doc_uji_fungsi;
+                        docUjiFungsiCell.html(`<a class="text-decoration-none" target="_blank" href="${storageUrl}">View Here</a>`);
+                    } else {
+                        docUjiFungsiCell.text('-');
+                    }
+                }
+                
+                if(data.doc_pelatihan !== undefined) {
+                    const docPelatihanCell = $ujiFungsiTable.find('tr:contains("Berita Acara Pelatihan Alat") td:last');
+                    if(data.doc_pelatihan) {
+                        const storageUrl = '{{ asset("storage/") }}/' + data.doc_pelatihan;
+                        docPelatihanCell.html(`<a class="text-decoration-none" target="_blank" href="${storageUrl}">View Here</a>`);
+                    } else {
+                        docPelatihanCell.text('-');
+                    }
+                }
+
+                notifySuccess(res.message || 'Data uji fungsi berhasil diperbarui');
+                $modal.modal('hide');
+
+                // Refresh page after 1 second to update progress timeline
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            } else {
+                notifyError((res && res.message) || 'Gagal memperbarui data uji fungsi');
             }
         }).fail(function(xhr, status){
             if(status === 'timeout'){

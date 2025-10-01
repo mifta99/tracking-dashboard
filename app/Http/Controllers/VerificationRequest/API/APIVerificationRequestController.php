@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Equipment;
 use App\Models\Pengiriman;
 use App\Models\Puskesmas;
+use App\Models\UjiFungsi;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
@@ -265,6 +266,125 @@ class APIVerificationRequestController extends Controller
         }
     }
 
+
+    /**
+     * Edit uji fungsi information for a puskesmas.
+     */
+    public function editUjiFungsiInformation(Request $request, string $id): JsonResponse
+    {
+        try {
+            // Find the puskesmas
+            $puskesmas = Puskesmas::with('ujiFungsi')->find($id);
+            if (!$puskesmas) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data puskesmas tidak ditemukan'
+                ], 404);
+            }
+
+            // Validate input
+            $validated = $request->validate([
+                'tgl_instalasi' => 'nullable|date',
+                'target_tgl_uji_fungsi' => 'nullable|date',
+                'tgl_uji_fungsi' => 'nullable|date',
+                'tgl_pelatihan' => 'nullable|date',
+                'doc_instalasi' => 'nullable|file|mimes:pdf|max:5120', // 5MB max
+                'doc_uji_fungsi' => 'nullable|file|mimes:pdf|max:5120',
+                'doc_pelatihan' => 'nullable|file|mimes:pdf|max:5120',
+                'catatan' => 'nullable|string',
+            ], [
+                'tgl_instalasi.date' => 'Format tanggal instalasi tidak valid',
+                'target_tgl_uji_fungsi.date' => 'Format target tanggal uji fungsi tidak valid',
+                'tgl_uji_fungsi.date' => 'Format tanggal uji fungsi tidak valid',
+                'tgl_pelatihan.date' => 'Format tanggal pelatihan tidak valid',
+                'doc_instalasi.file' => 'File berita acara instalasi tidak valid',
+                'doc_instalasi.mimes' => 'File berita acara instalasi harus berformat PDF',
+                'doc_instalasi.max' => 'Ukuran file berita acara instalasi maksimal 5MB',
+                'doc_uji_fungsi.file' => 'File berita acara uji fungsi tidak valid',
+                'doc_uji_fungsi.mimes' => 'File berita acara uji fungsi harus berformat PDF',
+                'doc_uji_fungsi.max' => 'Ukuran file berita acara uji fungsi maksimal 5MB',
+                'doc_pelatihan.file' => 'File berita acara pelatihan tidak valid',
+                'doc_pelatihan.mimes' => 'File berita acara pelatihan harus berformat PDF',
+                'doc_pelatihan.max' => 'Ukuran file berita acara pelatihan maksimal 5MB',
+            ]);
+
+            // Handle file uploads
+            $fileFields = ['doc_instalasi', 'doc_uji_fungsi', 'doc_pelatihan'];
+            foreach ($fileFields as $field) {
+                if ($request->hasFile($field)) {
+                    $file = $request->file($field);
+                    
+                    // Create directory if it doesn't exist
+                    $uploadPath = 'uploads/uji-fungsi';
+                    $fullPath = storage_path('app/public/' . $uploadPath);
+                    if (!file_exists($fullPath)) {
+                        mkdir($fullPath, 0755, true);
+                    }
+                    
+                    // Generate unique filename
+                    $fileName = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+                    
+                    // Store file
+                    $file->storeAs($uploadPath, $fileName, 'public');
+                    
+                    // Store relative path
+                    $validated[$field] = $uploadPath . '/' . $fileName;
+                }
+            }
+
+            // Prepare update data
+            $updateData = [];
+            $updatedFields = [];
+
+            foreach (['tgl_instalasi', 'target_tgl_uji_fungsi', 'tgl_uji_fungsi', 'tgl_pelatihan', 'catatan', 'doc_instalasi', 'doc_uji_fungsi', 'doc_pelatihan'] as $field) {
+                if (array_key_exists($field, $validated)) {
+                    $updateData[$field] = $validated[$field];
+                    $updatedFields[] = str_replace(['_', 'doc_'], [' ', 'dokumen '], $field);
+                }
+            }
+
+            // Add updated_by
+            $updateData['updated_by'] = auth()->id();
+
+            // Get or create uji fungsi record
+            if ($puskesmas->ujiFungsi) {
+                $puskesmas->ujiFungsi->update($updateData);
+                $ujiFungsi = $puskesmas->ujiFungsi;
+            } else {
+                $updateData['puskesmas_id'] = $puskesmas->id;
+                $updateData['created_by'] = auth()->id();
+                $ujiFungsi = UjiFungsi::create($updateData);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data uji fungsi berhasil diperbarui',
+                'data' => [
+                    'tgl_instalasi' => $ujiFungsi->tgl_instalasi ? $ujiFungsi->tgl_instalasi->format('d F Y') : null,
+                    'target_tgl_uji_fungsi' => $ujiFungsi->target_tgl_uji_fungsi ? $ujiFungsi->target_tgl_uji_fungsi->format('d F Y') : null,
+                    'tgl_uji_fungsi' => $ujiFungsi->tgl_uji_fungsi ? $ujiFungsi->tgl_uji_fungsi->format('d F Y') : null,
+                    'tgl_pelatihan' => $ujiFungsi->tgl_pelatihan ? $ujiFungsi->tgl_pelatihan->format('d F Y') : null,
+                    'doc_instalasi' => $ujiFungsi->doc_instalasi,
+                    'doc_uji_fungsi' => $ujiFungsi->doc_uji_fungsi,
+                    'doc_pelatihan' => $ujiFungsi->doc_pelatihan,
+                    'catatan' => $ujiFungsi->catatan,
+                ],
+                'updated_fields' => $updatedFields
+            ], 200);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data yang dimasukkan tidak valid',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 
     /**
      * Display the specified verification request.
