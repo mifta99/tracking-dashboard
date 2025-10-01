@@ -49,11 +49,11 @@ Route::middleware(['auth', 'roles:2,3'])->prefix('import-data')->name('import-da
     Route::post('/import-puskesmas', [App\Http\Controllers\ImportData\ImportDataController::class, 'importPuskesmas'])->name('import.puskesmas');
     Route::get('/download-template', [App\Http\Controllers\ImportData\ImportDataController::class, 'downloadExcel'])->name('download.template');
 });
-Route::middleware(['auth', 'roles:2,3'])->prefix('master-puskesmas')->name('master-puskesmas.')->group(function () {
+Route::middleware(['auth', 'roles:2'])->prefix('master-puskesmas')->name('master-puskesmas.')->group(function () {
     Route::get('/', [App\Http\Controllers\Puskesmas\MasterPuskesmasController::class, 'index'])->name('index');
 });
 
-Route::middleware(['auth', 'roles:2,3'])->prefix('api-puskesmas')->name('api-puskesmas.')->group(function () {
+Route::middleware(['auth', 'roles:2'])->prefix('api-puskesmas')->name('api-puskesmas.')->group(function () {
     Route::get('/fetch', [App\Http\Controllers\Puskesmas\API\APIPuskesmasController::class, 'fetchData'])->name('fetch-data');
     Route::post('/store', [App\Http\Controllers\Puskesmas\API\APIPuskesmasController::class, 'store'])->name('store');
     Route::put('/{id}/update-basic', [App\Http\Controllers\Puskesmas\API\APIPuskesmasController::class, 'updateBasic'])->name('update-basic');
