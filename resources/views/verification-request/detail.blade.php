@@ -46,14 +46,24 @@
             .shipment-status-flow .sf-circle{margin:0 0 6px;}
         }
 
-        /* Disabled verification switch styling */
-        .custom-control-input:disabled ~ .custom-control-label {
+        /* Verified switches - Blue styling */
+        .custom-control-input:disabled:checked ~ .custom-control-label {
             color: #007bff;
             font-weight: 600;
         }
-        .custom-control-input:disabled ~ .custom-control-label::before {
+        .custom-control-input:disabled:checked ~ .custom-control-label::before {
             background-color: #007bff;
             border-color: #007bff;
+        }
+        
+        /* Unverified disabled switches - Gray/inactive styling */
+        .custom-control-input:disabled:not(:checked) ~ .custom-control-label {
+            color: #6c757d;
+            font-weight: normal;
+        }
+        .custom-control-input:disabled:not(:checked) ~ .custom-control-label::before {
+            background-color: #e9ecef;
+            border-color: #ced4da;
         }
     </style>
 @endsection
@@ -177,7 +187,7 @@
                 <tr><td>Kabupaten / Kota</td><td>{{ $r->name ?? '-' }}</td></tr>
                 <tr><td>Kecamatan</td><td>{{ $d->name ?? '-' }}</td></tr>
                 <tr><td>Nama Puskesmas</td><td>{{ $puskesmas->name }}</td></tr>
-                <tr><td>PIC Puskesmas (Petugas ASPAK)</td><td>{{ $puskesmas->pic ?? '-' }}</td></tr>
+                <tr><td>PIC Puskesmas</td><td>{{ $puskesmas->pic ?? '-' }}</td></tr>
                 <tr><td>Kepala Puskesmas</td><td>{{ $puskesmas->kepala ?? '-' }}</td></tr>
                 <tr><td>PIC Dinas Kesehatan Kabupaten/Kota</td><td>{{ $puskesmas->pic_dinkes_kab ?? '-' }}</td></tr>
                 <tr><td>PIC Dinas Kesehatan Provinsi</td><td>{{ $puskesmas->pic_dinkes_prov ?? '-' }}</td></tr>
@@ -234,7 +244,7 @@
                         <input type="text" class="form-control form-control-sm" name="name" value="{{ $puskesmas->name }}">
                      </div>
                      <div class="form-group col-md-6">
-                        <label class="small mb-1">PIC Puskesmas (Petugas ASPAK)</label>
+                        <label class="small mb-1">PIC Puskesmas</label>
                         <input type="text" class="form-control form-control-sm" name="pic" value="{{ $puskesmas->pic }}">
                      </div>
                   </div>
@@ -297,7 +307,8 @@
                                     <div class="form-group">
                                         <div class="custom-control custom-switch">
                                             <input type="checkbox" class="custom-control-input" id="verifiedDelivery" name="verif_kemenkes"
-                                                {{ ($peng && $peng->verif_kemenkes) ? 'checked disabled' : '' }}>
+                                                {{ (auth()->user()->role->role_name !== 'kemenkes' || ($peng && $peng->verif_kemenkes)) ? 'disabled' : '' }}
+                                                {{ ($peng && $peng->verif_kemenkes) ? 'checked' : '' }}>
                                             <label class="custom-control-label" for="verifiedDelivery">
                                                 {{ ($peng && $peng->verif_kemenkes) ? 'Verified' : 'Verified' }}
                                             </label>
@@ -312,11 +323,13 @@
             </div>
         </div>
     </div>
-    
+
     <div class="card mb-3 shadow-sm">
         <div class="card-header py-2 pr-1 text-white d-flex align-items-center" style="background:#3f0fa8;">
             <span class="section-title-bar">Uji Fungsi</span>
+            @if(auth()->user() && auth()->user()->role->role_name == 'endo')
             <button class="btn btn-sm ml-auto" style="background:#3f0fa8; color:white;" data-toggle="modal" data-target="#ujiFungsiModal"><i class="fas fa-edit"></i> Edit</button>
+            @endif
         </div>
         @php $uji = optional($puskesmas->ujiFungsi); @endphp
         <div class="card-body p-3">
@@ -343,7 +356,8 @@
                                     <div class="form-group">
                                         <div class="custom-control custom-switch">
                                             <input type="checkbox" class="custom-control-input" name="verif_kemenkes" id="verifiedUjiFungsi"
-                                                {{ ($uji && $uji->verif_kemenkes) ? 'checked disabled' : '' }}>
+                                                {{ (auth()->user()->role->role_name !== 'kemenkes' || ($uji && $uji->verif_kemenkes)) ? 'disabled' : '' }}
+                                                {{ ($uji && $uji->verif_kemenkes) ? 'checked' : '' }}>
                                             <label class="custom-control-label" for="verifiedUjiFungsi">
                                                 {{ ($uji && $uji->verif_kemenkes) ? 'Verified ' : 'Verified' }}
                                             </label>
@@ -363,15 +377,17 @@
     <div class="card shadow-sm mb-4">
         <div class="card-header py-2 pr-1 bg-secondary text-white d-flex align-items-center">
             <span class="section-title-bar">Dokumen</span>
+            @if(auth()->user() && auth()->user()->role->role_name == 'endo')
             <button class="btn btn-sm btn-secondary ml-auto" data-toggle="modal" data-target="#documentsModal"><i class="fas fa-edit"></i> Edit</button>
+            @endif
         </div>
         <div class="card-body p-3">
             <div class="row">
                 <div class="col-md-6">
                     <table class="table table-sm table-borderless table-kv mb-0">
-                        <tr><td>Berita Acara BASTO</td><td>@if($doc && $doc->basto)<a class="text-decoration-none" target="_blank" href="{{ asset('storage/' . $doc->basto) }}">View Here</a>@else - @endif</td></tr>
                         <tr><td>Berita Acara Kalibrasi</td><td>@if($doc && $doc->kalibrasi)<a class="text-decoration-none" target="_blank" href="{{ asset('storage/' . $doc->kalibrasi) }}">View Here</a>@else - @endif</td></tr>
                         <tr><td>Berita Acara BAST</td><td>@if($doc && $doc->bast)<a class="text-decoration-none" target="_blank" href="{{ asset('storage/' . $doc->bast) }}">View Here</a>@else - @endif</td></tr>
+                        <tr><td>Berita Acara BASTO</td><td>@if($doc && $doc->basto)<a class="text-decoration-none" target="_blank" href="{{ asset('storage/' . $doc->basto) }}">View Here</a>@else - @endif</td></tr>
                         <tr><td>Berita Acara ASPAK</td><td>@if($doc && $doc->aspak)<a class="text-decoration-none" target="_blank" href="{{ asset('storage/' . $doc->aspak) }}">View Here</a>@else - @endif</td></tr>
                     </table>
                 </div>
@@ -385,7 +401,8 @@
                                     <div class="form-group">
                                         <div class="custom-control custom-switch">
                                             <input type="checkbox" name="verif_kemenkes" class="custom-control-input" id="verifiedDocument"
-                                                {{ ($doc && $doc->verif_kemenkes) ? 'checked disabled' : '' }}>
+                                                {{ (auth()->user()->role->role_name !== 'kemenkes' || ($doc && $doc->verif_kemenkes)) ? 'disabled' : '' }}
+                                                {{ ($doc && $doc->verif_kemenkes) ? 'checked' : '' }}>
                                             <label class="custom-control-label" for="verifiedDocument">
                                                 {{ ($doc && $doc->verif_kemenkes) ? 'Verified' : 'Verified' }}
                                             </label>
@@ -531,7 +548,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Modal Uji Fungsi -->
     <div class="modal fade" id="ujiFungsiModal" tabindex="-1" role="dialog">
         <div class="modal-dialog modal-xl" role="document">
@@ -611,11 +628,6 @@
                         <div class="mb-2 pb-1 border-bottom"><strong class="text-muted small">Dokumen</strong></div>
                         <div class="form-row">
                             <div class="form-group col-md-6">
-                                <label class="small mb-1 d-flex align-items-center">Berita Acara BASTO <span class="ml-1 badge badge-light border">pdf</span></label>
-                                <input type="file" name="basto" class="form-control-file" accept="application/pdf">
-                                @if($doc && $doc->basto)<small class="d-block mt-1"><a target="_blank" href="{{ asset('storage/' . $doc->basto) }}">File Saat Ini</a></small>@endif
-                            </div>
-                            <div class="form-group col-md-6">
                                 <label class="small mb-1 d-flex align-items-center">Berita Acara Kalibrasi<span class="ml-1 badge badge-light border">pdf</span></label>
                                 <input type="file" name="kalibrasi" class="form-control-file" accept="application/pdf">
                                 @if($doc && $doc->kalibrasi)<small class="d-block mt-1"><a target="_blank" href="{{ asset('storage/' . $doc->kalibrasi) }}">File Saat Ini</a></small>@endif
@@ -624,6 +636,11 @@
                                 <label class="small mb-1 d-flex align-items-center">Berita Acara BAST <span class="ml-1 badge badge-light border">pdf</span></label>
                                 <input type="file" name="bast" class="form-control-file" accept="application/pdf">
                                 @if($doc && $doc->bast)<small class="d-block mt-1"><a target="_blank" href="{{ asset('storage/' . $doc->bast) }}">File Saat Ini</a></small>@endif
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label class="small mb-1 d-flex align-items-center">Berita Acara BASTO <span class="ml-1 badge badge-light border">pdf</span></label>
+                                <input type="file" name="basto" class="form-control-file" accept="application/pdf">
+                                @if($doc && $doc->basto)<small class="d-block mt-1"><a target="_blank" href="{{ asset('storage/' . $doc->basto) }}">File Saat Ini</a></small>@endif
                             </div>
                             <div class="form-group col-md-6">
                                 <label class="small mb-1 d-flex align-items-center">Berita Acara ASPAK <span class="ml-1 badge badge-light border">pdf</span></label>
@@ -1360,6 +1377,12 @@ $(function(){
     const $verificationSwitch = $('#verifiedDelivery');
     if(!$form.length || !$verificationSwitch.length) return;
 
+    // Check if user is kemenkes
+    const userRole = '{{ auth()->user()->role->role_name }}';
+    if (userRole !== 'kemenkes') {
+        return; // Don't attach handlers if not kemenkes
+    }
+
     const updateUrl = '{{ route('api-verification-request.delivery-verification', ['id' => $puskesmas->id]) }}';
     let isUpdating = false;
 
@@ -1518,6 +1541,12 @@ $(function(){
     const $verificationSwitch = $('#verifiedUjiFungsi');
     if(!$form.length || !$verificationSwitch.length) return;
 
+    // Check if user is kemenkes
+    const userRole = '{{ auth()->user()->role->role_name }}';
+    if (userRole !== 'kemenkes') {
+        return; // Don't attach handlers if not kemenkes
+    }
+
     const updateUrl = '{{ route('api-verification-request.ujifungsi-verification', ['id' => $puskesmas->id]) }}';
     let isUpdating = false;
 
@@ -1675,6 +1704,12 @@ $(function(){
     const $form = $('#verifDocumentForm');
     const $verificationSwitch = $('#verifiedDocument');
     if(!$form.length || !$verificationSwitch.length) return;
+
+    // Check if user is kemenkes
+    const userRole = '{{ auth()->user()->role->role_name }}';
+    if (userRole !== 'kemenkes') {
+        return; // Don't attach handlers if not kemenkes
+    }
 
     const updateUrl = '{{ route('api-verification-request.document-verification', ['id' => $puskesmas->id]) }}';
     let isUpdating = false;
