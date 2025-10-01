@@ -221,6 +221,9 @@ class APIVerificationRequestController extends Controller
             // Add updated_by
             $updateData['updated_by'] = auth()->id();
 
+            // Auto-update tahapan_id based on field updates
+            $this->updateTahapanId($puskesmas, $validated, 'pengiriman');
+
             // Get or create pengiriman record
             if ($puskesmas->pengiriman) {
                 $puskesmas->pengiriman->update($updateData);
@@ -358,6 +361,9 @@ class APIVerificationRequestController extends Controller
             // Add updated_by
             $updateData['updated_by'] = auth()->id();
 
+            // Auto-update tahapan_id based on field updates
+            $this->updateTahapanId($puskesmas, $validated, 'uji_fungsi');
+
             // Get or create uji fungsi record
             if ($puskesmas->ujiFungsi) {
                 $puskesmas->ujiFungsi->update($updateData);
@@ -483,6 +489,9 @@ class APIVerificationRequestController extends Controller
 
             // Add updated_by
             $updateData['updated_by'] = auth()->id();
+
+            // Auto-update tahapan_id based on field updates
+            $this->updateTahapanId($puskesmas, $validated, 'documents');
 
             // Get or create document record
             if ($puskesmas->document) {
@@ -784,6 +793,72 @@ class APIVerificationRequestController extends Controller
                 'success' => false,
                 'message' => 'Terjadi kesalahan: ' . $e->getMessage()
             ], 500);
+        }
+    }
+
+    /**
+     * Auto-update tahapan_id in pengiriman table based on field updates
+     * Only updates if the new tahapan_id is higher than the current one
+     */
+    private function updateTahapanId($puskesmas, $validated, $context)
+    {
+        // Get current tahapan_id from pengiriman record
+        $currentTahapanId = 1; // Default
+        if ($puskesmas->pengiriman) {
+            $currentTahapanId = $puskesmas->pengiriman->tahapan_id ?? 1;
+        }
+        
+        $newTahapanId = null;
+        
+        // Determine new tahapan_id based on context and updated fields
+        switch ($context) {
+            case 'pengiriman':
+                // Check if resi field is being updated and has a value
+                if (array_key_exists('resi', $validated) && !empty($validated['resi'])) {
+                    $newTahapanId = 2;
+                }
+                break;
+                
+            case 'documents':
+                // Check document fields in priority order (higher tahapan_id takes precedence)
+                if (array_key_exists('aspak', $validated) && !empty($validated['aspak'])) {
+                    $newTahapanId = 8; // aspak has highest priority
+                } elseif (array_key_exists('basto', $validated) && !empty($validated['basto'])) {
+                    $newTahapanId = 7; // basto 
+                } elseif (array_key_exists('bast', $validated) && !empty($validated['bast'])) {
+                    $newTahapanId = 3; // bast
+                }
+                break;
+                
+            case 'uji_fungsi':
+                // Check uji fungsi document fields in priority order
+                if (array_key_exists('doc_pelatihan', $validated) && !empty($validated['doc_pelatihan'])) {
+                    $newTahapanId = 6; // doc_pelatihan has highest priority in uji_fungsi
+                } elseif (array_key_exists('doc_uji_fungsi', $validated) && !empty($validated['doc_uji_fungsi'])) {
+                    $newTahapanId = 5; // doc_uji_fungsi
+                } elseif (array_key_exists('doc_instalasi', $validated) && !empty($validated['doc_instalasi'])) {
+                    $newTahapanId = 4; // doc_instalasi
+                }
+                break;
+        }
+        
+        // Only update if new tahapan_id is higher than current
+        if ($newTahapanId && $newTahapanId > $currentTahapanId) {
+            // Get or create pengiriman record to update tahapan_id
+            if ($puskesmas->pengiriman) {
+                $puskesmas->pengiriman->update(['tahapan_id' => $newTahapanId]);
+            } else {
+                // Create pengiriman record with new tahapan_id
+                Pengiriman::create([
+                    'puskesmas_id' => $puskesmas->id,
+                    'tahapan_id' => $newTahapanId,
+                    'verif_kemenkes' => false,
+                    'created_by' => auth()->id(),
+                    'updated_by' => auth()->id(),
+                ]);
+            }
+            
+            Log::info("Updated tahapan_id from {$currentTahapanId} to {$newTahapanId} for puskesmas {$puskesmas->id} in context {$context}");
         }
     }
 
