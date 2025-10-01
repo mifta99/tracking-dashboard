@@ -190,7 +190,7 @@ return [
     |
     */
 
-    'classes_body' => '',
+    'classes_body' => 'hold-transition sidebar-mini layout-fixed',
     'classes_brand' => '',
     'classes_brand_text' => '',
     'classes_content_wrapper' => '',
@@ -351,10 +351,22 @@ return [
             'icon' => 'fas fa-fw fa-heartbeat',
             'can'   => ['endo','kemenkes']
         ],
+        [
+            'text' => 'Reported Incidents',
+            'url'  => '/reported-incidents',
+            'icon' => 'fas fa-fw fa-heartbeat',
+            'can'   => ['endo','kemenkes']
+        ],
                 [
             'text' => 'Import Data',
             'url'  => '/import-data',
             'icon' => 'fas fa-fw fa-file-import',
+            'can'   => ['endo','kemenkes']
+        ],
+        [
+            'text' => 'Master Puskesmas',
+            'url'  => '/master-puskesmas',
+            'icon' => 'fas fa-fw fa-hospital',
             'can'   => ['endo','kemenkes']
         ],
 

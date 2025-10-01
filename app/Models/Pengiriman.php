@@ -11,7 +11,7 @@ class Pengiriman extends Model
 {
     use HasFactory, SoftDeletes;
     protected $primaryKey = 'id';
-
+    protected $table = 'pengiriman';
     /**
      * The attributes that are mass assignable.
      *
