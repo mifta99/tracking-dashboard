@@ -20,53 +20,53 @@
             </div>
             <div class="row">
                 <div class="col-lg-3 col-md-6 col-sm-6 col-12">
-                    <div class="card" style="background-color: #09c0d8; height: 80px;">
+                    <div class="card" style="background-color: #17A2B8; height: 80px;">
                         <div class="card-body d-flex justify-content-between align-items-center position-relative h-100">
                             <div>
-                                <h4 class="text-white mb-1">Card 1</h4>
-                                <p class="text-white mb-0">Content for card 1</p>
+                                <h4 class="text-white font-weight-bold mb-1">15</h4>
+                                <p class="text-white mb-0">Provinsi</p>
                             </div>
-                            <div class="text-secondary position-absolute" style="font-size: 3rem; right: 15px; top: 50%; transform: translateY(-50%); opacity: 0.25;">
-                                <i class="fas fa-chart-bar"></i>
+                            <div class=" position-absolute" style="color: #147483;font-size: 3rem; right: 15px; top: 50%; transform: translateY(-50%);">
+                                <i class="fas fa-landmark"></i>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="col-lg-3 col-md-6 col-sm-6 col-12">
-                    <div class="card" style="background-color: #30db58; height: 80px;">
+                    <div class="card" style="background-color: #28A745; height: 80px;">
                         <div class="card-body d-flex justify-content-between align-items-center position-relative h-100">
                             <div>
-                                <h4 class="text-white mb-1">Jumlah Puskesmas</h4>
-                                <p class="text-white mb-0">{{ $countPuskesmas }}</p>
+                                <h4 class="text-white font-weight-bold mb-1">{{ 53 }}</h4>
+                                <p class="text-white mb-0">Kabupaten/Kota</p>
                             </div>
-                            <div class="text-secondary position-absolute" style="font-size: 3rem; right: 15px; top: 50%; transform: translateY(-50%); opacity: 0.25;">
+                            <div class=" position-absolute" style="color: #137a2b;font-size: 3rem; right: 15px; top: 50%; transform: translateY(-50%); ">
+                            <i class="fas fa-city"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 col-sm-6 col-12">
+                    <div class="card" style="background-color: #FFC107; height: 80px;">
+                        <div class="card-body d-flex justify-content-between align-items-center position-relative h-100">
+                            <div>
+                                <h4 class="text-dark font-weight-bold mb-1">{{ 53 }}</h4>
+                                <p class="text-dark mb-0">Kecamatan</p>
+                            </div>
+                            <div class=" position-absolute" style="color: #927418;font-size: 3rem; right: 15px; top: 50%; transform: translateY(-50%); ">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 col-sm-6 col-12">
+                    <div class="card" style="background-color: #DC3545; height: 80px;">
+                        <div class="card-body d-flex justify-content-between align-items-center position-relative h-100">
+                            <div>
+                                <h4 class="text-white font-weight-bold mb-1">{{ $countPuskesmas }}</h4>
+                                <p class="text-white mb-0">Puskesmas</p>
+                            </div>
+                            <div class=" position-absolute" style="color: #861a25; font-size: 3rem; right: 15px; top: 50%; transform: translateY(-50%);">
                                 <i class="fas fa-hospital"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6 col-sm-6 col-12">
-                    <div class="card" style="background-color: #f7c531; height: 80px;">
-                        <div class="card-body d-flex justify-content-between align-items-center position-relative h-100">
-                            <div>
-                                <h4 class="text-white mb-1">Card 3</h4>
-                                <p class="text-white mb-0">Content for card 3</p>
-                            </div>
-                            <div class="text-secondary position-absolute" style="font-size: 3rem; right: 15px; top: 50%; transform: translateY(-50%); opacity: 0.25;">
-                                <i class="fas fa-shopping-cart"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6 col-sm-6 col-12">
-                    <div class="card" style="background-color: #e02b3d; height: 80px;">
-                        <div class="card-body d-flex justify-content-between align-items-center position-relative h-100">
-                            <div>
-                                <h4 class="text-white mb-1">Card 4</h4>
-                                <p class="text-white mb-0">Content for card 4</p>
-                            </div>
-                            <div class="text-secondary position-absolute" style="font-size: 3rem; right: 15px; top: 50%; transform: translateY(-50%); opacity: 0.25;">
-                                <i class="fas fa-cog"></i>
                             </div>
                         </div>
                     </div>
@@ -79,7 +79,7 @@
                             Tracking Summary
                         </div>
                         <div class="card-body">
-                            <canvas id="pieChart" style="height: 300px;"></canvas>
+                            <div id="trackingSummaryChart" style="height: 300px;"></div>
                         </div>
                     </div>
                 </div>
@@ -89,7 +89,7 @@
                             Monthly Issue Report
                         </div>
                         <div class="card-body">
-                            <canvas id="barChart" style="height: 300px;"></canvas>
+                            <div id="monthlyIssueChart" style="height:300px; width:100%;"></div>
                         </div>
                     </div>
                 </div>
@@ -196,6 +196,9 @@
     <!-- DataTables JS -->
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
+    
+    <!-- ECharts (Pie Chart Replacement for Highcharts) -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
     
     <script>
     $(document).ready(function() {
@@ -434,6 +437,159 @@
                     $('#reported-incidents-table tbody').html('<tr><td colspan="8" class="text-center text-danger">Gagal memuat data. Silakan coba lagi.</td></tr>');
                 });
         
+        // Load tracking pie chart (ECharts)
+        function loadTrackingPieChart() {
+            const chartEl = document.getElementById('trackingSummaryChart');
+            if(!chartEl){
+                console.warn('Chart container not found');
+                return;
+            }
+            const chart = echarts.init(chartEl, null, { renderer: 'canvas' });
+
+            // Static sample data (replace with dynamic if needed)
+            const dataItems = [
+                { value: {{ $dataStatus['shipment_process'] }}, name: 'Shipment Process' },
+                { value: {{ $dataStatus['on_delivery'] }},  name: 'On Delivery' },
+                { value: {{ $dataStatus['received'] }}, name: 'Received' },
+                { value: {{ $dataStatus['installation'] }}, name: 'Instalasi' },
+                { value: {{ $dataStatus['function_test'] }},  name: 'Uji Fungsi' },
+                { value: {{ $dataStatus['item_training'] }},  name: 'Pelatihan Alat' },
+                { value: {{ $dataStatus['basto'] }},  name: 'BASTO' },
+                { value: {{ $dataStatus['aspak'] }}, name: 'ASPAK' },
+            ];
+
+            const option = {
+                backgroundColor: 'transparent',
+                title: {
+                    text: 'Distribusi Status Tracking',
+                    left: 'center',
+                    top: 10,
+                    textStyle: { fontSize: 16, fontWeight: 600, color: '#2d3748' }
+                },
+                tooltip: {
+                    trigger: 'item',
+                    formatter: '{b}: {c} ({d}%)'
+                },
+                legend: {
+                    type: 'scroll',
+                    bottom: 0,
+                    textStyle: { fontSize: 12 }
+                },
+                series: [
+                    {
+                        name: 'Status',
+                        type: 'pie',
+                        radius: ['40%', '70%'],
+                        center: ['50%', '50%'],
+                        avoidLabelOverlap: true,
+                        itemStyle: {
+                            borderRadius: 8,
+                            borderColor: '#fff',
+                            borderWidth: 2
+                        },
+                        label: {
+                            show: true,
+                            formatter: '{b}: {d}%'
+                        },
+                        labelLine: {
+                            show: true,
+                            smooth: true,
+                            length: 10,
+                            length2: 10
+                        },
+                        emphasis: {
+                            itemStyle: {
+                                shadowBlur: 10,
+                                shadowOffsetX: 0,
+                                shadowColor: 'rgba(0,0,0,0.25)'
+                            }
+                        },
+                        data: dataItems,
+                        color: [
+                            '#00b8d9', '#ffc400', '#36b37e', '#6554c0', '#ff5630',
+                            '#ff8b00', '#ff4d4f', '#2684ff', '#6b778c'
+                        ]
+                    }
+                ]
+            };
+
+            chart.setOption(option);
+            window.addEventListener('resize', () => chart.resize());
+        }
+        
+        // Load Monthly Issue Bar Chart (last 5 months)
+        function loadMonthlyIssueChart(){
+            const el = document.getElementById('monthlyIssueChart');
+            if(!el){ return; }
+            const chart = echarts.init(el);
+
+            // Helper to get last 5 month labels
+            function getLastFiveMonths(){
+                const arr = [];
+                const now = new Date();
+                for(let i=4;i>=0;i--){
+                    const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+                    const formatter = d.toLocaleDateString('id-ID',{ month:'short', year:'2-digit'});
+                    arr.push(formatter);
+                }
+                return arr;
+            }
+
+            const monthLabels = getLastFiveMonths();
+
+            // Placeholder static data (replace with API response later)
+            // Example endpoint suggestion: route('api-issues.monthly') returning [{month:'2025-06', total:12}, ...]
+            const issueData = [5, 9, 4, 11, 7];
+
+            const option = {
+                backgroundColor: 'transparent',
+                tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+                grid: { left: '5%', right: '5%', top: 40, bottom: 50, containLabel: true },
+                title: { text: 'Jumlah Keluhan 5 Bulan Terakhir', left: 'center', top: 5, textStyle:{ fontSize:14, fontWeight:600 } },
+                xAxis: {
+                    type: 'category',
+                    data: monthLabels,
+                    axisLine: { lineStyle: { color: '#94a3b8' } },
+                    axisLabel: { color: '#475569', fontSize: 12 }
+                },
+                yAxis: {
+                    type: 'value',
+                    name: 'Keluhan',
+                    nameTextStyle:{ color:'#475569', padding:[0,0,5,0]},
+                    axisLine: { show:false },
+                    splitLine: { lineStyle: { color: 'rgba(148,163,184,0.25)' } },
+                    axisLabel: { color: '#475569' }
+                },
+                series: [
+                    {
+                        name: 'Keluhan',
+                        type: 'bar',
+                        data: issueData,
+                        barWidth: '45%',
+                        itemStyle: {
+                            borderRadius: [6,6,0,0],
+                            color: '#007bff'
+                        },
+                        label: { show: true, position: 'top', color: '#334155', fontWeight: 600 }
+                    }
+                ],
+                toolbox: {
+                    feature: {
+                        saveAsImage: { title:'Save' }
+                    },
+                    right: 20
+                }
+            };
+
+            chart.setOption(option);
+            window.addEventListener('resize', ()=> chart.resize());
+
+        }
+
+        // Load charts on page load
+        loadTrackingPieChart();
+        loadMonthlyIssueChart();
+
         // Add refresh functionality
         window.refreshTableData = function() {
             loadTableData();

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\RaisedIssue;
 
 use App\Http\Controllers\Controller;
+use App\Models\Keluhan;
 use App\Models\Puskesmas;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -14,7 +15,7 @@ class RaisedIssueController extends Controller
      */
     public function index()
     {
-        $data = Puskesmas::with(['district.regency.province'])->get();
+        $data = Keluhan::all();
         
         return view('raised-issue.index', ['data' => $data]);
     }

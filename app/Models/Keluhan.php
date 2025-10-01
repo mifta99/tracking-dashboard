@@ -11,6 +11,7 @@ class Keluhan extends Model
 {
     use HasFactory, SoftDeletes;
     protected $primaryKey = 'id';
+    protected $table = 'keluhan';
 
     /**
      * The attributes that are mass assignable.
