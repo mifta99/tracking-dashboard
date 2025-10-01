@@ -45,3 +45,7 @@ Route::middleware(['auth', 'roles:2,3'])->prefix('import-data')->name('import-da
     Route::get('/', [App\Http\Controllers\ImportData\ImportDataController::class, 'index'])->name('index');
     Route::get('/import', [App\Http\Controllers\ImportData\ImportDataController::class, 'import'])->name('import');
 });
+
+Route::middleware(['auth', 'roles:2,3'])->get('/detail', function () {
+        return view('detail');
+    })->name('detail');
