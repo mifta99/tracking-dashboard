@@ -15,12 +15,12 @@ class CreatePengirimanTable extends Migration
     {
         Schema::create('pengiriman', function (Blueprint $table) {
             $table->integer('id')->autoIncrement()->unsigned();
-            $table->string('puskesmas_id', 9);
+            $table->string('puskesmas_id', 11);
             $table->date('tgl_pengiriman')->nullable();
             $table->integer('eta')->nullable();
             $table->string('resi')->nullable();
             $table->string('tracking_link')->nullable();
-            $table->integer('equipment_id')->unsigned();
+            $table->integer('equipment_id')->unsigned()->nullable();
             $table->date('target_tgl')->nullable();
             $table->text('catatan')->nullable();
             $table->date('tgl_diterima')->nullable();
@@ -29,7 +29,7 @@ class CreatePengirimanTable extends Migration
             $table->string('jabatan_penerima')->nullable();
             $table->string('nomor_penerima')->nullable();
             $table->string('link_tanda_terima')->nullable();
-            $table->integer('tahapan_id')->unsigned();
+            $table->integer('tahapan_id')->unsigned()->default(1);
             $table->boolean('verif_kemenkes')->default(false);
             $table->timestamp('tgl_verif_kemenkes')->nullable();
             $table->integer('created_by')->unsigned()->nullable();

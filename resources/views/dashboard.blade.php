@@ -9,7 +9,7 @@
 @section('content')
     <div class="row">
         <div class="col-md-12">
-            @if (session('status'))
+                        @if (session('status'))
                 <div class="alert alert-success alert-dismissible">
                     <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
                     {{ session('status') }}
@@ -26,8 +26,7 @@
                                 <h4 class="text-white mb-1">Card 1</h4>
                                 <p class="text-white mb-0">Content for card 1</p>
                             </div>
-                            <div class="text-secondary position-absolute"
-                                style="font-size: 3rem; right: 15px; top: 50%; transform: translateY(-50%); opacity: 0.25;">
+                            <div class="text-secondary position-absolute" style="font-size: 3rem; right: 15px; top: 50%; transform: translateY(-50%); opacity: 0.25;">
                                 <i class="fas fa-chart-bar"></i>
                             </div>
                         </div>
@@ -40,9 +39,6 @@
                                 <h4 class="text-white mb-1">Jumlah Puskesmas</h4>
                                 <p class="text-white mb-0">{{ $countPuskesmas }}</p>
                             </div>
-                            <div class="text-secondary position-absolute"
-                                style="font-size: 3rem; right: 15px; top: 50%; transform: translateY(-50%); opacity: 0.25;">
-                                <i class="fas fa-users"></i>
                             <div class="text-secondary position-absolute" style="font-size: 3rem; right: 15px; top: 50%; transform: translateY(-50%); opacity: 0.25;">
                                 <i class="fas fa-hospital"></i>
                             </div>
@@ -56,8 +52,7 @@
                                 <h4 class="text-white mb-1">Card 3</h4>
                                 <p class="text-white mb-0">Content for card 3</p>
                             </div>
-                            <div class="text-secondary position-absolute"
-                                style="font-size: 3rem; right: 15px; top: 50%; transform: translateY(-50%); opacity: 0.25;">
+                            <div class="text-secondary position-absolute" style="font-size: 3rem; right: 15px; top: 50%; transform: translateY(-50%); opacity: 0.25;">
                                 <i class="fas fa-shopping-cart"></i>
                             </div>
                         </div>
@@ -70,8 +65,7 @@
                                 <h4 class="text-white mb-1">Card 4</h4>
                                 <p class="text-white mb-0">Content for card 4</p>
                             </div>
-                            <div class="text-secondary position-absolute"
-                                style="font-size: 3rem; right: 15px; top: 50%; transform: translateY(-50%); opacity: 0.25;">
+                            <div class="text-secondary position-absolute" style="font-size: 3rem; right: 15px; top: 50%; transform: translateY(-50%); opacity: 0.25;">
                                 <i class="fas fa-cog"></i>
                             </div>
                         </div>
@@ -102,7 +96,7 @@
             </div>
 
             <div class="bg-primary text-white p-1 rounded ps-1 font-weight-bold mb-3">
-                Data Pengiriman
+               Data Pengiriman
             </div>
 
             <div class="row mb-2">
@@ -123,27 +117,12 @@
                 </div>
             </div>
             <div class="card">
-                {{-- <div class="card-header">
-                    <h3 class="card-title"></h3>
-                </div> --}}
+                <div class="card-header">
+                    <h3 class="card-title">Welcome</h3>
+                </div>
                 <div class="card-body">
-                    <table class="table table-bordered table-striped" id="reported-incidents-table">
-                        <thead>
-                            <tr>
-                                <th>No.</th>
-                                <th>Provinsi</th>
-                                <th>Kabupaten/Kota</th>
-                                <th>Kecamatan</th>
-                                <th>Nama Puskesmas</th>
-                                <th>Tanggal Pengiriman</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Data will be populated here -->
-                        </tbody>
-                    </table>
+                    <p>{{ __('You are logged in!') }}</p>
+                    <!-- Add your dashboard content here -->
                 </div>
             </div>
         </div>
@@ -155,7 +134,5 @@
 @stop
 
 @section('js')
-    <script>
-        console.log('Dashboard page loaded');
-    </script>
+    <script> console.log("Hi, I'm using the Laravel-AdminLTE package!"); </script>
 @stop

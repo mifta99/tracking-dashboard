@@ -145,7 +145,7 @@
                         </div>
                         <div class="card-body">
                             <div class="row">
-                                <div class="col-md-6 mb-3 border-right border-bottom">
+                                <div class="col-md-6 mb-3 mt-5 border-right border-bottom">
                                     <div class="row">
                                         <div class="col-sm-4 font-weight-bold">Tanggal Instalasi</div>
                                         <div class="col-sm-8">: 01 Januari 2023</div>
