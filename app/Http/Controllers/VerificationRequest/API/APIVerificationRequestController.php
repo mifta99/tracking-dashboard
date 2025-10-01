@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\VerificationRequest\API;
 
 use App\Http\Controllers\Controller;
+use App\Models\Document;
 use App\Models\Equipment;
 use App\Models\Pengiriman;
 use App\Models\Puskesmas;
@@ -368,6 +369,121 @@ class APIVerificationRequestController extends Controller
                     'doc_uji_fungsi' => $ujiFungsi->doc_uji_fungsi,
                     'doc_pelatihan' => $ujiFungsi->doc_pelatihan,
                     'catatan' => $ujiFungsi->catatan,
+                ],
+                'updated_fields' => $updatedFields
+            ], 200);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data yang dimasukkan tidak valid',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Edit document information for a puskesmas.
+     */
+    public function editDocumentInformation(Request $request, string $id): JsonResponse
+    {
+        try {
+            // Find the puskesmas
+            $puskesmas = Puskesmas::with('document')->find($id);
+            if (!$puskesmas) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data puskesmas tidak ditemukan'
+                ], 404);
+            }
+
+            // Validate input
+            $validated = $request->validate([
+                'basto' => 'nullable|file|mimes:pdf|max:5120', // 5MB max
+                'kalibrasi' => 'nullable|file|mimes:pdf|max:5120',
+                'bast' => 'nullable|file|mimes:pdf|max:5120',
+                'aspak' => 'nullable|file|mimes:pdf|max:5120',
+                'update_aspak' => 'nullable|file|mimes:pdf|max:5120',
+            ], [
+                'basto.file' => 'File berita acara BASTO tidak valid',
+                'basto.mimes' => 'File berita acara BASTO harus berformat PDF',
+                'basto.max' => 'Ukuran file berita acara BASTO maksimal 5MB',
+                'kalibrasi.file' => 'File berita acara kalibrasi tidak valid',
+                'kalibrasi.mimes' => 'File berita acara kalibrasi harus berformat PDF',
+                'kalibrasi.max' => 'Ukuran file berita acara kalibrasi maksimal 5MB',
+                'bast.file' => 'File berita acara BAST tidak valid',
+                'bast.mimes' => 'File berita acara BAST harus berformat PDF',
+                'bast.max' => 'Ukuran file berita acara BAST maksimal 5MB',
+                'aspak.file' => 'File berita acara ASPAK tidak valid',
+                'aspak.mimes' => 'File berita acara ASPAK harus berformat PDF',
+                'aspak.max' => 'Ukuran file berita acara ASPAK maksimal 5MB',
+                'update_aspak.file' => 'File update ASPAK tidak valid',
+                'update_aspak.mimes' => 'File update ASPAK harus berformat PDF',
+                'update_aspak.max' => 'Ukuran file update ASPAK maksimal 5MB',
+            ]);
+
+            // Handle file uploads
+            $fileFields = ['basto', 'kalibrasi', 'bast', 'aspak', 'update_aspak'];
+            foreach ($fileFields as $field) {
+                if ($request->hasFile($field)) {
+                    $file = $request->file($field);
+                    
+                    // Create directory if it doesn't exist
+                    $uploadPath = 'uploads/documents';
+                    $fullPath = storage_path('app/public/' . $uploadPath);
+                    if (!file_exists($fullPath)) {
+                        mkdir($fullPath, 0755, true);
+                    }
+                    
+                    // Generate unique filename
+                    $fileName = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+                    
+                    // Store file
+                    $file->storeAs($uploadPath, $fileName, 'public');
+                    
+                    // Store relative path
+                    $validated[$field] = $uploadPath . '/' . $fileName;
+                }
+            }
+
+            // Prepare update data
+            $updateData = [];
+            $updatedFields = [];
+
+            foreach ($fileFields as $field) {
+                if (array_key_exists($field, $validated)) {
+                    $updateData[$field] = $validated[$field];
+                    $updatedFields[] = str_replace('_', ' ', $field);
+                }
+            }
+
+            // Add updated_by
+            $updateData['updated_by'] = auth()->id();
+
+            // Get or create document record
+            if ($puskesmas->document) {
+                $puskesmas->document->update($updateData);
+                $document = $puskesmas->document;
+            } else {
+                $updateData['puskesmas_id'] = $puskesmas->id;
+                $updateData['created_by'] = auth()->id();
+                $document = Document::create($updateData);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data dokumen berhasil diperbarui',
+                'data' => [
+                    'basto' => $document->basto,
+                    'kalibrasi' => $document->kalibrasi,
+                    'bast' => $document->bast,
+                    'aspak' => $document->aspak,
+                    'update_aspak' => $document->update_aspak,
                 ],
                 'updated_fields' => $updatedFields
             ], 200);

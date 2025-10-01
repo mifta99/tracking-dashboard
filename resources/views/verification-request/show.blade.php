@@ -344,10 +344,10 @@
             <div class="row">
                 <div class="col-md-6">
                     <table class="table table-sm table-borderless table-kv mb-0">
-                        <tr><td>Berita Acara BASTO</td><td>@if($doc && $doc->basto)<a class="text-decoration-none" target="_blank" href="{{ $doc->basto }}">View Here</a>@else - @endif</td></tr>
-                        <tr><td>Berita Acara Kalibrasi</td><td>@if($doc && $doc->kalibrasi)<a class="text-decoration-none" target="_blank" href="{{ $doc->kalibrasi }}">View Here</a>@else - @endif</td></tr>
-                        <tr><td>Berita Acara BAST</td><td>@if($doc && $doc->bast)<a class="text-decoration-none" target="_blank" href="{{ $doc->bast }}">View Here</a>@else - @endif</td></tr>
-                        <tr><td>Berita Acara ASPAK</td><td>@if($doc && $doc->aspak)<a class="text-decoration-none" target="_blank" href="{{ $doc->aspak }}">View Here</a>@else - @endif</td></tr>
+                        <tr><td>Berita Acara BASTO</td><td>@if($doc && $doc->basto)<a class="text-decoration-none" target="_blank" href="{{ asset('storage/' . $doc->basto) }}">View Here</a>@else - @endif</td></tr>
+                        <tr><td>Berita Acara Kalibrasi</td><td>@if($doc && $doc->kalibrasi)<a class="text-decoration-none" target="_blank" href="{{ asset('storage/' . $doc->kalibrasi) }}">View Here</a>@else - @endif</td></tr>
+                        <tr><td>Berita Acara BAST</td><td>@if($doc && $doc->bast)<a class="text-decoration-none" target="_blank" href="{{ asset('storage/' . $doc->bast) }}">View Here</a>@else - @endif</td></tr>
+                        <tr><td>Berita Acara ASPAK</td><td>@if($doc && $doc->aspak)<a class="text-decoration-none" target="_blank" href="{{ asset('storage/' . $doc->aspak) }}">View Here</a>@else - @endif</td></tr>
                     </table>
                 </div>
                 <div class="col-md-6">
@@ -583,22 +583,22 @@
                             <div class="form-group col-md-6">
                                 <label class="small mb-1 d-flex align-items-center">Berita Acara BASTO <span class="ml-1 badge badge-light border">pdf</span></label>
                                 <input type="file" name="basto" class="form-control-file" accept="application/pdf">
-                                @if($doc && $doc->basto)<small class="d-block mt-1"><a target="_blank" href="{{ $doc->basto }}">File Saat Ini</a></small>@endif
+                                @if($doc && $doc->basto)<small class="d-block mt-1"><a target="_blank" href="{{ asset('storage/' . $doc->basto) }}">File Saat Ini</a></small>@endif
                             </div>
                             <div class="form-group col-md-6">
                                 <label class="small mb-1 d-flex align-items-center">Berita Acara Kalibrasi<span class="ml-1 badge badge-light border">pdf</span></label>
                                 <input type="file" name="kalibrasi" class="form-control-file" accept="application/pdf">
-                                @if($doc && $doc->kalibrasi)<small class="d-block mt-1"><a target="_blank" href="{{ $doc->kalibrasi }}">File Saat Ini</a></small>@endif
+                                @if($doc && $doc->kalibrasi)<small class="d-block mt-1"><a target="_blank" href="{{ asset('storage/' . $doc->kalibrasi) }}">File Saat Ini</a></small>@endif
                             </div>
                             <div class="form-group col-md-6">
                                 <label class="small mb-1 d-flex align-items-center">Berita Acara BAST <span class="ml-1 badge badge-light border">pdf</span></label>
                                 <input type="file" name="bast" class="form-control-file" accept="application/pdf">
-                                @if($doc && $doc->bast)<small class="d-block mt-1"><a target="_blank" href="{{ $doc->bast }}">File Saat Ini</a></small>@endif
+                                @if($doc && $doc->bast)<small class="d-block mt-1"><a target="_blank" href="{{ asset('storage/' . $doc->bast) }}">File Saat Ini</a></small>@endif
                             </div>
                             <div class="form-group col-md-6">
                                 <label class="small mb-1 d-flex align-items-center">Berita Acara ASPAK <span class="ml-1 badge badge-light border">pdf</span></label>
                                 <input type="file" name="aspak" class="form-control-file" accept="application/pdf">
-                                @if($doc && $doc->aspak)<small class="d-block mt-1"><a target="_blank" href="{{ $doc->aspak }}">File Saat Ini</a></small>@endif
+                                @if($doc && $doc->aspak)<small class="d-block mt-1"><a target="_blank" href="{{ asset('storage/' . $doc->aspak) }}">File Saat Ini</a></small>@endif
                             </div>
                         </div>
                         <small class="text-muted">*Kosongkan jika tidak mengubah dokumen.</small>
@@ -1146,7 +1146,7 @@ $(function(){
                 if(data.tgl_uji_fungsi !== undefined) $ujiFungsiTable.find('tr:contains("Tanggal Uji Fungsi") td:last').text(data.tgl_uji_fungsi || '-');
                 if(data.tgl_pelatihan !== undefined) $ujiFungsiTable.find('tr:contains("Tanggal Pelatihan Alat") td:last').text(data.tgl_pelatihan || '-');
                 if(data.catatan !== undefined) $ujiFungsiTable.find('tr:contains("Catatan") td:last').text(data.catatan || '-');
-                
+
                 // Update document links
                 if(data.doc_instalasi !== undefined) {
                     const docInstalasiCell = $ujiFungsiTable.find('tr:contains("Berita Acara Instalasi") td:last');
@@ -1157,7 +1157,7 @@ $(function(){
                         docInstalasiCell.text('-');
                     }
                 }
-                
+
                 if(data.doc_uji_fungsi !== undefined) {
                     const docUjiFungsiCell = $ujiFungsiTable.find('tr:contains("Berita Acara Uji Fungsi") td:last');
                     if(data.doc_uji_fungsi) {
@@ -1167,7 +1167,7 @@ $(function(){
                         docUjiFungsiCell.text('-');
                     }
                 }
-                
+
                 if(data.doc_pelatihan !== undefined) {
                     const docPelatihanCell = $ujiFungsiTable.find('tr:contains("Berita Acara Pelatihan Alat") td:last');
                     if(data.doc_pelatihan) {
@@ -1187,6 +1187,111 @@ $(function(){
                 }, 1000);
             } else {
                 notifyError((res && res.message) || 'Gagal memperbarui data uji fungsi');
+            }
+        }).fail(function(xhr, status){
+            if(status === 'timeout'){
+                notifyError('Permintaan timeout, periksa koneksi Anda');
+                return;
+            }
+            if(xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors){
+                const errs = xhr.responseJSON.errors;
+                Object.keys(errs).forEach(f => {
+                    const input = $form.find(`[name='${f}']`);
+                    input.addClass('is-invalid');
+                    if(input.next('.invalid-feedback').length===0){
+                        input.after(`<div class="invalid-feedback">${errs[f][0]}</div>`);
+                    } else {
+                        input.next('.invalid-feedback').text(errs[f][0]);
+                    }
+                });
+                notifyError('Periksa kembali input Anda');
+            } else if(xhr.status === 404){
+                notifyError('Data tidak ditemukan');
+            } else {
+                notifyError('Terjadi kesalahan server');
+            }
+        }).always(function(){
+            $submitBtn.prop('disabled', false).html(originalHtml);
+        });
+    });
+});
+
+// Documents form submission handler
+$(function(){
+    const $modal = $('#documentsModal');
+    const $form = $('#documentsForm');
+    if(!$modal.length || !$form.length) return;
+
+    const updateUrl = '{{ route('api-verification-request.document-information', ['id' => $puskesmas->id]) }}';
+
+    function notifySuccess(msg){
+        if(window.toastr){ toastr.success(msg); return; }
+        if(window.Swal){ Swal.fire({icon:'success',title:'Berhasil',text:msg,timer:1400,showConfirmButton:false}); return; }
+        alert(msg);
+    }
+    function notifyError(msg){
+        if(window.toastr){ toastr.error(msg); return; }
+        if(window.Swal){ Swal.fire({icon:'error',title:'Gagal',text:msg}); return; }
+        alert(msg);
+    }
+
+    $form.on('submit', function(e){
+        e.preventDefault();
+        const $submitBtn = $form.find('button[type="submit"]');
+        const originalHtml = $submitBtn.html();
+        $submitBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm mr-1"></span>Menyimpan...');
+
+        const formData = new FormData(this);
+
+        // Clear previous error states
+        $form.find('.is-invalid').removeClass('is-invalid');
+        $form.find('.invalid-feedback').remove();
+
+        $.ajax({
+            url: updateUrl,
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            timeout: 30000, // 30 seconds for file upload
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
+        }).done(function(res){
+            if(res && res.success){
+                // Update visible table values without reload
+                const data = res.data || {};
+                const $documentsTable = $('.card-header:contains("Dokumen")').next('.card-body').find('table.table-kv');
+
+                // Update document links
+                const documentFields = ['basto', 'kalibrasi', 'bast', 'aspak', 'update_aspak'];
+                const documentLabels = {
+                    'basto': 'Berita Acara BASTO',
+                    'kalibrasi': 'Berita Acara Kalibrasi',
+                    'bast': 'Berita Acara BAST',
+                    'aspak': 'Berita Acara ASPAK',
+                    'update_aspak': 'Update ASPAK'
+                };
+
+                documentFields.forEach(field => {
+                    if(data[field] !== undefined) {
+                        const docCell = $documentsTable.find(`tr:contains("${documentLabels[field]}") td:last`);
+                        if(data[field]) {
+                            const storageUrl = '{{ asset("storage/") }}/' + data[field];
+                            docCell.html(`<a class="text-decoration-none" target="_blank" href="${storageUrl}">View Here</a>`);
+                        } else {
+                            docCell.text('-');
+                        }
+                    }
+                });
+
+                notifySuccess(res.message || 'Data dokumen berhasil diperbarui');
+                $modal.modal('hide');
+
+                // Refresh page after 1 second to update any related status
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            } else {
+                notifyError((res && res.message) || 'Gagal memperbarui data dokumen');
             }
         }).fail(function(xhr, status){
             if(status === 'timeout'){
