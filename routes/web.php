@@ -31,6 +31,11 @@ Route::middleware(['auth', 'roles:2,3'])->prefix('raised-issue')->name('raised-i
         return view('raised-issue.index');
     })->name('index');
 });
+Route::middleware(['auth', 'roles:2,3'])->prefix('reported-incidents')->name('reported-incidents.')->group(function () {
+    Route::get('/', function () {
+        return view('reported-incidents.index');
+    })->name('index');
+});
 Route::middleware(['auth', 'roles:2,3'])->prefix('import-data')->name('import-data.')->group(function () {
     Route::get('/', [App\Http\Controllers\ImportData\ImportDataController::class, 'index'])->name('index');
     Route::post('/import-puskesmas', [App\Http\Controllers\ImportData\ImportDataController::class, 'importPuskesmas'])->name('import.puskesmas');
@@ -53,3 +58,6 @@ Route::middleware(['auth', 'roles:2,3'])->prefix('api-puskesmas')->name('api-pus
 Route::middleware(['auth', 'roles:2,3'])->prefix('api-verification-request')->name('api-verification-request.')->group(function () {
     Route::POST('/basic-information/{id}', [App\Http\Controllers\VerificationRequest\API\APIVerificationRequestController::class, 'editBasicInformation'])->name('basic-information');
 });
+Route::middleware(['auth', 'roles:2,3'])->get('/detail', function () {
+        return view('detail');
+    })->name('detail');
