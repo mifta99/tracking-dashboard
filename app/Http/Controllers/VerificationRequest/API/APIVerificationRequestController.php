@@ -692,6 +692,76 @@ class APIVerificationRequestController extends Controller
     }
 
     /**
+     * Update verification status for document information.
+     */
+    public function updateDocumentVerification(Request $request, string $id): JsonResponse
+    {
+        try {
+            // Find the puskesmas
+            $puskesmas = Puskesmas::with('document')->find($id);
+            if (!$puskesmas) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data puskesmas tidak ditemukan'
+                ], 404);
+            }
+
+            // Check if document exists
+            if (!$puskesmas->document) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data dokumen tidak ditemukan'
+                ], 404);
+            }
+
+            // Get verification status
+            $verifKemenkes = $request->input('verif_kemenkes');
+            $verifStatus = filter_var($verifKemenkes, FILTER_VALIDATE_BOOLEAN);
+
+            // Check if already verified and trying to unverify
+            if ($puskesmas->document->verif_kemenkes && !$verifStatus) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Verifikasi yang sudah dilakukan tidak dapat dibatalkan'
+                ], 422);
+            }
+
+            // Update verification status
+            $updateData = [
+                'verif_kemenkes' => $verifStatus,
+                'updated_by' => auth()->id(),
+            ];
+
+            // Set verification date
+            if ($verifStatus) {
+                $updateData['tgl_verif_kemenkes'] = now();
+            } else {
+                $updateData['tgl_verif_kemenkes'] = null;
+            }
+
+            $puskesmas->document->update($updateData);
+
+            return response()->json([
+                'success' => true,
+                'message' => $verifStatus ? 
+                    'Data dokumen berhasil diverifikasi' : 
+                    'Verifikasi data dokumen berhasil dibatalkan',
+                'data' => [
+                    'verif_kemenkes' => $puskesmas->document->verif_kemenkes,
+                    'tgl_verif_kemenkes' => $puskesmas->document->tgl_verif_kemenkes ? 
+                        $puskesmas->document->tgl_verif_kemenkes->format('d F Y H:i') : null,
+                ]
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Display the specified verification request.
      */
     public function show(string $id): JsonResponse

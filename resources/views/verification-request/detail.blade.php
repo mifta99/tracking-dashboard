@@ -347,6 +347,7 @@
                                 </form>
                             </td>
                         </tr>
+                        <tr><td>Tanggal Verifikasi</td><td>{{ $uji->tgl_verif_kemenkes ?? '-' }}</td></tr>
                     </table>
                 </div>
             </div>
@@ -378,13 +379,17 @@
                                     @csrf
                                     <div class="form-group">
                                         <div class="custom-control custom-switch">
-                                            <input type="checkbox" name="verif_kemenkes" class="custom-control-input" id="verifiedDocument" {{ ($doc && $doc->verif_kemenkes) ? 'checked' : '' }}>
-                                            <label class="custom-control-label" for="verifiedDocument">Verified</label>
+                                            <input type="checkbox" name="verif_kemenkes" class="custom-control-input" id="verifiedDocument"
+                                                {{ ($doc && $doc->verif_kemenkes) ? 'checked disabled' : '' }}>
+                                            <label class="custom-control-label" for="verifiedDocument">
+                                                {{ ($doc && $doc->verif_kemenkes) ? 'Verified' : 'Verified' }}
+                                            </label>
                                         </div>
                                     </div>
                                 </form>
                             </td>
                         </tr>
+                        <tr><td>Tanggal Verifikasi</td><td>{{ $doc->tgl_verif_kemenkes ?? '-' }}</td></tr>
                     </table>
                 </div>
             </div>
@@ -1600,6 +1605,164 @@ $(function(){
                 if (verified) {
                     $verificationSwitch.prop('disabled', true);
                     $verificationSwitch.next('label').text('Verified ');
+                }
+
+                // Update the verification date in the table if provided
+                if (res.data && res.data.tgl_verif_kemenkes !== undefined) {
+                    const $verifDateCell = $('tr:contains("Tanggal Verifikasi") td:last');
+                    $verifDateCell.text(res.data.tgl_verif_kemenkes || '-');
+                }
+
+                // Show success message
+                Swal.fire({
+                    title: 'Berhasil!',
+                    text: res.message,
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+
+                // Reload page after a short delay to update progress timeline
+                setTimeout(() => {
+                    location.reload();
+                }, 2500);
+
+            } else {
+                // Reset switch state
+                $verificationSwitch.prop('checked', !verified);
+                Swal.fire({
+                    title: 'Gagal!',
+                    text: res.message || 'Gagal memperbarui status verifikasi',
+                    icon: 'error'
+                });
+            }
+        }).fail(function(xhr, status) {
+            // Reset switch state
+            $verificationSwitch.prop('checked', !verified);
+
+            let errorMessage = 'Terjadi kesalahan sistem';
+
+            if (status === 'timeout') {
+                errorMessage = 'Permintaan timeout, periksa koneksi internet Anda';
+            } else if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.message) {
+                errorMessage = xhr.responseJSON.message;
+            } else if (xhr.status === 404) {
+                errorMessage = 'Data tidak ditemukan';
+            } else if (xhr.status === 403) {
+                errorMessage = 'Anda tidak memiliki akses untuk melakukan tindakan ini';
+            }
+
+            Swal.fire({
+                title: 'Gagal!',
+                text: errorMessage,
+                icon: 'error'
+            });
+        }).always(function() {
+            isUpdating = false;
+        });
+    }
+});
+
+// Document Verification handler with SweetAlert
+$(function(){
+    const $form = $('#verifDocumentForm');
+    const $verificationSwitch = $('#verifiedDocument');
+    if(!$form.length || !$verificationSwitch.length) return;
+
+    const updateUrl = '{{ route('api-verification-request.document-verification', ['id' => $puskesmas->id]) }}';
+    let isUpdating = false;
+
+    $verificationSwitch.on('change', function(e) {
+        if (isUpdating) return;
+
+        const $this = $(this);
+
+        // Check if the switch is disabled (already verified)
+        if ($this.prop('disabled')) {
+            e.preventDefault();
+            return false;
+        }
+
+        const isChecked = $this.is(':checked');
+        const currentState = !isChecked; // Previous state
+
+        // If trying to uncheck (undo verification), prevent it
+        if (currentState === true && isChecked === false) {
+            $this.prop('checked', true);
+            Swal.fire({
+                title: 'Tidak Dapat Dibatalkan',
+                text: 'Verifikasi yang sudah dilakukan tidak dapat dibatalkan.',
+                icon: 'warning',
+                confirmButtonText: 'OK'
+            });
+            return false;
+        }
+
+        // Prevent the change temporarily for confirmation
+        $this.prop('checked', currentState);
+
+        const title = isChecked ? 'Verifikasi Data Dokumen' : 'Batalkan Verifikasi';
+        const text = isChecked ?
+            'Apakah Anda yakin ingin memverifikasi data dokumen ini?' :
+            'Apakah Anda yakin ingin membatalkan verifikasi data dokumen ini?';
+        const confirmButtonText = isChecked ? 'Ya, Verifikasi' : 'Ya, Batalkan';
+        const icon = isChecked ? 'question' : 'warning';
+
+        Swal.fire({
+            title: title,
+            text: text,
+            icon: icon,
+            showCancelButton: true,
+            confirmButtonColor: isChecked ? '#28a745' : '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: confirmButtonText,
+            cancelButtonText: 'Batal',
+            allowOutsideClick: false,
+            allowEscapeKey: false
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // User confirmed, proceed with the verification
+                updateDocumentVerificationStatus(isChecked);
+            }
+            // If cancelled, the switch will remain in its previous state
+        });
+    });
+
+    function updateDocumentVerificationStatus(verified) {
+        isUpdating = true;
+
+        // Show loading state
+        Swal.fire({
+            title: 'Memproses...',
+            text: 'Sedang memperbarui status verifikasi',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            showConfirmButton: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        const requestData = {
+            verif_kemenkes: verified
+        };
+        console.log('Sending document verification data:', requestData);
+
+        $.ajax({
+            url: updateUrl,
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+            data: requestData,
+            timeout: 10000
+        }).done(function(res) {
+            if (res && res.success) {
+                // Update the switch state
+                $verificationSwitch.prop('checked', verified);
+
+                // If verified, disable the switch and update label
+                if (verified) {
+                    $verificationSwitch.prop('disabled', true);
+                    $verificationSwitch.next('label').text('Verified');
                 }
 
                 // Update the verification date in the table if provided
