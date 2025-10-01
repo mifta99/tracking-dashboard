@@ -564,7 +564,7 @@ class APIVerificationRequestController extends Controller
 
             // Set verification date
             if ($verifStatus) {
-                $updateData['tgl_verif_kemenkes'] = now();
+                $updateData['tgl_verif_kemenkes'] = Carbon::now('Asia/Jakarta');
             } else {
                 $updateData['tgl_verif_kemenkes'] = null;
             }
@@ -658,7 +658,7 @@ class APIVerificationRequestController extends Controller
 
             // Set verification date
             if ($verifStatus) {
-                $updateData['tgl_verif_kemenkes'] = now();
+                $updateData['tgl_verif_kemenkes'] = Carbon::now('Asia/Jakarta');
             } else {
                 $updateData['tgl_verif_kemenkes'] = null;
             }

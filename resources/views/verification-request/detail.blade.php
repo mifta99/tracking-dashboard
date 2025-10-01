@@ -301,7 +301,7 @@
                                 </form>
                             </td>
                         </tr>
-                        <tr><td>Tanggal Verifikasi</td><td>{{ $peng->tgl_verif_kemenkes ?? '-' }}</td></tr>
+                        <tr><td>Tanggal Verifikasi</td><td>{{ $peng->tgl_verif_kemenkes ? $peng->tgl_verif_kemenkes->setTimezone('Asia/Jakarta')->format('d F Y H:i') . ' WIB' : '-' }}</td></tr>
                     </table>
                 </div>
             </div>
@@ -347,7 +347,7 @@
                                 </form>
                             </td>
                         </tr>
-                        <tr><td>Tanggal Verifikasi</td><td>{{ $uji->tgl_verif_kemenkes ?? '-' }}</td></tr>
+                        <tr><td>Tanggal Verifikasi</td><td>{{ $uji->tgl_verif_kemenkes ? $uji->tgl_verif_kemenkes->setTimezone('Asia/Jakarta')->format('d F Y H:i') . ' WIB' : '-' }}</td></tr>
                     </table>
                 </div>
             </div>
@@ -389,7 +389,7 @@
                                 </form>
                             </td>
                         </tr>
-                        <tr><td>Tanggal Verifikasi</td><td>{{ $doc->tgl_verif_kemenkes ?? '-' }}</td></tr>
+                        <tr><td>Tanggal Verifikasi</td><td>{{ $doc->tgl_verif_kemenkes ? $doc->tgl_verif_kemenkes->setTimezone('Asia/Jakarta')->format('d F Y H:i') . ' WIB' : '-' }}</td></tr>
                     </table>
                 </div>
             </div>
