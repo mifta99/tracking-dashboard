@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Keluhan extends Model
 {
@@ -112,6 +113,16 @@ class Keluhan extends Model
     public function resolver(): BelongsTo
     {
         return $this->belongsTo(User::class, 'resolved_by', 'id');
+    }
+
+    /**
+     * Get all of the dokumentasiKeluhan for the Keluhan
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function dokumentasiKeluhan(): HasMany
+    {
+        return $this->hasMany(DokumentasiKeluhan::class, 'keluhan_id', 'id');
     }
 
 }
