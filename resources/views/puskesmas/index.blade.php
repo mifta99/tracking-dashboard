@@ -62,6 +62,8 @@
                         <th class="excel-header">Nama Puskesmas</th>
                         <th class="excel-header">PIC Puskesmas (Petugas ASPAK)</th>
                         <th class="excel-header">Kepala Puskesmas</th>
+                        <th class="excel-header">No HP</th>
+                        <th class="excel-header">No HP Alternatif</th>
                         <th class="excel-header">PIC Dinas Kesehatan Provinsi</th>
                         <th class="excel-header">PIC ADINKES</th>
                         <th class="excel-header">Pengiriman</th>
@@ -77,6 +79,8 @@
                             <td class="excel-cell editable align-middle" data-field="name" contenteditable="false">{{ $item->name ?? '-' }}</td>
                             <td class="excel-cell editable align-middle" data-field="pic" contenteditable="false">{{ $item->pic ?? '-' }}</td>
                             <td class="excel-cell editable align-middle" data-field="kepala" contenteditable="false">{{ $item->kepala ?? '-' }}</td>
+                            <td class="excel-cell editable align-middle" data-field="no_hp" contenteditable="false">{{ $item->no_hp ?? '-' }}</td>
+                            <td class="excel-cell editable align-middle" data-field="no_hp_alternatif" contenteditable="false">{{ $item->no_hp_alternatif ?? '-' }}</td>
                             <td class="excel-cell editable align-middle" data-field="pic_dinkes_prov" contenteditable="false">{{ $item->pic_dinkes_prov ?? '-' }}</td>
                             <td class="excel-cell editable align-middle" data-field="pic_dinkes_kab" contenteditable="false">{{ $item->pic_dinkes_kab ?? '-' }}</td>
                             <td class="excel-cell text-center align-middle" data-field="pengiriman" >
@@ -85,6 +89,8 @@
                         </tr>
                     @empty
                         <tr>
+                            <td class="excel-cell text-center">-</td>
+                            <td class="excel-cell text-center">-</td>
                             <td class="excel-cell text-center">-</td>
                             <td class="excel-cell text-center">-</td>
                             <td class="excel-cell text-center">-</td>
@@ -170,6 +176,20 @@
                                 <div class="form-group mb-2">
                                     <label class="mb-1">Kepala Puskesmas</label>
                                     <input type="text" name="kepala" id="modal_kepala" class="form-control" placeholder="Nama kepala puskesmas...">
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-2">
+                                    <label class="mb-1">No HP</label>
+                                    <input type="text" name="no_hp" id="modal_no_hp" class="form-control" placeholder="No HP...">
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-2">
+                                    <label class="mb-1">No HP Alternatif</label>
+                                    <input type="text" name="no_hp_alternatif" id="modal_no_hp_alternatif" class="form-control" placeholder="No HP alternatif...">
                                     <div class="invalid-feedback"></div>
                                 </div>
                             </div>
@@ -646,18 +666,20 @@ $(document).ready(function() {
         const tbody = $('#puskesmasTable tbody');
         tbody.empty();
         
-        // Validate we have 9 header columns
+        // Validate header columns (should be 12)
         const headerCount = $('#puskesmasTable thead th').length;
-        if (headerCount !== 10) {
-            console.error('Header column count is not 10:', headerCount);
+        if (headerCount !== 12) {
+            console.error('Header column count is not 12:', headerCount);
             return;
         }
 
         // Handle data population
         if (!data || data.length === 0) {
-            // For empty data, add a proper row with exact column count (9 columns)
+            // For empty data, add a proper row with exact column count (12 columns)
             tbody.append(`
                 <tr>
+                    <td class="excel-cell text-center">-</td>
+                    <td class="excel-cell text-center">-</td>
                     <td class="excel-cell text-center">-</td>
                     <td class="excel-cell text-center">-</td>
                     <td class="excel-cell text-center">-</td>
@@ -678,7 +700,7 @@ $(document).ready(function() {
             // Add data rows
             data.forEach(function(item, index) {
                 const row = `
-                    <tr>
+                    <tr data-id="${item.id}">
                         <td class="excel-cell text-center">${index + 1}</td>
                         <td class="excel-cell">${item.provinsi || '-'}</td>
                         <td class="excel-cell">${item.kabupaten_kota || '-'}</td>
@@ -686,6 +708,8 @@ $(document).ready(function() {
                         <td class="excel-cell editable" data-field="name" contenteditable="false">${item.name || '-'}</td>
                         <td class="excel-cell editable" data-field="pic" contenteditable="false">${item.pic || '-'}</td>
                         <td class="excel-cell editable" data-field="kepala" contenteditable="false">${item.kepala || '-'}</td>
+                        <td class="excel-cell editable" data-field="no_hp" contenteditable="false">${item.no_hp || '-'}</td>
+                        <td class="excel-cell editable" data-field="no_hp_alternatif" contenteditable="false">${item.no_hp_alternatif || '-'}</td>
                         <td class="excel-cell editable" data-field="pic_dinkes_prov" contenteditable="false">${item.pic_dinkes_prov || '-'}</td>
                         <td class="excel-cell editable" data-field="pic_dinkes_kab" contenteditable="false">${item.pic_dinkes_kab || '-'}</td>
                         <td class="excel-cell">${item.status_pengiriman===0 ? `<a href="/verification-request/${item.id}" class="btn btn-secondary btn-sm px-2" title="Info Pengiriman"><i class="fas fa-info-circle fa-sm"></i></a>` : `<a href="/verification-request/${item.id}" class="btn btn-primary btn-sm px-2" title="Info Pengiriman"><i class="fas fa-info-circle fa-sm"></i></a>`}</td>
@@ -701,7 +725,7 @@ $(document).ready(function() {
         
         console.log(`Final validation - Header: ${finalHeaderCount}, First row: ${finalRowCount}`);
         
-        if (finalHeaderCount === 10 && (finalRowCount === 0 || finalRowCount === 10)) {
+        if (finalHeaderCount === 12 && (finalRowCount === 0 || finalRowCount === 12)) {
             // Small delay before reinitializing DataTable to ensure DOM is ready
             setTimeout(function() {
                 initializeDataTable();
@@ -810,13 +834,13 @@ $(document).ready(function() {
             
             console.log(`Table structure - Header: ${headerCount} columns, First row: ${firstRowCount} columns, Total rows: ${totalRows}`);
             
-            if (headerCount !== 10) {
-                console.error('Header column count is not 10:', headerCount);
-                throw new Error(`Header should have 10 columns, but has ${headerCount}`);
+            if (headerCount !== 12) {
+                console.error('Header column count is not 12:', headerCount);
+                throw new Error(`Header should have 12 columns, but has ${headerCount}`);
             }
 
-            if (firstRowCount > 0 && firstRowCount !== 10) {
-                console.warn(`First row has ${firstRowCount} columns instead of 10, but continuing...`);
+            if (firstRowCount > 0 && firstRowCount !== 12) {
+                console.warn(`First row has ${firstRowCount} columns instead of 12, but continuing...`);
             }
             
             // Safely destroy existing DataTable
@@ -849,7 +873,7 @@ $(document).ready(function() {
                     },
                     { "targets": 1, "width": "200px" },
                     { "targets": [2, 3, 4], "width": "120px" },
-                    { "targets": [5, 6, 7, 8], "width": "150px" }
+                    { "targets": [5, 6, 7, 8, 9, 10], "width": "150px" }
                 ],
                 language: {
                     search: "Pencarian:",

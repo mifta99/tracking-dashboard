@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\Puskesmas;
+use App\Models\User;
 use App\Providers\RouteServiceProvider;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Support\Facades\Auth;
@@ -44,21 +46,54 @@ class LoginController extends Controller
     function login() {
         return view('auth.login');
     }
+    protected function username()
+    {
+        return 'username'; 
+    }
      public function loginProcess(Request $request){
 
         $credentials =  $request->only('email','password');
         $validate = Validator::make($credentials,[
-            'email'=>'required|email',
+            'email'=>'required',
             'password'=>'required'
         ]);
 
         if($validate->fails()){
+
             return back()->withErrors($validate)->withInput();
         }
 
         if(Auth::attempt($credentials)){
             return redirect()->intended('/')->with('success','Successfully Login');
         }
+            $existPuskesmasUser = User::where('email', $request->email)->first();
+            $loginCheck = Puskesmas::select('puskesmas.*', 'puskesmas.id as puskesmas_id')
+                ->join('districts', 'districts.id', '=', 'puskesmas.district_id')
+                ->where(function($query) use ($request) {
+                    $query->where('puskesmas.id', $request->email)
+                        ->where('puskesmas.name', $request->password);
+                })
+                ->orWhere(function($query) use ($request) {
+                    $query->where('puskesmas.id', $request->email)
+                        ->where('districts.name', $request->password);
+                })->first();
+
+            if($loginCheck){
+                if(!$existPuskesmasUser){
+                    $newUser = new \App\Models\User();
+                    $newUser->name = 'Puskesmas ' . $loginCheck->name;
+                    $newUser->email = $loginCheck->id; 
+                    $newUser->password = bcrypt($loginCheck->name); 
+                    $newUser->role_id = 4; 
+                    $newUser->puskesmas_id = $loginCheck->id;
+                    $newUser->save();
+                }
+                // Attempt to login the newly created or existing user
+                if(Auth::attempt(['email' => $request->email, 'password' => $loginCheck->name])){
+                    return redirect()->intended('/')->with('success','Successfully Login');
+                }
+                
+            }
         return redirect('login')->withInput()->withErrors(['login_message'=>'Email atau Password Salah !']);
       }
 

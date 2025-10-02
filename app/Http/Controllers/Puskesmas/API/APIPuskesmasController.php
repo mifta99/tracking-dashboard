@@ -278,6 +278,8 @@ class APIPuskesmasController extends Controller
                 'kepala' => 'nullable|string|max:255',
                 'pic_dinkes_prov' => 'nullable|string|max:255',
                 'pic_dinkes_kab' => 'nullable|string|max:255',
+                'no_hp' => 'nullable|string|max:50',
+                'no_hp_alternatif' => 'nullable|string|max:50',
             ], [
                 'name.required' => 'Nama puskesmas wajib diisi',
                 'name.max' => 'Nama puskesmas maksimal 255 karakter',
@@ -285,11 +287,13 @@ class APIPuskesmasController extends Controller
                 'kepala.max' => 'Kepala Puskesmas maksimal 255 karakter',
                 'pic_dinkes_prov.max' => 'PIC Dinkes Provinsi maksimal 255 karakter',
                 'pic_dinkes_kab.max' => 'PIC ADINKES maksimal 255 karakter',
+                'no_hp.max' => 'No HP maksimal 50 karakter',
+                'no_hp_alternatif.max' => 'No HP Alternatif maksimal 50 karakter',
             ]);
 
             // Only update provided keys
             $dirty = [];
-            foreach (['name','pic','kepala','pic_dinkes_prov','pic_dinkes_kab'] as $field) {
+            foreach (['name','pic','kepala','pic_dinkes_prov','pic_dinkes_kab','no_hp','no_hp_alternatif'] as $field) {
                 if ($request->has($field)) {
                     $puskesmas->{$field} = $validated[$field] ?? null;
                     $dirty[] = $field;

@@ -27,6 +27,7 @@ class PuskesmasMasterExport implements FromCollection, WithHeadings,ShouldAutoSi
             if($this->roles != 2){
                 // Build row data dynamically based on selected columns
                 $rowData = [
+                    $item->id,
                     $item->district->regency->province->name,
                     $item->district->regency->name,
                     $item->district->name,
@@ -67,13 +68,6 @@ class PuskesmasMasterExport implements FromCollection, WithHeadings,ShouldAutoSi
                     $item->ujiFungsi && $item->ujiFungsi->tgl_pelatihan ? $item->ujiFungsi->tgl_pelatihan->format('Y-m-d') : '');
                 
                 // Document Status
-                $this->addColumnData($rowData, $item, 'tahapan_id', $item->pengiriman->tahapan_id ?? '');
-                $this->addColumnData($rowData, $item, 'verif_kemenkes_pengiriman', 
-                    $item->pengiriman && $item->pengiriman->verif_kemenkes ? 'Ya' : 'Tidak');
-                $this->addColumnData($rowData, $item, 'verif_kemenkes_uji_fungsi', 
-                    $item->ujiFungsi && $item->ujiFungsi->verif_kemenkes ? 'Ya' : 'Tidak');
-                $this->addColumnData($rowData, $item, 'verif_kemenkes_dokumen', 
-                    $item->document && $item->document->verif_kemenkes ? 'Ya' : 'Tidak');
 
                 $data->push($rowData);
                 continue;
@@ -81,12 +75,15 @@ class PuskesmasMasterExport implements FromCollection, WithHeadings,ShouldAutoSi
             
             // Kemenkes role data (unchanged)
             $data->push([
+                $item->id,
                 $item->district->regency->province->name,
                 $item->district->regency->name,
                 $item->district->name,
                 $item->name,
                 $item->pic,
                 $item->kepala,
+                $item->no_hp,
+                $item->no_hp_alternatif,
                 $item->pic_dinkes_kab,
                 $item->pic_dinkes_prov,
             ]);
@@ -105,18 +102,22 @@ class PuskesmasMasterExport implements FromCollection, WithHeadings,ShouldAutoSi
     {
         if($this->roles == 2){
             return [
+            'ID Puskesmas',
             'Provinsi',
             'Kabupaten / Kota',
             'Kecamatan',
             'Nama Puskesmas',
-            'PIC Puskesmas (Petugas ASPAK)',
+            'PIC Puskesmas',
             'Kepala Puskesmas',
+            'No HP',
+            'No HP Alternatif',
             'PIC Kabupaten / Kota',
             'PIC Dinas Kesehatan Provinsi',
             ];
         }else{
             // Base columns for Endo role
             $headers = [
+                'ID Puskesmas',
                 'Provinsi',
                 'Kabupaten / Kota',
                 'Kecamatan',
@@ -126,6 +127,8 @@ class PuskesmasMasterExport implements FromCollection, WithHeadings,ShouldAutoSi
             // Column mapping for additional headers
             $columnHeaders = [
                 'pic' => 'PIC Puskesmas',
+                'no_hp' => 'No HP',
+                'no_hp_alternatif' => 'No HP Alternatif',
                 'kepala' => 'Kepala Puskesmas',
                 'pic_dinkes_prov' => 'PIC Dinkes Provinsi',
                 'pic_dinkes_kab' => 'PIC Dinkes Kabupaten/Kota',
@@ -144,10 +147,6 @@ class PuskesmasMasterExport implements FromCollection, WithHeadings,ShouldAutoSi
                 'target_tgl_uji_fungsi' => 'Target Tanggal Uji Fungsi',
                 'tgl_uji_fungsi' => 'Tanggal Uji Fungsi',
                 'tgl_pelatihan' => 'Tanggal Pelatihan',
-                'tahapan_id' => 'Status Tahapan',
-                'verif_kemenkes_pengiriman' => 'Verifikasi Kemenkes - Pengiriman',
-                'verif_kemenkes_uji_fungsi' => 'Verifikasi Kemenkes - Uji Fungsi',
-                'verif_kemenkes_dokumen' => 'Verifikasi Kemenkes - Dokumen',
             ];
 
             // Add selected additional headers

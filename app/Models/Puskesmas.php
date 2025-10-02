@@ -28,6 +28,8 @@ class Puskesmas extends Model
         'kepala',
         'pic_dinkes_prov',
         'pic_dinkes_kab',
+    'no_hp',
+    'no_hp_alternatif',
         'created_by',
         'updated_by',
     ];

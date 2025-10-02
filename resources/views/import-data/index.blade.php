@@ -26,7 +26,7 @@
                     </div>
 
                     <!-- Bagian kanan: tombol -->
-                    <div class="ms-3">
+                                        <div class="ms-3">
                         <a href="{{ route('import-data.download.template') }}" id="download-template-btn" class="btn btn-light btn-sm shadow-sm px-3 py-2 text-decoration-none d-flex align-items-center text-secondary" onmouseover="this.classList.add('text-dark')" onmouseout="this.classList.remove('text-dark')">
                             <i class="fas fa-download me-2 text-danger"></i>
                             <span class="fw-semibold px-2">Download Template</span>
@@ -88,148 +88,100 @@
                             <div class="card" id="additional-columns-card" style="display: none;">
                                 <div class="card-body p-3">
                                     <div class="row">
-                                        <!-- Basic Puskesmas Information -->
-                                        <div class="col-md-6">
-                                            <h6 class="text-primary mb-2"><i class="fas fa-hospital"></i> Basic Information</h6>
+                                        <!-- Informasi Puskesmas / PIC -->
+                                        <div class="col-md-4">
+                                            <h6 class="text-primary mb-2"><i class="fas fa-user-friends"></i> Informasi Puskesmas</h6>
                                             <div class="form-check mb-1">
-                                                <input class="form-check-input" type="checkbox" id="include_pic" name="additional_columns[]" value="pic">
-                                                <label class="form-check-label small" for="include_pic">
-                                                    PIC Puskesmas
-                                                </label>
+                                                <input class="form-check-input" type="checkbox" id="include_pic" name="additional_columns[]" value="pic" >
+                                                <label class="form-check-label small" for="include_pic">PIC Puskesmas</label>
                                             </div>
                                             <div class="form-check mb-1">
-                                                <input class="form-check-input" type="checkbox" id="include_kepala" name="additional_columns[]" value="kepala">
-                                                <label class="form-check-label small" for="include_kepala">
-                                                    Kepala Puskesmas
-                                                </label>
+                                                <input class="form-check-input" type="checkbox" id="include_kepala" name="additional_columns[]" value="kepala" >
+                                                <label class="form-check-label small" for="include_kepala">Kepala Puskesmas</label>
                                             </div>
                                             <div class="form-check mb-1">
-                                                <input class="form-check-input" type="checkbox" id="include_pic_dinkes_prov" name="additional_columns[]" value="pic_dinkes_prov">
-                                                <label class="form-check-label small" for="include_pic_dinkes_prov">
-                                                    PIC Dinkes Provinsi
-                                                </label>
+                                                <input class="form-check-input" type="checkbox" id="include_pic_dinkes_prov" name="additional_columns[]" value="pic_dinkes_prov" >
+                                                <label class="form-check-label small" for="include_pic_dinkes_prov">PIC Dinkes Provinsi</label>
                                             </div>
                                             <div class="form-check mb-1">
-                                                <input class="form-check-input" type="checkbox" id="include_pic_dinkes_kab" name="additional_columns[]" value="pic_dinkes_kab">
-                                                <label class="form-check-label small" for="include_pic_dinkes_kab">
-                                                    PIC Dinkes Kabupaten/Kota
-                                                </label>
+                                                <input class="form-check-input" type="checkbox" id="include_pic_dinkes_kab" name="additional_columns[]" value="pic_dinkes_kab" >
+                                                <label class="form-check-label small" for="include_pic_dinkes_kab">PIC Dinkes Kabupaten/Kota</label>
                                             </div>
                                         </div>
-
                                         <!-- Delivery Information -->
-                                        <div class="col-md-6">
-                                            <h6 class="text-success mb-2"><i class="fas fa-truck"></i> Delivery Information</h6>
+                                        <div class="col-md-4">
+                                            <h6 class="text-success mb-2"><i class="fas fa-truck"></i> Pengiriman</h6>
                                             <div class="form-check mb-1">
                                                 <input class="form-check-input" type="checkbox" id="include_tgl_pengiriman" name="additional_columns[]" value="tgl_pengiriman" checked>
-                                                <label class="form-check-label small" for="include_tgl_pengiriman">
-                                                    Tanggal Pengiriman
-                                                </label>
+                                                <label class="form-check-label small" for="include_tgl_pengiriman">Tanggal Pengiriman</label>
                                             </div>
                                             <div class="form-check mb-1">
                                                 <input class="form-check-input" type="checkbox" id="include_eta" name="additional_columns[]" value="eta" checked>
-                                                <label class="form-check-label small" for="include_eta">
-                                                    ETA (Hari)
-                                                </label>
+                                                <label class="form-check-label small" for="include_eta">ETA (Hari)</label>
                                             </div>
                                             <div class="form-check mb-1">
                                                 <input class="form-check-input" type="checkbox" id="include_resi" name="additional_columns[]" value="resi" checked>
-                                                <label class="form-check-label small" for="include_resi">
-                                                    Nomor Resi
-                                                </label>
+                                                <label class="form-check-label small" for="include_resi">Nomor Resi</label>
+                                            </div>
+                                            <div class="form-check mb-1">
+                                                <input class="form-check-input" type="checkbox" id="include_serial_number" name="additional_columns[]" value="serial_number" checked>
+                                                <label class="form-check-label small" for="include_serial_number">Serial Number</label>
                                             </div>
                                             <div class="form-check mb-1">
                                                 <input class="form-check-input" type="checkbox" id="include_target_tgl" name="additional_columns[]" value="target_tgl" checked>
-                                                <label class="form-check-label small" for="include_target_tgl">
-                                                    Target Tanggal Diterima
-                                                </label>
+                                                <label class="form-check-label small" for="include_target_tgl">Target Tanggal Diterima</label>
                                             </div>
                                             <div class="form-check mb-1">
                                                 <input class="form-check-input" type="checkbox" id="include_catatan" name="additional_columns[]" value="catatan" checked>
-                                                <label class="form-check-label small" for="include_catatan">
-                                                    Catatan
-                                                </label>
+                                                <label class="form-check-label small" for="include_catatan">Catatan</label>
                                             </div>
                                             <div class="form-check mb-1">
                                                 <input class="form-check-input" type="checkbox" id="include_tgl_diterima" name="additional_columns[]" value="tgl_diterima" checked>
-                                                <label class="form-check-label small" for="include_tgl_diterima">
-                                                    Tanggal Diterima
-                                                </label>
+                                                <label class="form-check-label small" for="include_tgl_diterima">Tanggal Diterima</label>
                                             </div>
                                             <div class="form-check mb-1">
                                                 <input class="form-check-input" type="checkbox" id="include_nama_penerima" name="additional_columns[]" value="nama_penerima" checked>
-                                                <label class="form-check-label small" for="include_nama_penerima">
-                                                    Nama Penerima
-                                                </label>
+                                                <label class="form-check-label small" for="include_nama_penerima">Nama Penerima</label>
+                                            </div>
+                                            <div class="form-check mb-1">
+                                                <input class="form-check-input" type="checkbox" id="include_jabatan_penerima" name="additional_columns[]" value="jabatan_penerima" checked>
+                                                <label class="form-check-label small" for="include_jabatan_penerima">Jabatan Penerima</label>
+                                            </div>
+                                            <div class="form-check mb-1">
+                                                <input class="form-check-input" type="checkbox" id="include_instansi_penerima" name="additional_columns[]" value="instansi_penerima" checked>
+                                                <label class="form-check-label small" for="include_instansi_penerima">Instansi Penerima</label>
+                                            </div>
+                                            <div class="form-check mb-1">
+                                                <input class="form-check-input" type="checkbox" id="include_nomor_penerima" name="additional_columns[]" value="nomor_penerima" checked>
+                                                <label class="form-check-label small" for="include_nomor_penerima">Nomor Penerima</label>
                                             </div>
                                         </div>
-                                    </div>
-                                    
-                                    <div class="row mt-3">
-                                        <!-- Testing Information -->
-                                        <div class="col-md-6">
+                                        <!-- Testing & Installation -->
+                                        <div class="col-md-4">
                                             <h6 class="text-warning mb-2"><i class="fas fa-cog"></i> Testing & Installation</h6>
                                             <div class="form-check mb-1">
                                                 <input class="form-check-input" type="checkbox" id="include_tgl_instalasi" name="additional_columns[]" value="tgl_instalasi" checked>
-                                                <label class="form-check-label small" for="include_tgl_instalasi">
-                                                    Tanggal Instalasi
-                                                </label>
+                                                <label class="form-check-label small" for="include_tgl_instalasi">Tanggal Instalasi</label>
                                             </div>
                                             <div class="form-check mb-1">
                                                 <input class="form-check-input" type="checkbox" id="include_target_tgl_uji_fungsi" name="additional_columns[]" value="target_tgl_uji_fungsi" checked>
-                                                <label class="form-check-label small" for="include_target_tgl_uji_fungsi">
-                                                    Target Tanggal Uji Fungsi
-                                                </label>
+                                                <label class="form-check-label small" for="include_target_tgl_uji_fungsi">Target Tanggal Uji Fungsi</label>
                                             </div>
                                             <div class="form-check mb-1">
                                                 <input class="form-check-input" type="checkbox" id="include_tgl_uji_fungsi" name="additional_columns[]" value="tgl_uji_fungsi" checked>
-                                                <label class="form-check-label small" for="include_tgl_uji_fungsi">
-                                                    Tanggal Uji Fungsi
-                                                </label>
+                                                <label class="form-check-label small" for="include_tgl_uji_fungsi">Tanggal Uji Fungsi</label>
                                             </div>
                                             <div class="form-check mb-1">
                                                 <input class="form-check-input" type="checkbox" id="include_tgl_pelatihan" name="additional_columns[]" value="tgl_pelatihan" checked>
-                                                <label class="form-check-label small" for="include_tgl_pelatihan">
-                                                    Tanggal Pelatihan
-                                                </label>
-                                            </div>
-                                        </div>
-
-                                        <!-- Document Status -->
-                                        <div class="col-md-6">
-                                            <h6 class="text-info mb-2"><i class="fas fa-file-alt"></i> Document Status</h6>
-                                            <div class="form-check mb-1">
-                                                <input class="form-check-input" type="checkbox" id="include_tahapan_id" name="additional_columns[]" value="tahapan_id" checked>
-                                                <label class="form-check-label small" for="include_tahapan_id">
-                                                    Status Tahapan
-                                                </label>
-                                            </div>
-                                            <div class="form-check mb-1">
-                                                <input class="form-check-input" type="checkbox" id="include_verif_kemenkes_pengiriman" name="additional_columns[]" value="verif_kemenkes_pengiriman" checked>
-                                                <label class="form-check-label small" for="include_verif_kemenkes_pengiriman">
-                                                    Verifikasi Kemenkes - Pengiriman
-                                                </label>
-                                            </div>
-                                            <div class="form-check mb-1">
-                                                <input class="form-check-input" type="checkbox" id="include_verif_kemenkes_uji_fungsi" name="additional_columns[]" value="verif_kemenkes_uji_fungsi" checked>
-                                                <label class="form-check-label small" for="include_verif_kemenkes_uji_fungsi">
-                                                    Verifikasi Kemenkes - Uji Fungsi
-                                                </label>
-                                            </div>
-                                            <div class="form-check mb-1">
-                                                <input class="form-check-input" type="checkbox" id="include_verif_kemenkes_dokumen" name="additional_columns[]" value="verif_kemenkes_dokumen" checked>
-                                                <label class="form-check-label small" for="include_verif_kemenkes_dokumen">
-                                                    Verifikasi Kemenkes - Dokumen
-                                                </label>
+                                                <label class="form-check-label small" for="include_tgl_pelatihan">Tanggal Pelatihan</label>
                                             </div>
                                         </div>
                                     </div>
-                                    
                                     <div class="row mt-3">
                                         <div class="col-12">
                                             <div class="d-flex justify-content-between align-items-center">
                                                 <small class="text-muted">
-                                                    <i class="fas fa-info-circle"></i> 
+                                                    <i class="fas fa-info-circle"></i>
                                                     Kolom yang dipilih akan ditambahkan ke template export Excel.
                                                 </small>
                                                 <div>
