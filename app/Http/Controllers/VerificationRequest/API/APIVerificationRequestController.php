@@ -37,6 +37,8 @@ class APIVerificationRequestController extends Controller
                 'province_id' => 'sometimes|nullable|exists:provinces,id',
                 'regency_id' => 'sometimes|nullable|exists:regencies,id',
                 'pic' => 'nullable|string|max:255',
+                'no_hp' => 'nullable|string|max:255',
+                'no_hp_alternatif' => 'nullable|string|max:255',
                 'kepala' => 'nullable|string|max:255',
                 'pic_dinkes_prov' => 'nullable|string|max:255',
                 'pic_dinkes_kab' => 'nullable|string|max:255',
@@ -48,6 +50,8 @@ class APIVerificationRequestController extends Controller
                 'province_id.exists' => 'Provinsi yang dipilih tidak valid',
                 'regency_id.exists' => 'Kabupaten/Kota yang dipilih tidak valid',
                 'pic.max' => 'Nama PIC maksimal 255 karakter',
+                'no_hp.max' => 'No. HP maksimal 255 karakter',
+                'no_hp_alternatif.max' => 'No. HP Alternatif maksimal 255 karakter',
                 'kepala.max' => 'Nama kepala puskesmas maksimal 255 karakter',
                 'pic_dinkes_prov.max' => 'Nama PIC Dinkes Provinsi maksimal 255 karakter',
                 'pic_dinkes_kab.max' => 'Nama PIC ADINKES maksimal 255 karakter',
@@ -68,6 +72,14 @@ class APIVerificationRequestController extends Controller
             if (array_key_exists('pic', $validated)) {
                 $updateData['pic'] = $validated['pic'];
                 $updatedFields[] = 'PIC puskesmas';
+            }
+            if (array_key_exists('no_hp', $validated)) {
+                $updateData['no_hp'] = $validated['no_hp'];
+                $updatedFields[] = 'No. HP puskesmas';
+            }
+            if (array_key_exists('no_hp_alternatif', $validated)) {
+                $updateData['no_hp_alternatif'] = $validated['no_hp_alternatif'];
+                $updatedFields[] = 'No. HP Alternatif puskesmas';
             }
             if (array_key_exists('kepala', $validated)) {
                 $updateData['kepala'] = $validated['kepala'];
@@ -95,6 +107,8 @@ class APIVerificationRequestController extends Controller
             $responseData = [
                 'name' => $puskesmas->name,
                 'pic' => $puskesmas->pic,
+                'no_hp' => $puskesmas->no_hp,
+                'no_hp_alternatif' => $puskesmas->no_hp_alternatif,
                 'kepala' => $puskesmas->kepala,
                 'pic_dinkes_prov' => $puskesmas->pic_dinkes_prov,
                 'pic_dinkes_kab' => $puskesmas->pic_dinkes_kab,
@@ -807,9 +821,9 @@ class APIVerificationRequestController extends Controller
         if ($puskesmas->pengiriman) {
             $currentTahapanId = $puskesmas->pengiriman->tahapan_id ?? 1;
         }
-        
+
         $newTahapanId = null;
-        
+
         // Determine new tahapan_id based on context and updated fields
         switch ($context) {
             case 'pengiriman':
@@ -818,18 +832,18 @@ class APIVerificationRequestController extends Controller
                     $newTahapanId = 2;
                 }
                 break;
-                
+
             case 'documents':
                 // Check document fields in priority order (higher tahapan_id takes precedence)
                 if (array_key_exists('aspak', $validated) && !empty($validated['aspak'])) {
                     $newTahapanId = 8; // aspak has highest priority
                 } elseif (array_key_exists('basto', $validated) && !empty($validated['basto'])) {
-                    $newTahapanId = 7; // basto 
+                    $newTahapanId = 7; // basto
                 } elseif (array_key_exists('bast', $validated) && !empty($validated['bast'])) {
                     $newTahapanId = 3; // bast
                 }
                 break;
-                
+
             case 'uji_fungsi':
                 // Check uji fungsi document fields in priority order
                 if (array_key_exists('doc_pelatihan', $validated) && !empty($validated['doc_pelatihan'])) {
@@ -841,7 +855,7 @@ class APIVerificationRequestController extends Controller
                 }
                 break;
         }
-        
+
         // Only update if new tahapan_id is higher than current
         if ($newTahapanId && $newTahapanId > $currentTahapanId) {
             // Get or create pengiriman record to update tahapan_id
@@ -857,7 +871,7 @@ class APIVerificationRequestController extends Controller
                     'updated_by' => auth()->id(),
                 ]);
             }
-            
+
             Log::info("Updated tahapan_id from {$currentTahapanId} to {$newTahapanId} for puskesmas {$puskesmas->id} in context {$context}");
         }
     }
