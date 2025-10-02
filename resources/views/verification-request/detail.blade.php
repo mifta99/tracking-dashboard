@@ -254,8 +254,15 @@
                         <label class="small mb-1">PIC Puskesmas</label>
                         <input type="text" class="form-control form-control-sm" name="pic" value="{{ $puskesmas->pic }}">
                      </div>
+                     <div class="form-group col-md-6">
+                        <label class="small mb-1">No. HP PIC Puskesmas</label>
+                        <input type="text" class="form-control form-control-sm" name="no_hp" value="{{ $puskesmas->no_hp }}">
+                     </div>
+                     <div class="form-group col-md-6">
+                        <label class="small mb-1">No. HP Alternatif PIC Puskesmas</label>
+                        <input type="text" class="form-control form-control-sm" name="no_hp_alternatif" value="{{ $puskesmas->no_hp_alternatif }}">
+                     </div>
                   </div>
-                  <div class="mb-2 pb-1 border-bottom"><strong class="text-muted small">Kontak & Penanggung Jawab</strong></div>
                   <div class="form-row">
                      <div class="form-group col-md-6">
                         <label class="small mb-1">Kepala Puskesmas</label>
@@ -828,6 +835,8 @@ $(function(){
                 // Update identity fields
                 if(data.name !== undefined) $kv.find('tr:contains("Nama Puskesmas") td:last').text(data.name||'-');
                 if(data.pic !== undefined) $kv.find('tr:contains("PIC Puskesmas") td:last').text(data.pic||'-');
+                if(data.no_hp !== undefined) $kv.find('tr:contains("No. HP PIC Puskesmas") td:last').text(data.no_hp||'-');
+                if(data.no_hp_alternatif !== undefined) $kv.find('tr:contains("No. HP Alternatif PIC Puskesmas") td:last').text(data.no_hp_alternatif||'-');
                 if(data.kepala !== undefined) $kv.find('tr:contains("Kepala Puskesmas") td:last').text(data.kepala||'-');
                 if(data.pic_dinkes_prov !== undefined) $kv.find('tr:contains("PIC Dinas Kesehatan Provinsi") td:last').text(data.pic_dinkes_prov||'-');
                 if(data.pic_dinkes_kab !== undefined) $kv.find('tr:contains("PIC DINKES") td:last').text(data.pic_dinkes_kab||'-');

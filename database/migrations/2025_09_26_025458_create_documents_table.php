@@ -15,7 +15,7 @@ class CreateDocumentsTable extends Migration
     {
         Schema::create('documents', function (Blueprint $table) {
             $table->integer('id')->autoIncrement()->unsigned();
-            $table->string('puskesmas_id', 9);
+            $table->string('puskesmas_id', 13);
             $table->string('basto')->nullable();
             $table->string('kalibrasi')->nullable();
             $table->string('bast')->nullable();

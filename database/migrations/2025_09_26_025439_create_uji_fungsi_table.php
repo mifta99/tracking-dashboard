@@ -15,7 +15,7 @@ class CreateUjiFungsiTable extends Migration
     {
         Schema::create('uji_fungsi', function (Blueprint $table) {
             $table->integer('id')->autoIncrement()->unsigned();
-            $table->string('puskesmas_id', 9);
+            $table->string('puskesmas_id', 13);
             $table->date('target_tgl_uji_fungsi')->nullable();
             $table->date('tgl_instalasi')->nullable();
             $table->string('doc_instalasi')->nullable();

@@ -17,7 +17,7 @@ class CreateUsersTable extends Migration
             $table->integer('id')->autoIncrement()->unsigned();
             // $table->foreignId('role_id')->constrained('roles')->onDelete('cascade');
             $table->integer('role_id')->unsigned();
-            $table->string('puskesmas_id', 9)->nullable();
+            $table->string('puskesmas_id', 13)->nullable();
             $table->string('name');
             $table->string('jabatan')->nullable();
             $table->string('instansi')->nullable();

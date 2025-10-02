@@ -25,6 +25,8 @@ class Puskesmas extends Model
         'district_id',
         'name',
         'pic',
+        'no_hp',
+        'no_hp_alternatif',
         'kepala',
         'pic_dinkes_prov',
         'pic_dinkes_kab',
