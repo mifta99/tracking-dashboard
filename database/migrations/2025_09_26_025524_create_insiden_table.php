@@ -15,7 +15,7 @@ class CreateInsidenTable extends Migration
     {
         Schema::create('insiden', function (Blueprint $table) {
             $table->integer('id')->autoIncrement()->unsigned();
-            $table->string('puskesmas_id', 9);
+            $table->string('puskesmas_id', 13);
             $table->integer('tahapan_id')->unsigned();
             $table->integer('status_id')->unsigned();
             $table->integer('reported_by')->unsigned()->nullable();

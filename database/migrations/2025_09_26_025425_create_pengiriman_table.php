@@ -15,7 +15,7 @@ class CreatePengirimanTable extends Migration
     {
         Schema::create('pengiriman', function (Blueprint $table) {
             $table->integer('id')->autoIncrement()->unsigned();
-            $table->string('puskesmas_id', 11);
+            $table->string('puskesmas_id', 13);
             $table->date('tgl_pengiriman')->nullable();
             $table->integer('eta')->nullable();
             $table->string('resi')->nullable();
