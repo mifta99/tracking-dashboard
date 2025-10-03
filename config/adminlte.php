@@ -340,25 +340,25 @@ return [
             'can'   => 'puskesmas'
         ],
                 [
-            'text' => 'Verification Request',
+            'text' => 'Permintaan Verifikasi',
             'url'  => '/verification-request',
             'icon' => 'fas fa-fw fa-check-circle',
             'can'   => ['kemenkes']
         ],
                 [
-            'text' => 'Raised Issue',
+            'text' => 'Pelaporan Keluhan',
             'url'  => '/raised-issue',
             'icon' => 'fas fa-fw fa-exclamation-circle',
             'can'   => ['endo','kemenkes','puskesmas']
         ],
         [
-            'text' => 'Reported Incidents',
+            'text' => 'Pelaporan Insiden',
             'url'  => '/reported-incidents',
             'icon' => 'fas fa-fw fa-heartbeat',
             'can'   => ['endo','kemenkes','puskesmas']
         ],
                 [
-            'text' => 'Import Data',
+            'text' => 'Impor Data',
             'url'  => '/import-data',
             'icon' => 'fas fa-fw fa-file-import',
             'can'   => ['endo','kemenkes']

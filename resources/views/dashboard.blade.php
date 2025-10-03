@@ -122,7 +122,7 @@
                     <label class="small mb-1">Status</label>
                     <select class="form-control form-control-sm" id="status" name="status">
                         <option value="">Semua Status</option>
-                        <option value="0">Belum Diproses</option>
+                        
                         <option value="1">Shipment Process</option>
                         <option value="2">On Delivery</option>
                         <option value="3">Received</option>
