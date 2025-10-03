@@ -31,6 +31,7 @@ class CreatePengirimanTable extends Migration
             $table->integer('tahapan_id')->unsigned()->default(1);
             $table->boolean('verif_kemenkes')->default(false);
             $table->timestamp('tgl_verif_kemenkes')->nullable();
+            $table->boolean('is_received_by_puskesmas')->default(false);
             $table->integer('created_by')->unsigned()->nullable();
             $table->integer('updated_by')->unsigned()->nullable();
             $table->timestamps();

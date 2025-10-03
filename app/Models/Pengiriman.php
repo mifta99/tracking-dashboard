@@ -35,6 +35,7 @@ class Pengiriman extends Model
         'tahapan_id',
         'verif_kemenkes',
         'tgl_verif_kemenkes',
+        'is_received_by_puskesmas',
         'created_by',
         'updated_by',
     ];
@@ -53,6 +54,7 @@ class Pengiriman extends Model
         'tahapan_id' => 'integer',
         'verif_kemenkes' => 'boolean',
         'tgl_verif_kemenkes' => 'datetime',
+        'is_received_by_puskesmas' => 'boolean',
         'created_by' => 'integer',
         'updated_by' => 'integer',
     ];
