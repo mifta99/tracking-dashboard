@@ -5,8 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+
 
 class Equipment extends Model
 {
@@ -45,13 +44,4 @@ class Equipment extends Model
         return $this->belongsTo(Puskesmas::class, 'puskesmas_id', 'id');
     }
 
-    /**
-     * Get all of the keluhan for the Equipment
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
-    public function keluhan(): HasMany
-    {
-        return $this->hasMany(Keluhan::class, 'equipment_id', 'id');
-    }
 }
