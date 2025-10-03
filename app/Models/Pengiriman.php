@@ -24,7 +24,6 @@ class Pengiriman extends Model
         'eta',
         'resi',
         'tracking_link',
-        'equipment_id',
         'target_tgl',
         'catatan',
         'tgl_diterima',
@@ -49,7 +48,6 @@ class Pengiriman extends Model
         'id' => 'integer',
         'tgl_pengiriman' => 'date',
         'eta' => 'integer',
-        'equipment_id' => 'integer',
         'target_tgl' => 'date',
         'tgl_diterima' => 'date',
         'tahapan_id' => 'integer',
@@ -67,16 +65,6 @@ class Pengiriman extends Model
     public function puskesmas(): BelongsTo
     {
         return $this->belongsTo(Puskesmas::class, 'puskesmas_id', 'id');
-    }
-
-    /**
-     * Get the equipment that owns the Pengiriman
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
-    public function equipment(): BelongsTo
-    {
-        return $this->belongsTo(Equipment::class, 'equipment_id', 'id');
     }
 
     /**
