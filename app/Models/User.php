@@ -143,26 +143,6 @@ class User extends Authenticatable
     }
 
     /**
-     * Get all of the proceedKeluhan for the User
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
-    public function proceedKeluhan(): HasMany
-    {
-        return $this->hasMany(Keluhan::class, 'proceed_by', 'id');
-    }
-
-    /**
-     * Get all of the resolvedKeluhan for the User
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
-    public function resolvedKeluhan(): HasMany
-    {
-        return $this->hasMany(Keluhan::class, 'resolved_by', 'id');
-    }
-
-    /**
      * Get all of the insiden for the User
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
@@ -170,6 +150,26 @@ class User extends Authenticatable
     public function reportedInsiden(): HasMany
     {
         return $this->hasMany(Insiden::class, 'reported_by', 'id');
+    }
+
+    /**
+     * Get all of the revisedRevisions for the User
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function revisedRevisions(): HasMany
+    {
+        return $this->hasMany(Revision::class, 'revised_by', 'id');
+    }
+
+    /**
+     * Get all of the resolvedRevisions for the User
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function resolvedRevisions(): HasMany
+    {
+        return $this->hasMany(Revision::class, 'resolved_by', 'id');
     }
 
 }

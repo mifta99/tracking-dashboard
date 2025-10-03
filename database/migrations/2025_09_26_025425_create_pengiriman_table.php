@@ -17,7 +17,7 @@ class CreatePengirimanTable extends Migration
             $table->integer('id')->autoIncrement()->unsigned();
             $table->string('puskesmas_id', 13);
             $table->date('tgl_pengiriman')->nullable();
-            $table->integer('eta')->nullable();
+            $table->date('eta')->nullable();
             $table->string('resi')->nullable();
             $table->string('tracking_link')->nullable();
             $table->date('target_tgl')->nullable();
@@ -31,6 +31,7 @@ class CreatePengirimanTable extends Migration
             $table->integer('tahapan_id')->unsigned()->default(1);
             $table->boolean('verif_kemenkes')->default(false);
             $table->timestamp('tgl_verif_kemenkes')->nullable();
+            $table->boolean('is_received_by_puskesmas')->default(false);
             $table->integer('created_by')->unsigned()->nullable();
             $table->integer('updated_by')->unsigned()->nullable();
             $table->timestamps();

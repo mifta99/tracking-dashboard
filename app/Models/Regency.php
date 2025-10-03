@@ -23,19 +23,6 @@ class Regency extends Model
         'id',
         'province_id',
         'name',
-        'lat',
-        'lon',
-        'id_geojson',
-    ];
-
-    /**
-     * The attributes that should be cast to native types.
-     *
-     * @var array
-     */
-    protected $casts = [
-        'lat' => 'float',
-        'lon' => 'float',
     ];
 
     /**

@@ -15,15 +15,15 @@ class CreateKeluhanTable extends Migration
     {
         Schema::create('keluhan', function (Blueprint $table) {
             $table->integer('id')->autoIncrement()->unsigned();
-            $table->integer('equipment_id')->unsigned();
+            $table->string('puskesmas_id', 13);
             $table->integer('kategori_id')->unsigned();
             $table->integer('status_id')->unsigned();
             $table->integer('reported_by')->unsigned()->nullable();
             $table->date('reported_date')->nullable();
             $table->text('reported_issue')->nullable();
-            $table->integer('proceed_by')->unsigned()->nullable();
+            $table->string('proceed_by')->nullable();
             $table->date('proceed_date')->nullable();
-            $table->integer('resolved_by')->unsigned()->nullable();
+            $table->string('resolved_by')->nullable();
             $table->date('resolved_date')->nullable();
             $table->text('action_taken')->nullable();
             $table->text('catatan')->nullable();
@@ -33,12 +33,10 @@ class CreateKeluhanTable extends Migration
         });
 
         Schema::table('keluhan', function (Blueprint $table) {
-            $table->foreign('equipment_id')->references('id')->on('equipment');
+            $table->foreign('puskesmas_id')->references('id')->on('puskesmas');
             $table->foreign('kategori_id')->references('id')->on('kategori_keluhan');
             $table->foreign('status_id')->references('id')->on('status_keluhan');
             $table->foreign('reported_by')->references('id')->on('users');
-            $table->foreign('proceed_by')->references('id')->on('users');
-            $table->foreign('resolved_by')->references('id')->on('users');
         });
     }
 

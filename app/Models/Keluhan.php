@@ -21,7 +21,7 @@ class Keluhan extends Model
      */
     protected $fillable = [
         'id',
-        'equipment_id',
+        'puskesmas_id',
         'kategori_id',
         'status_id',
         'reported_by',
@@ -43,26 +43,23 @@ class Keluhan extends Model
      */
     protected $casts = [
         'id' => 'integer',
-        'equipment_id' => 'integer',
         'kategori_id' => 'integer',
         'status_id' => 'integer',
         'reported_by' => 'integer',
         'reported_date' => 'date',
-        'proceed_by' => 'integer',
         'proceed_date' => 'date',
-        'resolved_by' => 'integer',
         'resolved_date' => 'date',
         'total_downtime' => 'integer',
     ];
 
     /**
-     * Get the equipment that owns the Keluhan
+     * Get the puskesmas that owns the Keluhan
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function equipment(): BelongsTo
+    public function puskesmas(): BelongsTo
     {
-        return $this->belongsTo(Equipment::class, 'equipment_id', 'id');
+        return $this->belongsTo(Puskesmas::class, 'puskesmas_id', 'id');
     }
 
     /**
@@ -93,26 +90,6 @@ class Keluhan extends Model
     public function reporter(): BelongsTo
     {
         return $this->belongsTo(User::class, 'reported_by', 'id');
-    }
-
-    /**
-     * Get the user that owns the Keluhan
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
-    public function proceeder(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'proceed_by', 'id');
-    }
-
-    /**
-     * Get the resolver that owns the Keluhan
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
-    public function resolver(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'resolved_by', 'id');
     }
 
     /**

@@ -106,4 +106,24 @@ class Puskesmas extends Model
         return $this->hasOne(Equipment::class, 'puskesmas_id', 'id');
     }
 
+    /**
+     * Get all of the keluhan for the Puskesmas
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function keluhan(): HasMany
+    {
+        return $this->hasMany(Keluhan::class, 'puskesmas_id', 'id');
+    }
+
+    /**
+     * Get all of the revisions for the Puskesmas
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function revisions(): HasMany
+    {
+        return $this->hasMany(Revision::class, 'puskesmas_id', 'id');
+    }
+
 }

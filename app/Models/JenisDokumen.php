@@ -6,11 +6,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class KategoriKeluhan extends Model
+class JenisDokumen extends Model
 {
     use HasFactory;
     protected $primaryKey = 'id';
-    protected $table = 'kategori_keluhan';
 
     /**
      * The attributes that are mass assignable.
@@ -19,7 +18,7 @@ class KategoriKeluhan extends Model
      */
     protected $fillable = [
         'id',
-        'kategori',
+        'nama_dokumen',
     ];
 
     /**
@@ -32,12 +31,12 @@ class KategoriKeluhan extends Model
     ];
 
     /**
-     * Get all of the keluhan for the KategoriKeluhan
+     * Get all of the revisions for the JenisDokumen
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function keluhan(): HasMany
+    public function revisions(): HasMany
     {
-        return $this->hasMany(Keluhan::class, 'kategori_id', 'id');
+        return $this->hasMany(Revision::class, 'jenis_dokumen_id', 'id');
     }
 }
