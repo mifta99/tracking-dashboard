@@ -21,9 +21,9 @@ class CreateKeluhanTable extends Migration
             $table->integer('reported_by')->unsigned()->nullable();
             $table->date('reported_date')->nullable();
             $table->text('reported_issue')->nullable();
-            $table->integer('proceed_by')->unsigned()->nullable();
+            $table->string('proceed_by')->nullable();
             $table->date('proceed_date')->nullable();
-            $table->integer('resolved_by')->unsigned()->nullable();
+            $table->string('resolved_by')->nullable();
             $table->date('resolved_date')->nullable();
             $table->text('action_taken')->nullable();
             $table->text('catatan')->nullable();
@@ -37,8 +37,6 @@ class CreateKeluhanTable extends Migration
             $table->foreign('kategori_id')->references('id')->on('kategori_keluhan');
             $table->foreign('status_id')->references('id')->on('status_keluhan');
             $table->foreign('reported_by')->references('id')->on('users');
-            $table->foreign('proceed_by')->references('id')->on('users');
-            $table->foreign('resolved_by')->references('id')->on('users');
         });
     }
 

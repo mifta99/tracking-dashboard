@@ -47,9 +47,7 @@ class Keluhan extends Model
         'status_id' => 'integer',
         'reported_by' => 'integer',
         'reported_date' => 'date',
-        'proceed_by' => 'integer',
         'proceed_date' => 'date',
-        'resolved_by' => 'integer',
         'resolved_date' => 'date',
         'total_downtime' => 'integer',
     ];
@@ -92,26 +90,6 @@ class Keluhan extends Model
     public function reporter(): BelongsTo
     {
         return $this->belongsTo(User::class, 'reported_by', 'id');
-    }
-
-    /**
-     * Get the user that owns the Keluhan
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
-    public function proceeder(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'proceed_by', 'id');
-    }
-
-    /**
-     * Get the resolver that owns the Keluhan
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
-    public function resolver(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'resolved_by', 'id');
     }
 
     /**

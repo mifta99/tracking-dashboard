@@ -141,26 +141,6 @@ class User extends Authenticatable
     }
 
     /**
-     * Get all of the proceedKeluhan for the User
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
-    public function proceedKeluhan(): HasMany
-    {
-        return $this->hasMany(Keluhan::class, 'proceed_by', 'id');
-    }
-
-    /**
-     * Get all of the resolvedKeluhan for the User
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
-    public function resolvedKeluhan(): HasMany
-    {
-        return $this->hasMany(Keluhan::class, 'resolved_by', 'id');
-    }
-
-    /**
      * Get all of the insiden for the User
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
