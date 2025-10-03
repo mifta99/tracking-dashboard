@@ -150,4 +150,24 @@ class User extends Authenticatable
         return $this->hasMany(Insiden::class, 'reported_by', 'id');
     }
 
+    /**
+     * Get all of the revisedRevisions for the User
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function revisedRevisions(): HasMany
+    {
+        return $this->hasMany(Revision::class, 'revised_by', 'id');
+    }
+
+    /**
+     * Get all of the resolvedRevisions for the User
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function resolvedRevisions(): HasMany
+    {
+        return $this->hasMany(Revision::class, 'resolved_by', 'id');
+    }
+
 }

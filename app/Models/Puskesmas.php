@@ -116,4 +116,14 @@ class Puskesmas extends Model
         return $this->hasMany(Keluhan::class, 'puskesmas_id', 'id');
     }
 
+    /**
+     * Get all of the revisions for the Puskesmas
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function revisions(): HasMany
+    {
+        return $this->hasMany(Revision::class, 'puskesmas_id', 'id');
+    }
+
 }
