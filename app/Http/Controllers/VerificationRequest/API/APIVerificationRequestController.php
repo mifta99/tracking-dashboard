@@ -193,13 +193,14 @@ class APIVerificationRequestController extends Controller
             ]);
 
             // Handle equipment creation/update if serial number is provided
-            $equipmentId = null;
             if (!empty($validated['serial_number'])) {
-                $equipment = Equipment::firstOrCreate(
-                    ['serial_number' => $validated['serial_number']],
+                Equipment::firstOrCreate(
+                    [
+                        'serial_number' => $validated['serial_number'],
+                        'puskesmas_id' => $puskesmas->id
+                    ],
                     ['name' => null] // Can be updated later
                 );
-                $equipmentId = $equipment->id;
             }
 
             // Handle file upload
@@ -220,9 +221,8 @@ class APIVerificationRequestController extends Controller
                 }
             }
 
-            // Add equipment_id if we created/found equipment
-            if ($equipmentId) {
-                $updateData['equipment_id'] = $equipmentId;
+            // Serial number is handled separately in equipment table
+            if (!empty($validated['serial_number'])) {
                 $updatedFields[] = 'Serial Number';
             }
 
@@ -258,7 +258,9 @@ class APIVerificationRequestController extends Controller
             }
 
             // Refresh with relationships
-            $pengiriman->load(['equipment', 'tahapan']);
+            $pengiriman->load(['tahapan']);
+            // Load equipment through puskesmas relationship
+            $puskesmas->load('equipment');
 
             return response()->json([
                 'success' => true,
@@ -268,7 +270,7 @@ class APIVerificationRequestController extends Controller
                     'eta' => $pengiriman->eta,
                     'resi' => $pengiriman->resi,
                     'tracking_link' => $pengiriman->tracking_link,
-                    'serial_number' => $pengiriman->equipment->serial_number ?? null,
+                    'serial_number' => $puskesmas->equipment->serial_number ?? null,
                     'target_tgl' => $pengiriman->target_tgl ? $pengiriman->target_tgl->format('d F Y') : null,
                     'tgl_diterima' => $pengiriman->tgl_diterima ? $pengiriman->tgl_diterima->format('d F Y') : null,
                     'nama_penerima' => $pengiriman->nama_penerima,
