@@ -15,8 +15,13 @@ class CreateEquipmentTable extends Migration
     {
         Schema::create('equipment', function (Blueprint $table) {
             $table->integer('id')->autoIncrement()->unsigned();
+            $table->string('puskesmas_id', 13);
             $table->string('serial_number');
             $table->string('name')->nullable();
+        });
+
+        Schema::table('equipment', function (Blueprint $table) {
+            $table->foreign('puskesmas_id')->references('id')->on('puskesmas');
         });
     }
 

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -20,6 +21,7 @@ class Equipment extends Model
      */
     protected $fillable = [
         'id',
+        'puskesmas_id',
         'serial_number',
         'name',
     ];
@@ -34,13 +36,13 @@ class Equipment extends Model
     ];
 
     /**
-     * Get the pengiriman associated with the Equipment
+     * Get the puskesmas that owns the Equipment
      *
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function pengiriman(): HasOne
+    public function puskesmas(): BelongsTo
     {
-        return $this->hasOne(Pengiriman::class, 'equipment_id', 'id');
+        return $this->belongsTo(Puskesmas::class, 'puskesmas_id', 'id');
     }
 
     /**
