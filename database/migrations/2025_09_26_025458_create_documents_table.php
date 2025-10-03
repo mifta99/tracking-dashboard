@@ -17,9 +17,17 @@ class CreateDocumentsTable extends Migration
             $table->integer('id')->autoIncrement()->unsigned();
             $table->string('puskesmas_id', 13);
             $table->string('basto')->nullable();
+            $table->boolean('is_verified_basto')->default(false);
+            $table->timestamp('verified_at_basto')->nullable();
             $table->string('kalibrasi')->nullable();
+            $table->boolean('is_verified_kalibrasi')->default(false);
+            $table->timestamp('verified_at_kalibrasi')->nullable();
             $table->string('bast')->nullable();
+            $table->boolean('is_verified_bast')->default(false);
+            $table->timestamp('verified_at_bast')->nullable();
             $table->string('aspak')->nullable();
+            $table->boolean('is_verified_aspak')->default(false);
+            $table->timestamp('verified_at_aspak')->nullable();
             $table->string('update_aspak')->nullable();
             $table->boolean('verif_kemenkes')->default(false);
             $table->timestamp('tgl_verif_kemenkes')->nullable();
