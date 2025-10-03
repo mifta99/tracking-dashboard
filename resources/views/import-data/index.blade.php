@@ -128,10 +128,6 @@
                                                 <label class="form-check-label small" for="include_serial_number">Serial Number</label>
                                             </div>
                                             <div class="form-check mb-1">
-                                                <input class="form-check-input" type="checkbox" id="include_target_tgl" name="additional_columns[]" value="target_tgl" checked>
-                                                <label class="form-check-label small" for="include_target_tgl">Target Tanggal Diterima</label>
-                                            </div>
-                                            <div class="form-check mb-1">
                                                 <input class="form-check-input" type="checkbox" id="include_catatan" name="additional_columns[]" value="catatan" checked>
                                                 <label class="form-check-label small" for="include_catatan">Catatan</label>
                                             </div>

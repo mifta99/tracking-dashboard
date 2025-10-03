@@ -71,25 +71,27 @@ class LoginController extends Controller
                 ->join('districts', 'districts.id', '=', 'puskesmas.district_id')
                 ->where(function($query) use ($request) {
                     $query->where('puskesmas.id', $request->email)
-                        ->where('puskesmas.name', $request->password);
+                        ->whereRaw('LOWER(puskesmas.name) = ?', [strtolower($request->password)]);
                 })
                 ->orWhere(function($query) use ($request) {
                     $query->where('puskesmas.id', $request->email)
-                        ->where('districts.name', $request->password);
-                })->first();
+                        ->whereRaw('LOWER(districts.name) = ?', [strtolower($request->password)]);
+                })
+                ->first();
 
             if($loginCheck){
                 if(!$existPuskesmasUser){
                     $newUser = new \App\Models\User();
-                    $newUser->name = 'Puskesmas ' . $loginCheck->name;
+                    $newUser->name = 'Admin ' . $loginCheck->name;
+                    $newUser->instansi = 'Puskesmas ' . $loginCheck->name;
                     $newUser->email = $loginCheck->id; 
-                    $newUser->password = bcrypt($loginCheck->name); 
+                    $newUser->password = bcrypt(strtolower($loginCheck->name)); 
                     $newUser->role_id = 1; 
                     $newUser->puskesmas_id = $loginCheck->id;
+                    $newUser->must_change_password = 1;
                     $newUser->save();
                 }
-                // Attempt to login the newly created or existing user
-                if(Auth::attempt(['email' => $request->email, 'password' => $loginCheck->name])){
+                if(Auth::attempt(['email' => $request->email, 'password' => strtolower($loginCheck->name)])){
                     return redirect()->intended('/')->with('success','Successfully Login');
                 }
                 

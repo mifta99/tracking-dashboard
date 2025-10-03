@@ -88,6 +88,10 @@ class Pengiriman extends Model
     {
         return $this->belongsTo(User::class, 'created_by', 'id');
     }
+        public function equipment(): BelongsTo
+    {
+        return $this->belongsTo(Equipment::class, 'puskesmas_id', 'puskesmas_id');
+    }
 
     /**
      * Get the user that owns the Pengiriman

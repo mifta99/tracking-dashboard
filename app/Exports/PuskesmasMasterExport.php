@@ -7,12 +7,12 @@ use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Events\AfterSheet;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 
 class PuskesmasMasterExport implements FromCollection, WithHeadings,ShouldAutoSize,WithEvents
 {
     protected $roles;
     protected $additionalColumns;
-
     public function __construct(int $roles, array $additionalColumns = [])
     {
         $this->roles = $roles;
@@ -34,46 +34,31 @@ class PuskesmasMasterExport implements FromCollection, WithHeadings,ShouldAutoSi
                     $item->name,
                 ];
 
-                // Add additional columns based on selection
+                // Additional dynamic columns
                 $this->addColumnData($rowData, $item, 'pic', $item->pic);
                 $this->addColumnData($rowData, $item, 'kepala', $item->kepala);
                 $this->addColumnData($rowData, $item, 'pic_dinkes_prov', $item->pic_dinkes_prov);
                 $this->addColumnData($rowData, $item, 'pic_dinkes_kab', $item->pic_dinkes_kab);
-                
-                // Delivery Information
-                $this->addColumnData($rowData, $item, 'tgl_pengiriman', 
-                    $item->pengiriman && $item->pengiriman->tgl_pengiriman ? $item->pengiriman->tgl_pengiriman->format('Y-m-d') : '');
-                $this->addColumnData($rowData, $item, 'eta', $item->pengiriman->eta ?? '');
-                $this->addColumnData($rowData, $item, 'resi', $item->pengiriman->resi ?? '');
-                $this->addColumnData($rowData, $item, 'serial_number', 
-                    $item->pengiriman && $item->pengiriman->equipment ? $item->pengiriman->equipment->serial_number : '');
-                $this->addColumnData($rowData, $item, 'target_tgl', 
-                    $item->pengiriman && $item->pengiriman->target_tgl ? $item->pengiriman->target_tgl->format('Y-m-d') : '');
-                $this->addColumnData($rowData, $item, 'catatan', $item->pengiriman->catatan ?? '');
-                $this->addColumnData($rowData, $item, 'tgl_diterima', 
-                    $item->pengiriman && $item->pengiriman->tgl_diterima ? $item->pengiriman->tgl_diterima->format('Y-m-d') : '');
-                $this->addColumnData($rowData, $item, 'nama_penerima', $item->pengiriman->nama_penerima ?? '');
-                $this->addColumnData($rowData, $item, 'jabatan_penerima', $item->pengiriman->jabatan_penerima ?? '');
-                $this->addColumnData($rowData, $item, 'instansi_penerima', $item->pengiriman->instansi_penerima ?? '');
-                $this->addColumnData($rowData, $item, 'nomor_penerima', $item->pengiriman->nomor_penerima ?? '');
-                
-                // Testing & Installation
-                $this->addColumnData($rowData, $item, 'tgl_instalasi', 
-                    $item->ujiFungsi && $item->ujiFungsi->tgl_instalasi ? $item->ujiFungsi->tgl_instalasi->format('Y-m-d') : '');
-                $this->addColumnData($rowData, $item, 'target_tgl_uji_fungsi', 
-                    $item->ujiFungsi && $item->ujiFungsi->target_tgl_uji_fungsi ? $item->ujiFungsi->target_tgl_uji_fungsi->format('Y-m-d') : '');
-                $this->addColumnData($rowData, $item, 'tgl_uji_fungsi', 
-                    $item->ujiFungsi && $item->ujiFungsi->tgl_uji_fungsi ? $item->ujiFungsi->tgl_uji_fungsi->format('Y-m-d') : '');
-                $this->addColumnData($rowData, $item, 'tgl_pelatihan', 
-                    $item->ujiFungsi && $item->ujiFungsi->tgl_pelatihan ? $item->ujiFungsi->tgl_pelatihan->format('Y-m-d') : '');
-                
-                // Document Status
+                $this->addColumnData($rowData, $item, 'tgl_pengiriman', $item->pengiriman && $item->pengiriman->tgl_pengiriman ? $item->pengiriman->tgl_pengiriman->format('d-m-Y') : null);
+                $this->addColumnData($rowData, $item, 'eta', $item->pengiriman ? $item->pengiriman->eta->format('d-m-Y') : '');
+                $this->addColumnData($rowData, $item, 'resi', $item->pengiriman ? $item->pengiriman->resi : '');
+                $this->addColumnData($rowData, $item, 'serial_number', ($item->pengiriman && $item->pengiriman->equipment) ? $item->pengiriman->equipment->serial_number : '');
+                $this->addColumnData($rowData, $item, 'catatan', $item->pengiriman ? $item->pengiriman->catatan : '');
+                $this->addColumnData($rowData, $item, 'tgl_diterima', $item->pengiriman && $item->pengiriman->tgl_diterima ? $item->pengiriman->tgl_diterima->format('d-m-Y') : null);
+                $this->addColumnData($rowData, $item, 'nama_penerima', $item->pengiriman ? $item->pengiriman->nama_penerima : '');
+                $this->addColumnData($rowData, $item, 'jabatan_penerima', $item->pengiriman ? $item->pengiriman->jabatan_penerima : '');
+                $this->addColumnData($rowData, $item, 'instansi_penerima', $item->pengiriman ? $item->pengiriman->instansi_penerima : '');
+                $this->addColumnData($rowData, $item, 'nomor_penerima', $item->pengiriman ? $item->pengiriman->nomor_penerima : '');
+                $this->addColumnData($rowData, $item, 'tgl_instalasi', $item->ujiFungsi && $item->ujiFungsi->tgl_instalasi ? $item->ujiFungsi->tgl_instalasi->format('d-m-Y') : null);
+                $this->addColumnData($rowData, $item, 'target_tgl_uji_fungsi', $item->ujiFungsi && $item->ujiFungsi->target_tgl_uji_fungsi ? $item->ujiFungsi->target_tgl_uji_fungsi->format('d-m-Y') : null);
+                $this->addColumnData($rowData, $item, 'tgl_uji_fungsi', $item->ujiFungsi && $item->ujiFungsi->tgl_uji_fungsi ? $item->ujiFungsi->tgl_uji_fungsi->format('d-m-Y') : null);
+                $this->addColumnData($rowData, $item, 'tgl_pelatihan', $item->ujiFungsi && $item->ujiFungsi->tgl_pelatihan ? $item->ujiFungsi->tgl_pelatihan->format('d-m-Y') : null);
 
                 $data->push($rowData);
                 continue;
             }
-            
-            // Kemenkes role data (unchanged)
+
+            // Kemenkes role data (unchanged base, tapi biarkan tanggal tetap raw kalau ada)
             $data->push([
                 $item->id,
                 $item->district->regency->province->name,
@@ -95,7 +80,7 @@ class PuskesmasMasterExport implements FromCollection, WithHeadings,ShouldAutoSi
     private function addColumnData(&$rowData, $item, $columnKey, $value)
     {
         if (in_array($columnKey, $this->additionalColumns)) {
-            $rowData[] = $value;
+            $rowData[] = $value instanceof \Carbon\Carbon ? $value : $value; // biarkan Carbon atau null/string
         }
     }
     public function headings(): array
@@ -115,7 +100,6 @@ class PuskesmasMasterExport implements FromCollection, WithHeadings,ShouldAutoSi
             'PIC Dinas Kesehatan Provinsi',
             ];
         }else{
-            // Base columns for Endo role
             $headers = [
                 'ID Puskesmas',
                 'Provinsi',
@@ -124,7 +108,6 @@ class PuskesmasMasterExport implements FromCollection, WithHeadings,ShouldAutoSi
                 'Nama Puskesmas',
             ];
 
-            // Column mapping for additional headers
             $columnHeaders = [
                 'pic' => 'PIC Puskesmas',
                 'no_hp' => 'No HP',
@@ -133,10 +116,9 @@ class PuskesmasMasterExport implements FromCollection, WithHeadings,ShouldAutoSi
                 'pic_dinkes_prov' => 'PIC Dinkes Provinsi',
                 'pic_dinkes_kab' => 'PIC Dinkes Kabupaten/Kota',
                 'tgl_pengiriman' => 'Tanggal Pengiriman',
-                'eta' => 'ETA (Hari)',
+                'eta' => 'ETA',
                 'resi' => 'Nomor Resi',
                 'serial_number' => 'Serial Number',
-                'target_tgl' => 'Target Tanggal Diterima',
                 'catatan' => 'Catatan',
                 'tgl_diterima' => 'Tanggal Diterima',
                 'nama_penerima' => 'Nama Penerima',
@@ -149,7 +131,6 @@ class PuskesmasMasterExport implements FromCollection, WithHeadings,ShouldAutoSi
                 'tgl_pelatihan' => 'Tanggal Pelatihan',
             ];
 
-            // Add selected additional headers
             foreach ($this->additionalColumns as $column) {
                 if (isset($columnHeaders[$column])) {
                     $headers[] = $columnHeaders[$column];
@@ -159,7 +140,7 @@ class PuskesmasMasterExport implements FromCollection, WithHeadings,ShouldAutoSi
             return $headers;
         }
     }
-        public function registerEvents(): array
+    public function registerEvents(): array
     {
         return [
             AfterSheet::class => function (AfterSheet $event) {
@@ -167,22 +148,42 @@ class PuskesmasMasterExport implements FromCollection, WithHeadings,ShouldAutoSi
                 $columnCount = count($headings);
                 $highestColumn = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($columnCount);
 
+                // Styling header
                 $event->sheet->getStyle("A1:{$highestColumn}1")->applyFromArray([
-                    'font' => [
-                        'bold' => true,
-                    ],
+                    'font' => [ 'bold' => true ],
                     'alignment' => [
                         'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
                         'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
                     ],
                     'borders' => [
-                        'allBorders' => [
-                            'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
-                        ],
+                        'allBorders' => [ 'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN ],
                     ],
                 ]);
 
                 $event->sheet->getDelegate()->setAutoFilter("A1:{$highestColumn}1");
+
+                // Tentukan kolom tanggal aktual berdasarkan selected additionalColumns (roles != 2)
+                if ($this->roles != 2) {
+                    $dateHeadersMap = [
+                        'ETA',
+                        'Tanggal Pengiriman',
+                        'Tanggal Diterima',
+                        'Tanggal Instalasi',
+                        'Target Tanggal Uji Fungsi',
+                        'Tanggal Uji Fungsi',
+                        'Tanggal Pelatihan',
+                    ];
+
+                    // Scan header dan format sebagai tanggal Excel
+                    foreach ($headings as $index => $header) {
+                        if (in_array($header, $dateHeadersMap)) {
+                            $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($index + 1);
+                            // Format number untuk seluruh kolom data (mulai baris 2)
+                            $event->sheet->getStyle("{$colLetter}2:{$colLetter}" . $event->sheet->getHighestRow())
+                                ->getNumberFormat()->setFormatCode('dd-mm-yyyy');
+                        }
+                    }
+                }
             }
         ];
     }

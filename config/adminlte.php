@@ -369,6 +369,12 @@ return [
             'icon' => 'fas fa-fw fa-hospital',
             'can'   => ['kemenkes']
         ],
+        [
+            'text' => 'Profil Puskesmas',
+            'url'  => '/puskesmas/profile',
+            'icon' => 'fas fa-fw fa-hospital',
+            'can'   => ['puskesmas']
+        ],
 
         // ['header' => 'account_settings'],
         // [

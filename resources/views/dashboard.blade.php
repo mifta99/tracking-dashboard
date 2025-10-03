@@ -122,15 +122,9 @@
                     <label class="small mb-1">Status</label>
                     <select class="form-control form-control-sm" id="status" name="status">
                         <option value="">Semua Status</option>
-                        
-                        <option value="1">Shipment Process</option>
-                        <option value="2">On Delivery</option>
-                        <option value="3">Received</option>
-                        <option value="4">Instalasi</option>
-                        <option value="5">Uji Fungsi</option>
-                        <option value="6">Pelatihan Alat</option>
-                        <option value="7">BASTO</option>
-                        <option value="8">ASPAK</option>
+                        @foreach($tahapan as $tahap)
+                            <option value="{{ $tahap->tahap_ke }}">{{ $tahap->tahapan }}</option>
+                        @endforeach
                     </select>
                 </div>
                 <div class="col-md-2">

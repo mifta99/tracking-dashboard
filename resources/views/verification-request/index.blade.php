@@ -14,17 +14,6 @@
 				<i class="fas fa-filter mr-1"></i><span class="txt">Tampilkan Filter</span>
 			</button>
 		</div>
-		<ul class="nav nav-fill nav-tabs" role="tablist">
-			<li class="nav-item" role="presentation">
-				<a class="nav-link {{ request()->is('*/') || request('status') == null ? 'active' : '' }}" id="fill-tab-0" data-bs-toggle="tab" href="{{route('verification-request.index')}}" role="tab" aria-controls="fill-tabpanel-0" aria-selected="true"> Pengiriman </a>
-			</li>
-			<li class="nav-item" role="presentation">
-				<a class="nav-link {{ request()->is('*/uji-fungsi') || request('status') == 'uji-fungsi' ? 'active' : '' }}" id="fill-tab-1" data-bs-toggle="tab" href="{{route('verification-request.index', ['status' => 'uji-fungsi'])}}" role="tab" aria-controls="fill-tabpanel-1" aria-selected="false"> Uji Fungsi </a>
-			</li>
-			<li class="nav-item" role="presentation">
-				<a class="nav-link {{ request()->is('*/documents') || request('status') == 'documents' ? 'active' : '' }}" id="fill-tab-2" data-bs-toggle="tab" href="{{route('verification-request.index', ['status' => 'documents'])}}" role="tab" aria-controls="fill-tabpanel-2" aria-selected="false"> Dokumen </a>
-			</li>
-			</ul>
 		<div class="card-body ">
 			<div id="filterPanel" class="mb-3 collapse-hide p-3 border rounded bg-light">
 				<div class="row">
