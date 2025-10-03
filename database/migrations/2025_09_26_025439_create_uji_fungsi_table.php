@@ -19,10 +19,16 @@ class CreateUjiFungsiTable extends Migration
             $table->date('target_tgl_uji_fungsi')->nullable();
             $table->date('tgl_instalasi')->nullable();
             $table->string('doc_instalasi')->nullable();
+            $table->boolean('is_verified_instalasi')->default(false);
+            $table->timestamp('verified_at_instalasi')->nullable();
             $table->date('tgl_pelatihan')->nullable();
             $table->string('doc_pelatihan')->nullable();
+            $table->boolean('is_verified_pelatihan')->default(false);
+            $table->timestamp('verified_at_pelatihan')->nullable();
             $table->date('tgl_uji_fungsi')->nullable();
             $table->string('doc_uji_fungsi')->nullable();
+            $table->boolean('is_verified_uji_fungsi')->default(false);
+            $table->timestamp('verified_at_uji_fungsi')->nullable();
             $table->text('catatan')->nullable();
             $table->boolean('verif_kemenkes')->default(false);
             $table->timestamp('tgl_verif_kemenkes')->nullable();
