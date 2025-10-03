@@ -30,8 +30,8 @@ class Puskesmas extends Model
         'kepala',
         'pic_dinkes_prov',
         'pic_dinkes_kab',
-    'no_hp',
-    'no_hp_alternatif',
+        'no_hp',
+        'no_hp_alternatif',
         'created_by',
         'updated_by',
     ];
@@ -94,6 +94,16 @@ class Puskesmas extends Model
     public function insiden(): HasMany
     {
         return $this->hasMany(Insiden::class, 'puskesmas_id', 'id');
+    }
+
+    /**
+     * Get the equipment associated with the Puskesmas
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function equipment(): HasOne
+    {
+        return $this->hasOne(Equipment::class, 'puskesmas_id', 'id');
     }
 
 }
