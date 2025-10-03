@@ -179,7 +179,7 @@
         <div class="col-lg-6">
             <div class="card h-100 shadow-sm">
             <div class="card-header py-2 pr-1 bg-primary text-white d-flex align-items-center">
-                <span class="section-title-bar">Basic Information</span>
+                <span class="section-title-bar">Basic Informations</span>
                 @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes')
                 <button class="btn btn-sm btn-primary ml-auto" data-toggle="modal" data-target="#basicInfoModal">
                     <i class="fas fa-edit"></i> Edit

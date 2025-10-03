@@ -15,7 +15,12 @@ use Illuminate\Support\Facades\Route;
 
 // Auth::routes();
 
-Route::get('/', [App\Http\Controllers\DashboardController::class, 'index'])->name('home');
+Route::get('/', function () {
+    if (auth()->check() && auth()->user()->role_id == 1) {
+        return app(App\Http\Controllers\DashboardPuskesmasController::class)->index();
+    }
+    return app(App\Http\Controllers\DashboardController::class)->index();
+})->name('home');
 
 Route::get('/login', [App\Http\Controllers\Auth\LoginController::class, 'login'])->name('login');
 Route::post('/login', [App\Http\Controllers\Auth\LoginController::class, 'loginProcess'])->name('login.process');
