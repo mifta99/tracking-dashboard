@@ -51,7 +51,7 @@ class VerificationRequestController extends Controller
             ->whereDoesntHave('document')
             ->orderBy('name')
             ->get();
-    
+
         }
 
         return view('verification-request.index', [
@@ -129,6 +129,9 @@ class VerificationRequestController extends Controller
         $puskesmas = Puskesmas::with([
             'district.regency.province',
             'pengiriman.tahapan',
+            'equipment' => function($query) {
+                $query->latest('id');
+            },
             'ujiFungsi',
             'document'
         ])
