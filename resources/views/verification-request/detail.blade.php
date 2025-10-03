@@ -78,7 +78,7 @@
 
     <div class="card mb-3 shadow-sm">
         <div class="card-header py-2 pr-1 text-white d-flex align-items-center" style="background:#ee8c0b;">
-            <span class="section-title-bar" style="color: white;">Current Progress</span>
+            <span class="section-title-bar" style="color: white;">Status Tahapan</span>
         </div>
         <div class="card-body p-3">
             @php
@@ -158,7 +158,7 @@
                 <div class="mt-3">
                     <div class="row">
                         <div class="col-md-6">
-                            <small class="text-muted">Current Stage: <strong>{{ $stepMeta[$currentStep]['label'] ?? 'Unknown' }}</strong></small>
+                            <small class="text-muted">Tahapan Saat ini: <strong>{{ $stepMeta[$currentStep]['label'] ?? 'Unknown' }}</strong></small>
                         </div>
                         <div class="col-md-6 text-right">
                             <small class="text-muted">Progress: {{ $currentStep }}/{{ count($stepMeta) }}</small>
@@ -179,7 +179,7 @@
         <div class="col-lg-6">
             <div class="card h-100 shadow-sm">
             <div class="card-header py-2 pr-1 bg-primary text-white d-flex align-items-center">
-                <span class="section-title-bar">Basic Informations</span>
+                <span class="section-title-bar">Informasi Puskesmas</span>
                 @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes')
                 <button class="btn btn-sm btn-primary ml-auto" data-toggle="modal" data-target="#basicInfoModal">
                     <i class="fas fa-edit"></i> Edit
@@ -215,7 +215,7 @@
             <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                <div class="modal-header bg-primary text-white">
-               <h5 class="modal-title">Edit Basic Information</h5>
+               <h5 class="modal-title">Edit Informasi Puskesmas</h5>
                <button type="button" class="close text-white" data-dismiss="modal">
                   <span>&times;</span>
                </button>
@@ -292,7 +292,7 @@
         <div class="col-lg-6">
             <div class="card h-100 shadow-sm">
                 <div class="card-header py-2 pr-1 bg-success text-white d-flex align-items-center">
-                    <span class="section-title-bar">Delivery Information</span>
+                    <span class="section-title-bar">Informasi Pengiriman</span>
                     @if(auth()->user() && auth()->user()->role->role_name == 'endo')
                     <button class="btn btn-sm btn-success ml-auto" data-toggle="modal" data-target="#deliveryModal"><i class="fas fa-edit"></i> Edit</button>
                     @endif
@@ -477,7 +477,7 @@
     <!-- Equipment Issue -->
     <div class="card shadow-sm mb-4">
         <div class="card-header py-2 pr-1 bg-danger text-white d-flex align-items-center">
-            <span class="section-title-bar">Equipment Issue</span>
+            <span class="section-title-bar">Pelaporan Keluhan</span>
         </div>
         <div class="card-body p-3">
             <div class="table-responsive">
@@ -507,7 +507,7 @@
     <!-- Incident Management -->
     <div class="card shadow-sm mb-4">
         <div class="card-header py-2 pr-1 d-flex align-items-center" style="background:#e226d2;">
-            <span class="section-title-bar text-white">Incident Management</span>
+            <span class="section-title-bar text-white">Pelaporan Insiden</span>
         </div>
         <div class="card-body p-3">
             <div class="table-responsive">
@@ -563,7 +563,7 @@
         <div class="modal-dialog modal-xl" role="document">
             <div class="modal-content">
                 <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title">Edit Delivery Information</h5>
+                    <h5 class="modal-title">Edit Informasi Pengiriman</h5>
                     <button type="button" class="close text-white" data-dismiss="modal"><span>&times;</span></button>
                 </div>
                 <form id="deliveryForm" enctype="multipart/form-data">
@@ -1163,7 +1163,7 @@ $(function(){
             if(res && res.success){
                 // Update visible table values without reload
                 const data = res.data || {};
-                const $deliveryTable = $('.card-header:contains("Delivery Information")').next('.card-body').find('table.table-kv');
+                const $deliveryTable = $('.card-header:contains("Informasi Pengiriman")').next('.card-body').find('table.table-kv');
 
                 // Update delivery information fields
                 if(data.tgl_pengiriman !== undefined) $deliveryTable.find('tr:contains("Tanggal Pengiriman") td:last').text(data.tgl_pengiriman || '-');
