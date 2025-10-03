@@ -4,13 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class KategoriKeluhan extends Model
+class KategoriInsiden extends Model
 {
     use HasFactory;
     protected $primaryKey = 'id';
-    protected $table = 'kategori_keluhan';
 
     /**
      * The attributes that are mass assignable.
@@ -31,13 +29,4 @@ class KategoriKeluhan extends Model
         'id' => 'integer',
     ];
 
-    /**
-     * Get all of the keluhan for the KategoriKeluhan
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
-    public function keluhan(): HasMany
-    {
-        return $this->hasMany(Keluhan::class, 'kategori_id', 'id');
-    }
 }

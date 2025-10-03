@@ -22,13 +22,25 @@ class Insiden extends Model
         'puskesmas_id',
         'tahapan_id',
         'status_id',
-        'reported_by',
-        'reported_date',
-        'insiden',
-        'waktu_kejadian',
-        'detail_kejadian',
+        'kategori_id',
+        'tgl_kejadian',
         'nama_korban',
-        'tindak_lanjut',
+        'bagian',
+        'insiden',
+        'kronologis',
+        'rencana_tindakan_koreksi',
+        'pelaksana_tindakan_koreksi',
+        'tgl_selesai_koreksi',
+        'verifikasi_hasil_koreksi',
+        'verifikasi_tgl_koreksi',
+        'verifikasi_pelaksana_koreksi',
+        'rencana_tindakan_korektif',
+        'pelaksana_tindakan_korektif',
+        'tgl_selesai_korektif',
+        'verifikasi_hasil_korektif',
+        'verifikasi_tgl_korektif',
+        'verifikasi_pelaksana_korektif',
+        'reported_by',
         'dokumentasi',
     ];
 
@@ -41,9 +53,13 @@ class Insiden extends Model
         'id' => 'integer',
         'tahapan_id' => 'integer',
         'status_id' => 'integer',
+        'kategori_id' => 'integer',
+        'tgl_kejadian' => 'date',
+        'tgl_selesai_koreksi' => 'date',
+        'verifikasi_tgl_koreksi' => 'date',
+        'tgl_selesai_korektif' => 'date',
+        'verifikasi_tgl_korektif' => 'date',
         'reported_by' => 'integer',
-        'reported_date' => 'date',
-        'waktu_kejadian' => 'date',
     ];
 
     /**
@@ -74,6 +90,16 @@ class Insiden extends Model
     public function status(): BelongsTo
     {
         return $this->belongsTo(StatusInsiden::class, 'status_id', 'id');
+    }
+
+    /**
+     * Get the kategoriInsiden that owns the Insiden
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function kategoriInsiden(): BelongsTo
+    {
+        return $this->belongsTo(KategoriInsiden::class, 'kategori_id', 'id');
     }
 
     /**
