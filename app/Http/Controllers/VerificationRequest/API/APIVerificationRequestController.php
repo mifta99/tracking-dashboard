@@ -164,7 +164,6 @@ class APIVerificationRequestController extends Controller
                 'eta' => 'nullable|date',
                 'resi' => 'nullable|string|max:255',
                 'serial_number' => 'nullable|string|max:255',
-                'target_tgl' => 'nullable|date',
                 'tgl_diterima' => 'nullable|date',
                 'nama_penerima' => 'nullable|string|max:255',
                 'jabatan_penerima' => 'nullable|string|max:255',
@@ -178,7 +177,6 @@ class APIVerificationRequestController extends Controller
                 'resi.max' => 'Nomor resi maksimal 255 karakter',
                 'tracking_link.url' => 'Format URL tracking tidak valid',
                 'serial_number.max' => 'Serial number maksimal 255 karakter',
-                'target_tgl.date' => 'Format tanggal target tidak valid',
                 'tgl_diterima.date' => 'Format tanggal diterima tidak valid',
                 'nama_penerima.max' => 'Nama penerima maksimal 255 karakter',
                 'jabatan_penerima.max' => 'Jabatan penerima maksimal 255 karakter',
@@ -213,7 +211,7 @@ class APIVerificationRequestController extends Controller
             $updateData = [];
             $updatedFields = [];
 
-            foreach (['tgl_pengiriman', 'eta', 'resi', 'tracking_link', 'target_tgl', 'tgl_diterima', 'nama_penerima', 'jabatan_penerima', 'instansi_penerima', 'nomor_penerima', 'tahapan_id', 'catatan'] as $field) {
+            foreach (['tgl_pengiriman', 'eta', 'resi', 'tracking_link', 'tgl_diterima', 'nama_penerima', 'jabatan_penerima', 'instansi_penerima', 'nomor_penerima', 'tahapan_id', 'catatan'] as $field) {
                 if (array_key_exists($field, $validated)) {
                     $updateData[$field] = $validated[$field];
                     $updatedFields[] = str_replace('_', ' ', $field);
@@ -270,7 +268,6 @@ class APIVerificationRequestController extends Controller
                     'resi' => $pengiriman->resi,
                     'tracking_link' => $pengiriman->tracking_link,
                     'serial_number' => $puskesmas->equipment->serial_number ?? null,
-                    'target_tgl' => $pengiriman->target_tgl ? $pengiriman->target_tgl->format('d F Y') : null,
                     'tgl_diterima' => $pengiriman->tgl_diterima ? $pengiriman->tgl_diterima->format('d F Y') : null,
                     'nama_penerima' => $pengiriman->nama_penerima,
                     'jabatan_penerima' => $pengiriman->jabatan_penerima,

@@ -304,7 +304,6 @@
                         <tr><td>RESI</td><td>{{ $peng->resi ?? '-' }}</td></tr>
                         <tr><td>Link Tracking</td><td>@if($peng && $peng->tracking_link)<a class="text-decoration-none" target="_blank" href="{{ $peng->tracking_link }}">View Here</a>@else - @endif</td></tr>
                         <tr><td>Serial Number</td><td>{{ $puskesmas->equipment->serial_number ?? '-' }}</td></tr>
-                        <tr><td>Target Alat Diterima</td><td>{{ optional($peng->target_tgl)->format('d F Y') ?? '-' }}</td></tr>
                         <tr><td>Tanggal Diterima</td><td>{{ optional($peng->tgl_diterima)->format('d F Y') ?? '-' }}</td></tr>
                         <tr><td>Nama Penerima</td><td>{{ $peng->nama_penerima ?? '-' }}</td></tr>
                         <tr><td>Jabatan Penerima</td><td>{{ $peng->jabatan_penerima ?? '-' }}</td></tr>
@@ -592,10 +591,6 @@
                                 <label class="small mb-1">Serial Number</label>
                                 <input type="text" class="form-control form-control-sm" name="serial_number" value="{{ $puskesmas->equipment->serial_number ?? '' }}" placeholder="Enter serial number">
                                 <small class="form-text text-muted">System will create equipment record if new</small>
-                            </div>
-                            <div class="form-group col-md-3">
-                                <label class="small mb-1">Target Alat Diterima</label>
-                                <input type="date" class="form-control form-control-sm" name="target_tgl" value="{{ optional($peng->target_tgl)->format('Y-m-d') }}">
                             </div>
                         </div>
                         <div class="mb-2 mt-3 pb-1 border-bottom"><strong class="text-muted small">Penerimaan</strong></div>
@@ -1183,7 +1178,6 @@ $(function(){
                     }
                 }
                 if(data.serial_number !== undefined) $deliveryTable.find('tr:contains("Serial Number") td:last').text(data.serial_number || '-');
-                if(data.target_tgl !== undefined) $deliveryTable.find('tr:contains("Target Alat Diterima") td:last').text(data.target_tgl || '-');
                 if(data.tgl_diterima !== undefined) $deliveryTable.find('tr:contains("Tanggal Diterima") td:last').text(data.tgl_diterima || '-');
                 if(data.nama_penerima !== undefined) $deliveryTable.find('tr:contains("Nama Penerima") td:last').text(data.nama_penerima || '-');
                 if(data.jabatan_penerima !== undefined) $deliveryTable.find('tr:contains("Jabatan Penerima") td:last').text(data.jabatan_penerima || '-');
