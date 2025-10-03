@@ -161,7 +161,7 @@ class APIVerificationRequestController extends Controller
             // Validate input
             $validated = $request->validate([
                 'tgl_pengiriman' => 'nullable|date',
-                'eta' => 'nullable|integer|min:0',
+                'eta' => 'nullable|date',
                 'resi' => 'nullable|string|max:255',
                 'serial_number' => 'nullable|string|max:255',
                 'target_tgl' => 'nullable|date',
@@ -174,8 +174,7 @@ class APIVerificationRequestController extends Controller
                 'catatan' => 'nullable|string|max:1000',
             ], [
                 'tgl_pengiriman.date' => 'Format tanggal pengiriman tidak valid',
-                'eta.integer' => 'ETA harus berupa angka',
-                'eta.min' => 'ETA tidak boleh kurang dari 0',
+                'eta.date' => 'Format tanggal ETA tidak valid',
                 'resi.max' => 'Nomor resi maksimal 255 karakter',
                 'tracking_link.url' => 'Format URL tracking tidak valid',
                 'serial_number.max' => 'Serial number maksimal 255 karakter',
@@ -267,7 +266,7 @@ class APIVerificationRequestController extends Controller
                 'message' => 'Data pengiriman berhasil diperbarui',
                 'data' => [
                     'tgl_pengiriman' => $pengiriman->tgl_pengiriman ? $pengiriman->tgl_pengiriman->format('d F Y') : null,
-                    'eta' => $pengiriman->eta,
+                    'eta' => $pengiriman->eta ? $pengiriman->eta->format('d F Y') : null,
                     'resi' => $pengiriman->resi,
                     'tracking_link' => $pengiriman->tracking_link,
                     'serial_number' => $puskesmas->equipment->serial_number ?? null,

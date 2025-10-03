@@ -300,7 +300,7 @@
                 <div class="card-body p-3">
                     <table class="table table-sm table-borderless table-kv mb-0">
                         <tr><td>Tanggal Pengiriman</td><td>{{ optional($peng->tgl_pengiriman)->format('d F Y') ?? '-' }}</td></tr>
-                        <tr><td>ETA</td><td>{{ $peng->eta ? $peng->eta . ' Days' : '-' }}</td></tr>
+                        <tr><td>ETA</td><td>{{ optional($peng->eta)->format('d F Y') ?? '-' }}</td></tr>
                         <tr><td>RESI</td><td>{{ $peng->resi ?? '-' }}</td></tr>
                         <tr><td>Link Tracking</td><td>@if($peng && $peng->tracking_link)<a class="text-decoration-none" target="_blank" href="{{ $peng->tracking_link }}">View Here</a>@else - @endif</td></tr>
                         <tr><td>Serial Number</td><td>{{ $puskesmas->equipment->serial_number ?? '-' }}</td></tr>
@@ -578,7 +578,7 @@
                             </div>
                             <div class="form-group col-md-2">
                                 <label class="small mb-1">ETA (Hari)</label>
-                                <input type="number" class="form-control form-control-sm" name="eta" value="{{ $peng->eta }}" min="0" max="365">
+                                <input type="date" class="form-control form-control-sm" name="eta" value="{{ optional($peng->eta)->format('Y-m-d') }}">
                             </div>
                             <div class="form-group col-md-3">
                                 <label class="small mb-1">RESI</label>
@@ -1172,7 +1172,7 @@ $(function(){
 
                 // Update delivery information fields
                 if(data.tgl_pengiriman !== undefined) $deliveryTable.find('tr:contains("Tanggal Pengiriman") td:last').text(data.tgl_pengiriman || '-');
-                if(data.eta !== undefined) $deliveryTable.find('tr:contains("ETA") td:last').text(data.eta ? data.eta + ' Days' : '-');
+                if(data.eta !== undefined) $deliveryTable.find('tr:contains("ETA") td:last').text(data.eta || '-');
                 if(data.resi !== undefined) $deliveryTable.find('tr:contains("RESI") td:last').text(data.resi || '-');
                 if(data.tracking_link !== undefined) {
                     const trackingCell = $deliveryTable.find('tr:contains("Link Tracking") td:last');
