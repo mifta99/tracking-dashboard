@@ -18,9 +18,6 @@ class CreateRegenciesTable extends Migration
             $table->primary('id');
             $table->string('province_id', 2 );
             $table->string('name');
-            $table->double('lat')->nullable();
-            $table->double('lon')->nullable();
-            $table->string('id_geojson')->nullable();
         });
 
         Schema::table('regencies', function (Blueprint $table) {

@@ -48,7 +48,7 @@ class Pengiriman extends Model
     protected $casts = [
         'id' => 'integer',
         'tgl_pengiriman' => 'date',
-        'eta' => 'integer',
+        'eta' => 'date',
         'target_tgl' => 'date',
         'tgl_diterima' => 'date',
         'tahapan_id' => 'integer',

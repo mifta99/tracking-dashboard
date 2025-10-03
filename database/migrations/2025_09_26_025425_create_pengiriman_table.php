@@ -17,7 +17,7 @@ class CreatePengirimanTable extends Migration
             $table->integer('id')->autoIncrement()->unsigned();
             $table->string('puskesmas_id', 13);
             $table->date('tgl_pengiriman')->nullable();
-            $table->integer('eta')->nullable();
+            $table->date('eta')->nullable();
             $table->string('resi')->nullable();
             $table->string('tracking_link')->nullable();
             $table->date('target_tgl')->nullable();
