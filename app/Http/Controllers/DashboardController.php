@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Pengiriman;
 use App\Models\Puskesmas;
+use App\Models\Tahapan;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
@@ -38,6 +39,7 @@ class DashboardController extends Controller
                 'aspak' => Pengiriman::where('tahapan_id', 8)->count(),
             ]
         );
-        return view('dashboard', ['countPuskesmas' => $dataPuskesmasCount, 'dataStatus' => $dataStatus]);
+        $tahapan = Tahapan::all();
+        return view('dashboard', ['countPuskesmas' => $dataPuskesmasCount, 'dataStatus' => $dataStatus, 'tahapan' => $tahapan]);
     }
 }

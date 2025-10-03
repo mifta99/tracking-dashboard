@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Route;
 
 // Auth::routes();
 
-Route::get('/', function () {
+Route::middleware(['auth','profile.complete'])->get('/', function () {
     if (auth()->check() && auth()->user()->role_id == 1) {
         return app(App\Http\Controllers\DashboardPuskesmasController::class)->index();
     }
@@ -25,6 +25,12 @@ Route::get('/', function () {
 Route::get('/login', [App\Http\Controllers\Auth\LoginController::class, 'login'])->name('login');
 Route::post('/login', [App\Http\Controllers\Auth\LoginController::class, 'loginProcess'])->name('login.process');
 Route::post('/logout', [App\Http\Controllers\Auth\LoginController::class, 'logout'])->name('logout');
+
+// Profile management routes for puskesmas users
+Route::middleware(['auth', 'roles:1'])->prefix('puskesmas/profile')->name('puskesmas.profile.')->group(function () {
+    Route::get('/', [App\Http\Controllers\PuskesmasProfileController::class, 'edit'])->name('edit');
+    Route::post('/update', [App\Http\Controllers\PuskesmasProfileController::class, 'update'])->name('update');
+});
 
 Route::middleware(['auth', 'roles:2,3'])->prefix('verification-request')->name('verification-request.')->group(function () {
     Route::get('/api/fetch/{status?}', [App\Http\Controllers\VerificationRequest\VerificationRequestController::class, 'fetch'])->name('fetch');

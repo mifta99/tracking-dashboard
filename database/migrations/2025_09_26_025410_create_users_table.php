@@ -24,6 +24,7 @@ class CreateUsersTable extends Migration
             $table->string('no_hp')->nullable();
             $table->string('email')->unique();
             $table->string('password');
+            $table->boolean('must_change_password')->default(true);
             $table->rememberToken();
             $table->timestamps();
         });

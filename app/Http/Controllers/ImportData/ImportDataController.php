@@ -188,7 +188,7 @@ class ImportDataController extends Controller
                     continue;
                 }
                 $shippingFields = [
-                    'tanggal_pengiriman', 'eta_hari', 'nomor_resi', 'serial_number', 'target_tanggal_diterima', 
+                    'tanggal_pengiriman', 'eta', 'nomor_resi', 'serial_number', 
                     'catatan', 'tanggal_diterima', 'nama_penerima', 'jabatan_penerima', 
                     'instansi_penerima', 'nomor_penerima', 'tanggal_instalasi', 'target_tanggal_uji_fungsi', 
                     'tanggal_uji_fungsi', 'tanggal_pelatihan'
@@ -211,41 +211,46 @@ class ImportDataController extends Controller
                     ->first();
                     
                 $existingPengiriman = Pengiriman::where('puskesmas_id', $existingPuskesmas->id)->first();
-
+                    
                 if ($existingPuskesmas && $existingPengiriman) {
-                    $equipment = Equipment::where('id', $existingPengiriman->equipment_id)->first();
-                    if(!empty($item['serial_number']) && $item['serial_number'] != null){
-                        if ($equipment) {
-                            $equipment->serial_number = $item['serial_number'];
-                            $equipment->save();
-                        } else {
-                            $equipment = Equipment::create([
-                                'serial_number' => $item['serial_number']
-                            ]);
-                        }
-                    }
+                    $equipment = $existingPengiriman->equipment->serial_number ?? null;
+
                     $updateData = [];
                     
                     if (!empty($item['tanggal_pengiriman']) && $item['tanggal_pengiriman'] !== null) {
-                        $updateData['tgl_pengiriman'] = Date::excelToDateTimeObject($item['tanggal_pengiriman']);
+                        try {
+                            $updateData['tgl_pengiriman'] = Date::excelToDateTimeObject($item['tanggal_pengiriman']);
+                        } catch (\Exception $e) {
+                            $updateData['tgl_pengiriman'] = $item['tanggal_pengiriman'];
+                        }
                     }
-                    if (!empty($item['eta_hari']) && $item['eta_hari'] !== null) {
-                        $updateData['eta'] = $item['eta_hari'];
+                    if (!empty($item['eta']) && $item['eta'] !== null) {
+                        try {
+                            $updateData['eta'] = Date::excelToDateTimeObject($item['eta']);
+                        } catch (\Exception $e) {
+                            $updateData['eta'] = $item['eta'];
+                        }
                     }
                     if (!empty($item['nomor_resi']) && $item['nomor_resi'] !== null) {
                         $updateData['resi'] = $item['nomor_resi'];
                     }
-                    if ($equipment) {
-                        $updateData['equipment_id'] = $equipment->id;
-                    }
-                    if (!empty($item['target_tanggal_diterima']) && $item['target_tanggal_diterima'] !== null) {
-                        $updateData['target_tgl'] = $item['target_tanggal_diterima'];
+                    if(!empty($item['serial_number']) && $item['serial_number'] != null){
+                        if ($equipment != $item['serial_number']) {
+                            $equipment = Equipment::create([
+                                'serial_number' => $item['serial_number'],
+                                'puskesmas_id' => $existingPuskesmas->id
+                            ]);
+                        } 
                     }
                     if (!empty($item['catatan']) && $item['catatan'] !== null) {
                         $updateData['catatan'] = $item['catatan'];
                     }
                     if (!empty($item['tanggal_diterima']) && $item['tanggal_diterima'] !== null) {
-                        $updateData['tgl_diterima'] = $item['tanggal_diterima'];
+                        try {
+                            $updateData['tgl_diterima'] = Date::excelToDateTimeObject($item['tanggal_diterima']);
+                        } catch (\Exception $e) {
+                            $updateData['tgl_diterima'] = $item['tanggal_diterima'];
+                        }
                     }
                     if (!empty($item['nama_penerima']) && $item['nama_penerima'] !== null) {
                         $updateData['nama_penerima'] = $item['nama_penerima'];
@@ -260,16 +265,32 @@ class ImportDataController extends Controller
                         $updateData['nomor_penerima'] = $item['nomor_penerima'];
                     }
                     if (!empty($item['tanggal_instalasi']) && $item['tanggal_instalasi'] !== null) {
-                        $updateData['tanggal_instalasi'] = $item['tanggal_instalasi'];
+                        try {
+                            $updateData['tanggal_instalasi'] = Date::excelToDateTimeObject($item['tanggal_instalasi']);
+                        } catch (\Exception $e) {
+                            $updateData['tanggal_instalasi'] = $item['tanggal_instalasi'];
+                        }
                     }
                     if (!empty($item['target_tanggal_uji_fungsi']) && $item['target_tanggal_uji_fungsi'] !== null) {
-                        $updateData['target_tanggal_uji_fungsi'] = $item['target_tanggal_uji_fungsi'];
+                        try {
+                            $updateData['target_tanggal_uji_fungsi'] = Date::excelToDateTimeObject($item['target_tanggal_uji_fungsi']);
+                        } catch (\Exception $e) {
+                            $updateData['target_tanggal_uji_fungsi'] = $item['target_tanggal_uji_fungsi'];
+                        }
                     }
                     if (!empty($item['tanggal_uji_fungsi']) && $item['tanggal_uji_fungsi'] !== null) {
-                        $updateData['tanggal_uji_fungsi'] = $item['tanggal_uji_fungsi'];
+                        try {
+                            $updateData['tanggal_uji_fungsi'] = Date::excelToDateTimeObject($item['tanggal_uji_fungsi']);
+                        } catch (\Exception $e) {
+                            $updateData['tanggal_uji_fungsi'] = $item['tanggal_uji_fungsi'];
+                        }
                     }
                     if (!empty($item['tanggal_pelatihan']) && $item['tanggal_pelatihan'] !== null) {
-                        $updateData['tanggal_pelatihan'] = $item['tanggal_pelatihan'];
+                        try {
+                            $updateData['tanggal_pelatihan'] = Date::excelToDateTimeObject($item['tanggal_pelatihan']);
+                        } catch (\Exception $e) {
+                            $updateData['tanggal_pelatihan'] = $item['tanggal_pelatihan'];
+                        }
                     }
                     
                     if (!empty($updateData)) {
@@ -278,14 +299,10 @@ class ImportDataController extends Controller
                    
                 } else if($existingPuskesmas){
                     $equipment = null;
-                    if(!empty($item['serial_number']) && $item['serial_number'] != null){
-                        $equipment = Equipment::create([
-                            'serial_number' => $item['serial_number'],
-                        ]);
-                    }
                     if(!empty($item['serial_number']) || $item['serial_number'] != null){
                         $equipment = Equipment::create([
                             'serial_number' => $item['serial_number'] ?? null,
+                            'puskesmas_id' => $existingPuskesmas->id
                         ]);
                     }
 
@@ -294,8 +311,6 @@ class ImportDataController extends Controller
                         'tgl_pengiriman' => Date::excelToDateTimeObject($item['tanggal_pengiriman']) ?? null,
                         'eta' => $item['eta'] ?? null,
                         'resi' => $item['resi'] ?? null,
-                        'equipment_id' => $equipment ? $equipment->id : null,
-                        'target_tgl' => $item['target_tgl'] ?? null,
                         'catatan' => $item['catatan'] ?? null,
                         'tgl_diterima' => $item['tgl_diterima'] ?? null,
                         'nama_penerima' => $item['nama_penerima'] ?? null,

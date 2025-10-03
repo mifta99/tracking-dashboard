@@ -65,7 +65,7 @@
                         <th class="excel-header">No HP</th>
                         <th class="excel-header">No HP Alternatif</th>
                         <th class="excel-header">PIC Dinas Kesehatan Provinsi</th>
-                        <th class="excel-header">PIC ADINKES</th>
+                        <th class="excel-header">PIC Kabupaten / Kota</th>
                         <th class="excel-header">Pengiriman</th>
                     </tr>
                 </thead>
@@ -161,6 +161,13 @@
                                     <div class="invalid-feedback"></div>
                                 </div>
                             </div>
+                                                        <div class="col-md-12">
+                                <div class="form-group mb-2">
+                                    <label class="mb-1">ID Puskesmas <span class="text-danger">*</span></label>
+                                    <input type="text" name="id" id="modal_id" class="form-control" placeholder="Masukkan ID puskesmas...">
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
 
                             <div class="col-12 mt-3 mb-2">
                                 <h6 class="text-primary font-weight-bold mb-2"><i class="fas fa-users"></i> Penanggung Jawab</h6>
@@ -202,8 +209,8 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group mb-2">
-                                    <label class="mb-1">PIC ADINKES</label>
-                                    <input type="text" name="pic_dinkes_kab" id="modal_pic_dinkes_kab" class="form-control" placeholder="Nama PIC ADINKES...">
+                                    <label class="mb-1">PIC Kabupaten / Kota</label>
+                                    <input type="text" name="pic_dinkes_kab" id="modal_pic_dinkes_kab" class="form-control" placeholder="Nama PIC Kabupaten / Kota...">
                                     <div class="invalid-feedback"></div>
                                 </div>
                             </div>

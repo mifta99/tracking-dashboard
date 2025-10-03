@@ -28,7 +28,8 @@ class User extends Authenticatable
         'password',
         'jabatan',
         'instansi',
-        'no_hp'
+        'no_hp',
+        'must_change_password'
     ];
 
     /**
@@ -48,6 +49,7 @@ class User extends Authenticatable
     protected $casts = [
         'id' => 'integer',
         'email_verified_at' => 'datetime',
+        'must_change_password' => 'boolean',
     ];
 
     /**

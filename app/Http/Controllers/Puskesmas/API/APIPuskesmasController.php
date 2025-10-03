@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Puskesmas\API;
 
 use App\Http\Controllers\Controller;
+use App\Models\Pengiriman;
 use App\Models\Puskesmas;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -12,22 +13,6 @@ use function PHPUnit\Framework\isEmpty;
 
 class APIPuskesmasController extends Controller
 {
-        function generatePuskesmasId($districtId, $namaPuskesmas, $existingIds = []) {
-            $words = explode(' ', strtoupper(trim($namaPuskesmas)));
-            $abbr = '';
-            foreach ($words as $w) {
-                $abbr .= substr($w, 0, 1);
-            }
-            $baseId = $districtId . strtolower($abbr);
-            $newId = $baseId;
-            $counter = 1;
-            while (in_array($newId, $existingIds)) {
-                $newId = $baseId . $counter;
-                $counter++;
-            }
-
-            return $newId;
-        }
     public function fetchData(Request $request)
     {
         try {            
@@ -184,15 +169,21 @@ class APIPuskesmasController extends Controller
             
             // Validate request
             $validated = $request->validate([
+                'id' => 'nullable|string|unique:puskesmas,id',
                 'name' => 'required|string|max:255',
                 'district_id' => 'required|exists:districts,id',
+                'no_hp' => 'nullable|string|max:13',
+                'no_hp_alternatif' => 'nullable|string|max:13',
                 'pic' => 'nullable|string|max:255',
                 'kepala' => 'nullable|string|max:255',
                 'pic_dinkes_prov' => 'nullable|string|max:255',
                 'pic_dinkes_kab' => 'nullable|string|max:255',
             ], [
+                'id.unique' => 'ID puskesmas sudah digunakan',
                 'name.required' => 'Nama puskesmas wajib diisi',
                 'name.max' => 'Nama puskesmas maksimal 255 karakter',
+                'no_hp.max' => 'Nomor HP maksimal 13 karakter',
+                'no_hp_alternatif.max' => 'Nomor HP Alternatif maksimal 13 karakter',
                 'district_id.required' => 'Kecamatan wajib dipilih',
                 'district_id.exists' => 'Kecamatan yang dipilih tidak valid',
                 'pic.max' => 'Nama PIC maksimal 255 karakter',
@@ -216,18 +207,15 @@ class APIPuskesmasController extends Controller
                 ], 422);
             }
             
-                $puskesmasId = $this->generatePuskesmasId(
-                    $validated['district_id'],
-                    $validated['name'],
-                    Puskesmas::pluck('id')->toArray()
-                );
 
             // Create new puskesmas
             $puskesmas = Puskesmas::create([
-                'id' => $puskesmasId,
+                'id' => $validated['id'] ?? null,
                 'name' => $validated['name'],
                 'district_id' => $validated['district_id'],
                 'pic' => $validated['pic'] ?? null,
+                'no_hp' => $validated['no_hp'] ?? null,
+                'no_hp_alternatif' => $validated['no_hp_alternatif'] ?? null,
                 'kepala' => $validated['kepala'] ?? null,
                 'pic_dinkes_prov' => $validated['pic_dinkes_prov'] ?? null,
                 'pic_dinkes_kab' => $validated['pic_dinkes_kab'] ?? null,
@@ -235,6 +223,12 @@ class APIPuskesmasController extends Controller
                 'updated_by' => auth()->id(),
             ]);
             
+            Pengiriman::create([
+                'puskesmas_id' => $puskesmas->id,
+                'tahapan_id' => 1,
+                'created_by' => auth()->id(),
+                'updated_by' => auth()->id(),
+            ]);
             // Load relationships for response
             $puskesmas->load(['district.regency.province']);
             
