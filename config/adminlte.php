@@ -334,6 +334,12 @@ return [
             'can'   => ['endo','kemenkes']
         ],
                 [
+            'text' => 'Detail Status T-Piece',
+            'url'  => '/',
+            'icon' => 'fas fa-fw fa-box-open',
+            'can'   => 'puskesmas'
+        ],
+                [
             'text' => 'Verification Request',
             'url'  => '/verification-request',
             'icon' => 'fas fa-fw fa-check-circle',
@@ -343,13 +349,13 @@ return [
             'text' => 'Raised Issue',
             'url'  => '/raised-issue',
             'icon' => 'fas fa-fw fa-exclamation-circle',
-            'can'   => ['endo','kemenkes']
+            'can'   => ['endo','kemenkes','puskesmas']
         ],
         [
             'text' => 'Reported Incidents',
             'url'  => '/reported-incidents',
             'icon' => 'fas fa-fw fa-heartbeat',
-            'can'   => ['endo','kemenkes']
+            'can'   => ['endo','kemenkes','puskesmas']
         ],
                 [
             'text' => 'Import Data',

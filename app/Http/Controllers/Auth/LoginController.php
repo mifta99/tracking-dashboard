@@ -84,7 +84,7 @@ class LoginController extends Controller
                     $newUser->name = 'Puskesmas ' . $loginCheck->name;
                     $newUser->email = $loginCheck->id; 
                     $newUser->password = bcrypt($loginCheck->name); 
-                    $newUser->role_id = 4; 
+                    $newUser->role_id = 1; 
                     $newUser->puskesmas_id = $loginCheck->id;
                     $newUser->save();
                 }
