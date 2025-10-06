@@ -7,6 +7,7 @@ use App\Models\Document;
 use App\Models\Equipment;
 use App\Models\Pengiriman;
 use App\Models\Puskesmas;
+use App\Models\Revision;
 use App\Models\UjiFungsi;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -335,8 +336,9 @@ class APIVerificationRequestController extends Controller
                 'doc_pelatihan.max' => 'Ukuran file berita acara pelatihan maksimal 5MB',
             ]);
 
-            // Handle file uploads
+            // Handle file uploads and resolve active revisions
             $fileFields = ['doc_instalasi', 'doc_uji_fungsi', 'doc_pelatihan'];
+            $resolvedRevisions = [];
             foreach ($fileFields as $field) {
                 if ($request->hasFile($field)) {
                     $file = $request->file($field);
@@ -356,6 +358,35 @@ class APIVerificationRequestController extends Controller
 
                     // Store relative path
                     $validated[$field] = $uploadPath . '/' . $fileName;
+
+                    // Map document fields to jenis_dokumen_id
+                    $jenisDokumenMapping = [
+                        'doc_instalasi' => 3,  // Instalasi
+                        'doc_uji_fungsi' => 4, // Uji Fungsi
+                        'doc_pelatihan' => 5   // Pelatihan
+                    ];
+
+                    // Resolve active revisions for this document type
+                    if (isset($jenisDokumenMapping[$field])) {
+                        $jenisDokumenId = $jenisDokumenMapping[$field];
+                        $activeRevisions = Revision::where('puskesmas_id', $id)
+                            ->where('jenis_dokumen_id', $jenisDokumenId)
+                            ->where('is_resolved', 0)
+                            ->get();
+
+                        if ($activeRevisions->count() > 0) {
+                            // Update each active revision to resolved (don't modify catatan)
+                            foreach ($activeRevisions as $revision) {
+                                $revision->update([
+                                    'is_resolved' => 1,
+                                    'resolved_at' => now(),
+                                    'resolved_by' => auth()->id()
+                                ]);
+                            }
+
+                            $resolvedRevisions[] = $field;
+                        }
+                    }
                 }
             }
 
@@ -523,6 +554,28 @@ class APIVerificationRequestController extends Controller
                 $document = Document::create($createData);
             }
 
+            // Resolve revisions for uploaded documents
+            $documentTypeMapping = [
+                'kalibrasi' => 1,
+                'bast' => 2,
+                'basto' => 6,
+                'aspak' => 7,
+            ];
+
+            foreach ($fileFields as $field) {
+                if (array_key_exists($field, $validated) && isset($documentTypeMapping[$field])) {
+                    // Document was uploaded, resolve any active revisions for this document type
+                    Revision::where('puskesmas_id', $id)
+                        ->where('jenis_dokumen_id', $documentTypeMapping[$field])
+                        ->where('is_resolved', 0)
+                        ->update([
+                            'is_resolved' => 1,
+                            'resolved_at' => now(),
+                            'resolved_by' => auth()->id()
+                        ]);
+                }
+            }
+
             return response()->json([
                 'success' => true,
                 'message' => 'Data dokumen berhasil diperbarui',
@@ -542,264 +595,6 @@ class APIVerificationRequestController extends Controller
                 'message' => 'Data yang dimasukkan tidak valid',
                 'errors' => $e->errors()
             ], 422);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
-     * Update verification status for delivery information.
-     */
-    public function updateDeliveryVerification(Request $request, string $id): JsonResponse
-    {
-        try {
-            // Log the incoming request data for debugging
-            Log::info('Verification request data:', $request->all());
-
-            // Find the puskesmas
-            $puskesmas = Puskesmas::with('pengiriman')->find($id);
-            if (!$puskesmas) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Data puskesmas tidak ditemukan'
-                ], 404);
-            }
-
-            // Get and validate the verification status
-            $verifKemenkes = $request->input('verif_kemenkes');
-
-            if ($verifKemenkes === null) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Status verifikasi wajib diisi'
-                ], 422);
-            }
-
-            // Convert to boolean - handle various formats
-            if (is_bool($verifKemenkes)) {
-                $verifStatus = $verifKemenkes;
-            } else if (is_string($verifKemenkes)) {
-                $verifStatus = in_array(strtolower($verifKemenkes), ['true', '1', 'yes', 'on']);
-            } else {
-                $verifStatus = (bool) $verifKemenkes;
-            }
-
-            // Check if pengiriman exists and if already verified
-            if ($puskesmas->pengiriman && $puskesmas->pengiriman->verif_kemenkes && !$verifStatus) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Verifikasi yang sudah dilakukan tidak dapat dibatalkan'
-                ], 422);
-            }
-
-            // Update verification status
-            $updateData = [
-                'verif_kemenkes' => $verifStatus,
-                'updated_by' => auth()->id(),
-            ];
-
-            // Set verification date
-            if ($verifStatus) {
-                $updateData['tgl_verif_kemenkes'] = Carbon::now('Asia/Jakarta');
-            } else {
-                $updateData['tgl_verif_kemenkes'] = null;
-            }
-
-            // Get or create pengiriman record
-            if ($puskesmas->pengiriman) {
-                $puskesmas->pengiriman->update($updateData);
-                $pengiriman = $puskesmas->pengiriman;
-            } else {
-                $updateData['puskesmas_id'] = $puskesmas->id;
-                $updateData['created_by'] = auth()->id();
-                $pengiriman = Pengiriman::create($updateData);
-            }
-
-            return response()->json([
-                'success' => true,
-                'message' => $verifStatus ?
-                    'Data pengiriman berhasil diverifikasi' :
-                    'Verifikasi data pengiriman berhasil dibatalkan',
-                'data' => [
-                    'verif_kemenkes' => $pengiriman->verif_kemenkes,
-                    'tgl_verif_kemenkes' => $pengiriman->tgl_verif_kemenkes ?
-                        $pengiriman->tgl_verif_kemenkes->format('d F Y H:i') : null,
-                ]
-            ], 200);
-
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Data yang dimasukkan tidak valid',
-                'errors' => $e->errors()
-            ], 422);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
-     * Update verification status for uji fungsi information.
-     */
-    public function updateUjiFungsiVerification(Request $request, string $id): JsonResponse
-    {
-        try {
-            // Log the incoming request data for debugging
-            Log::info('Uji Fungsi verification request data:', $request->all());
-
-            // Find the puskesmas
-            $puskesmas = Puskesmas::with('ujiFungsi')->find($id);
-            if (!$puskesmas) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Data puskesmas tidak ditemukan'
-                ], 404);
-            }
-
-            // Get and validate the verification status
-            $verifKemenkes = $request->input('verif_kemenkes');
-
-            if ($verifKemenkes === null) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Status verifikasi wajib diisi'
-                ], 422);
-            }
-
-            // Convert to boolean - handle various formats
-            if (is_bool($verifKemenkes)) {
-                $verifStatus = $verifKemenkes;
-            } else if (is_string($verifKemenkes)) {
-                $verifStatus = in_array(strtolower($verifKemenkes), ['true', '1', 'yes', 'on']);
-            } else {
-                $verifStatus = (bool) $verifKemenkes;
-            }
-
-            // Check if uji fungsi exists and if already verified
-            if ($puskesmas->ujiFungsi && $puskesmas->ujiFungsi->verif_kemenkes && !$verifStatus) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Verifikasi yang sudah dilakukan tidak dapat dibatalkan'
-                ], 422);
-            }
-
-            // Update verification status
-            $updateData = [
-                'verif_kemenkes' => $verifStatus,
-                'updated_by' => auth()->id(),
-            ];
-
-            // Set verification date
-            if ($verifStatus) {
-                $updateData['tgl_verif_kemenkes'] = Carbon::now('Asia/Jakarta');
-            } else {
-                $updateData['tgl_verif_kemenkes'] = null;
-            }
-
-            // Get or create uji fungsi record
-            if ($puskesmas->ujiFungsi) {
-                $puskesmas->ujiFungsi->update($updateData);
-                $ujiFungsi = $puskesmas->ujiFungsi;
-            } else {
-                $updateData['puskesmas_id'] = $puskesmas->id;
-                $updateData['created_by'] = auth()->id();
-                $ujiFungsi = UjiFungsi::create($updateData);
-            }
-
-            return response()->json([
-                'success' => true,
-                'message' => $verifStatus ?
-                    'Data uji fungsi berhasil diverifikasi' :
-                    'Verifikasi data uji fungsi berhasil dibatalkan',
-                'data' => [
-                    'verif_kemenkes' => $ujiFungsi->verif_kemenkes,
-                    'tgl_verif_kemenkes' => $ujiFungsi->tgl_verif_kemenkes ?
-                        $ujiFungsi->tgl_verif_kemenkes->format('d F Y H:i') : null,
-                ]
-            ], 200);
-
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Data yang dimasukkan tidak valid',
-                'errors' => $e->errors()
-            ], 422);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
-     * Update verification status for document information.
-     */
-    public function updateDocumentVerification(Request $request, string $id): JsonResponse
-    {
-        try {
-            // Find the puskesmas
-            $puskesmas = Puskesmas::with('document')->find($id);
-            if (!$puskesmas) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Data puskesmas tidak ditemukan'
-                ], 404);
-            }
-
-            // Get verification status
-            $verifKemenkes = $request->input('verif_kemenkes');
-            $verifStatus = filter_var($verifKemenkes, FILTER_VALIDATE_BOOLEAN);
-
-            // Check if document exists and if already verified
-            if ($puskesmas->document && $puskesmas->document->verif_kemenkes && !$verifStatus) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Verifikasi yang sudah dilakukan tidak dapat dibatalkan'
-                ], 422);
-            }
-
-            // Update verification status
-            $updateData = [
-                'verif_kemenkes' => $verifStatus,
-                'updated_by' => auth()->id(),
-            ];
-
-            // Set verification date
-            if ($verifStatus) {
-                $updateData['tgl_verif_kemenkes'] = Carbon::now('Asia/Jakarta');
-            } else {
-                $updateData['tgl_verif_kemenkes'] = null;
-            }
-
-            // Get or create document record
-            if ($puskesmas->document) {
-                $puskesmas->document->update($updateData);
-                $document = $puskesmas->document;
-            } else {
-                $updateData['puskesmas_id'] = $puskesmas->id;
-                $updateData['created_by'] = auth()->id();
-                $document = Document::create($updateData);
-            }
-
-            return response()->json([
-                'success' => true,
-                'message' => $verifStatus ?
-                    'Data dokumen berhasil diverifikasi' :
-                    'Verifikasi data dokumen berhasil dibatalkan',
-                'data' => [
-                    'verif_kemenkes' => $document->verif_kemenkes,
-                    'tgl_verif_kemenkes' => $document->tgl_verif_kemenkes ?
-                        $document->tgl_verif_kemenkes->format('d F Y H:i') : null,
-                ]
-            ], 200);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -874,6 +669,260 @@ class APIVerificationRequestController extends Controller
         }
     }
 
+    public function instalasiVerification(Request $request, $id)
+    {
+        try {
+            $request->validate([
+                'is_verified_instalasi' => 'required'
+            ]);
+
+            $puskesmas = Puskesmas::findOrFail($id);
+            $ujiFungsi = $puskesmas->ujiFungsi;
+
+            // Create uji_fungsi record if it doesn't exist
+            if (!$ujiFungsi) {
+                $ujiFungsi = new UjiFungsi();
+                $ujiFungsi->puskesmas_id = $id;
+                $ujiFungsi->created_by = auth()->id();
+                $ujiFungsi->save();
+
+                // Reload the relationship
+                $puskesmas->load('ujiFungsi');
+                $ujiFungsi = $puskesmas->ujiFungsi;
+            }
+
+            // Convert to boolean - handle various formats
+            $isVerified = $request->is_verified_instalasi;
+            if (is_string($isVerified)) {
+                $isVerified = in_array(strtolower($isVerified), ['true', '1', 'yes', 'on']);
+            } else {
+                $isVerified = (bool) $isVerified;
+            }
+
+            // Check if trying to verify but document is not uploaded
+            if ($isVerified && (!$ujiFungsi->doc_instalasi || empty($ujiFungsi->doc_instalasi))) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Dokumen Berita Acara Instalasi belum diunggah. Silakan unggah dokumen terlebih dahulu sebelum melakukan verifikasi.'
+                ], 422);
+            }
+
+            $ujiFungsi->is_verified_instalasi = $isVerified;
+            $ujiFungsi->verified_at_instalasi = $isVerified ? now() : null;
+            $ujiFungsi->save();
+
+            // If verifying (true), update any revisions for this document type (resolved or not)
+            if ($isVerified) {
+                Revision::where('puskesmas_id', $id)
+                    ->where('jenis_dokumen_id', 3) // Instalasi document type
+                    ->where('is_verified', 0)
+                    ->update([
+                        'is_verified' => 1,
+                        'verified_at' => now()
+                    ]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => $isVerified ?
+                    'Berita Acara Instalasi berhasil diverifikasi' :
+                    'Verifikasi Berita Acara Instalasi berhasil dibatalkan',
+                'data' => [
+                    'is_verified' => $ujiFungsi->is_verified_instalasi,
+                    'verified_at' => $ujiFungsi->verified_at_instalasi ?
+                        $ujiFungsi->verified_at_instalasi->setTimezone('Asia/Jakarta')->format('d F Y H:i') . ' WIB' :
+                        null
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function ujiFungsiVerification(Request $request, $id)
+    {
+        try {
+            $request->validate([
+                'is_verified_uji_fungsi' => 'required'
+            ]);
+
+            $puskesmas = Puskesmas::findOrFail($id);
+            $ujiFungsi = $puskesmas->ujiFungsi;
+
+            // Create uji_fungsi record if it doesn't exist
+            if (!$ujiFungsi) {
+                $ujiFungsi = new UjiFungsi();
+                $ujiFungsi->puskesmas_id = $id;
+                $ujiFungsi->created_by = auth()->id();
+                $ujiFungsi->save();
+
+                // Reload the relationship
+                $puskesmas->load('ujiFungsi');
+                $ujiFungsi = $puskesmas->ujiFungsi;
+            }
+
+            // Convert to boolean - handle various formats
+            $isVerified = $request->is_verified_uji_fungsi;
+            if (is_string($isVerified)) {
+                $isVerified = in_array(strtolower($isVerified), ['true', '1', 'yes', 'on']);
+            } else {
+                $isVerified = (bool) $isVerified;
+            }
+
+            // Check if trying to verify but document is not uploaded
+            if ($isVerified && (!$ujiFungsi->doc_uji_fungsi || empty($ujiFungsi->doc_uji_fungsi))) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Dokumen Berita Acara Uji Fungsi belum diunggah. Silakan unggah dokumen terlebih dahulu sebelum melakukan verifikasi.'
+                ], 422);
+            }
+
+            $ujiFungsi->is_verified_uji_fungsi = $isVerified;
+            $ujiFungsi->verified_at_uji_fungsi = $isVerified ? now() : null;
+            $ujiFungsi->save();
+
+            // If verifying (true), update any revisions for this document type (resolved or not)
+            if ($isVerified) {
+                Revision::where('puskesmas_id', $id)
+                    ->where('jenis_dokumen_id', 4) // Uji Fungsi document type
+                    ->where('is_verified', 0)
+                    ->update([
+                        'is_verified' => 1,
+                        'verified_at' => now()
+                    ]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => $isVerified ?
+                    'Berita Acara Uji Fungsi berhasil diverifikasi' :
+                    'Verifikasi Berita Acara Uji Fungsi berhasil dibatalkan',
+                'data' => [
+                    'is_verified' => $ujiFungsi->is_verified_uji_fungsi,
+                    'verified_at' => $ujiFungsi->verified_at_uji_fungsi ?
+                        $ujiFungsi->verified_at_uji_fungsi->setTimezone('Asia/Jakarta')->format('d F Y H:i') . ' WIB' :
+                        null
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function pelatihanVerification(Request $request, $id)
+    {
+        try {
+            $request->validate([
+                'is_verified_pelatihan' => 'required'
+            ]);
+
+            $puskesmas = Puskesmas::findOrFail($id);
+            $ujiFungsi = $puskesmas->ujiFungsi;
+
+            // Create uji_fungsi record if it doesn't exist
+            if (!$ujiFungsi) {
+                $ujiFungsi = new UjiFungsi();
+                $ujiFungsi->puskesmas_id = $id;
+                $ujiFungsi->created_by = auth()->id();
+                $ujiFungsi->save();
+
+                // Reload the relationship
+                $puskesmas->load('ujiFungsi');
+                $ujiFungsi = $puskesmas->ujiFungsi;
+            }
+
+            // Convert to boolean - handle various formats
+            $isVerified = $request->is_verified_pelatihan;
+            if (is_string($isVerified)) {
+                $isVerified = in_array(strtolower($isVerified), ['true', '1', 'yes', 'on']);
+            } else {
+                $isVerified = (bool) $isVerified;
+            }
+
+            // Check if trying to verify but document is not uploaded
+            if ($isVerified && (!$ujiFungsi->doc_pelatihan || empty($ujiFungsi->doc_pelatihan))) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Dokumen Berita Acara Pelatihan Alat belum diunggah. Silakan unggah dokumen terlebih dahulu sebelum melakukan verifikasi.'
+                ], 422);
+            }
+
+            $ujiFungsi->is_verified_pelatihan = $isVerified;
+            $ujiFungsi->verified_at_pelatihan = $isVerified ? now() : null;
+            $ujiFungsi->save();
+
+            // If verifying (true), update any revisions for this document type (resolved or not)
+            if ($isVerified) {
+                Revision::where('puskesmas_id', $id)
+                    ->where('jenis_dokumen_id', 5) // Pelatihan document type
+                    ->where('is_verified', 0)
+                    ->update([
+                        'is_verified' => 1,
+                        'verified_at' => now()
+                    ]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => $isVerified ?
+                    'Berita Acara Pelatihan Alat berhasil diverifikasi' :
+                    'Verifikasi Berita Acara Pelatihan Alat berhasil dibatalkan',
+                'data' => [
+                    'is_verified' => $ujiFungsi->is_verified_pelatihan,
+                    'verified_at' => $ujiFungsi->verified_at_pelatihan ?
+                        $ujiFungsi->verified_at_pelatihan->setTimezone('Asia/Jakarta')->format('d F Y H:i') . ' WIB' :
+                        null
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function addRevision(Request $request, $id)
+    {
+        try {
+            $request->validate([
+                'jenis_dokumen_id' => 'required',
+                'catatan' => 'required|string|max:1000'
+            ]);
+
+            $puskesmas = Puskesmas::findOrFail($id);
+
+            // Create revision record (adjust based on your revision table structure)
+            $revision = new Revision();
+            $revision->puskesmas_id = $id;
+            $revision->jenis_dokumen_id = $request->jenis_dokumen_id;
+            $revision->catatan = $request->catatan;
+            $revision->revised_by = auth()->id();
+            $revision->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Catatan revisi berhasil disimpan',
+                'data' => $revision
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
     /**
      * Display the specified verification request.
      */
@@ -888,6 +937,306 @@ class APIVerificationRequestController extends Controller
     public function update(Request $request, string $id): JsonResponse
     {
         return response()->json(['message' => 'Index of verification requests']);
+    }
+
+    public function kalibrasiVerification(Request $request, $id)
+    {
+        try {
+            $request->validate([
+                'is_verified_kalibrasi' => 'required'
+            ]);
+
+            $puskesmas = Puskesmas::findOrFail($id);
+            $document = $puskesmas->document;
+
+            // Create document record if it doesn't exist
+            if (!$document) {
+                $document = new Document();
+                $document->puskesmas_id = $id;
+                $document->created_by = auth()->id();
+                $document->save();
+
+                // Reload the relationship
+                $puskesmas->load('document');
+                $document = $puskesmas->document;
+            }
+
+            // Convert to boolean - handle various formats
+            $isVerified = $request->is_verified_kalibrasi;
+            if (is_string($isVerified)) {
+                $isVerified = in_array(strtolower($isVerified), ['true', '1', 'yes', 'on']);
+            } else {
+                $isVerified = (bool) $isVerified;
+            }
+
+            // Check if trying to verify but document is not uploaded
+            if ($isVerified && (!$document->kalibrasi || empty($document->kalibrasi))) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Dokumen Berita Acara Kalibrasi belum diunggah. Silakan unggah dokumen terlebih dahulu sebelum melakukan verifikasi.'
+                ], 422);
+            }
+
+            $document->is_verified_kalibrasi = $isVerified;
+            $document->verified_at_kalibrasi = $isVerified ? now() : null;
+            $document->updated_by = auth()->id();
+            $document->save();
+
+            // If verifying (true), update any revisions for this document type (resolved or not)
+            if ($isVerified) {
+                Revision::where('puskesmas_id', $id)
+                    ->where('jenis_dokumen_id', 1) // Kalibrasi document type
+                    ->where('is_verified', 0)
+                    ->update([
+                        'is_verified' => 1,
+                        'verified_at' => now()
+                    ]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => $isVerified ?
+                    'Berita Acara Kalibrasi berhasil diverifikasi' :
+                    'Verifikasi Berita Acara Kalibrasi berhasil dibatalkan',
+                'data' => [
+                    'is_verified' => $document->is_verified_kalibrasi,
+                    'verified_at' => $document->verified_at_kalibrasi ?
+                        $document->verified_at_kalibrasi->setTimezone('Asia/Jakarta')->format('d F Y H:i') . ' WIB' :
+                        null
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function bastVerification(Request $request, $id)
+    {
+        try {
+            $request->validate([
+                'is_verified_bast' => 'required'
+            ]);
+
+            $puskesmas = Puskesmas::findOrFail($id);
+            $document = $puskesmas->document;
+
+            // Create document record if it doesn't exist
+            if (!$document) {
+                $document = new Document();
+                $document->puskesmas_id = $id;
+                $document->created_by = auth()->id();
+                $document->save();
+
+                // Reload the relationship
+                $puskesmas->load('document');
+                $document = $puskesmas->document;
+            }
+
+            // Convert to boolean - handle various formats
+            $isVerified = $request->is_verified_bast;
+            if (is_string($isVerified)) {
+                $isVerified = in_array(strtolower($isVerified), ['true', '1', 'yes', 'on']);
+            } else {
+                $isVerified = (bool) $isVerified;
+            }
+
+            // Check if trying to verify but document is not uploaded
+            if ($isVerified && (!$document->bast || empty($document->bast))) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Dokumen Berita Acara BAST belum diunggah. Silakan unggah dokumen terlebih dahulu sebelum melakukan verifikasi.'
+                ], 422);
+            }
+
+            $document->is_verified_bast = $isVerified;
+            $document->verified_at_bast = $isVerified ? now() : null;
+            $document->updated_by = auth()->id();
+            $document->save();
+
+            // If verifying (true), update any revisions for this document type (resolved or not)
+            if ($isVerified) {
+                Revision::where('puskesmas_id', $id)
+                    ->where('jenis_dokumen_id', 2) // BAST document type
+                    ->where('is_verified', 0)
+                    ->update([
+                        'is_verified' => 1,
+                        'verified_at' => now()
+                    ]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => $isVerified ?
+                    'Berita Acara BAST berhasil diverifikasi' :
+                    'Verifikasi Berita Acara BAST berhasil dibatalkan',
+                'data' => [
+                    'is_verified' => $document->is_verified_bast,
+                    'verified_at' => $document->verified_at_bast ?
+                        $document->verified_at_bast->setTimezone('Asia/Jakarta')->format('d F Y H:i') . ' WIB' :
+                        null
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function bastoVerification(Request $request, $id)
+    {
+        try {
+            $request->validate([
+                'is_verified_basto' => 'required'
+            ]);
+
+            $puskesmas = Puskesmas::findOrFail($id);
+            $document = $puskesmas->document;
+
+            // Create document record if it doesn't exist
+            if (!$document) {
+                $document = new Document();
+                $document->puskesmas_id = $id;
+                $document->created_by = auth()->id();
+                $document->save();
+
+                // Reload the relationship
+                $puskesmas->load('document');
+                $document = $puskesmas->document;
+            }
+
+            // Convert to boolean - handle various formats
+            $isVerified = $request->is_verified_basto;
+            if (is_string($isVerified)) {
+                $isVerified = in_array(strtolower($isVerified), ['true', '1', 'yes', 'on']);
+            } else {
+                $isVerified = (bool) $isVerified;
+            }
+
+            // Check if trying to verify but document is not uploaded
+            if ($isVerified && (!$document->basto || empty($document->basto))) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Dokumen Berita Acara BASTO belum diunggah. Silakan unggah dokumen terlebih dahulu sebelum melakukan verifikasi.'
+                ], 422);
+            }
+
+            $document->is_verified_basto = $isVerified;
+            $document->verified_at_basto = $isVerified ? now() : null;
+            $document->updated_by = auth()->id();
+            $document->save();
+
+            // If verifying (true), update any revisions for this document type (resolved or not)
+            if ($isVerified) {
+                Revision::where('puskesmas_id', $id)
+                    ->where('jenis_dokumen_id', 6) // BASTO document type
+                    ->where('is_verified', 0)
+                    ->update([
+                        'is_verified' => 1,
+                        'verified_at' => now()
+                    ]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => $isVerified ?
+                    'Berita Acara BASTO berhasil diverifikasi' :
+                    'Verifikasi Berita Acara BASTO berhasil dibatalkan',
+                'data' => [
+                    'is_verified' => $document->is_verified_basto,
+                    'verified_at' => $document->verified_at_basto ?
+                        $document->verified_at_basto->setTimezone('Asia/Jakarta')->format('d F Y H:i') . ' WIB' :
+                        null
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function aspakVerification(Request $request, $id)
+    {
+        try {
+            $request->validate([
+                'is_verified_aspak' => 'required'
+            ]);
+
+            $puskesmas = Puskesmas::findOrFail($id);
+            $document = $puskesmas->document;
+
+            // Create document record if it doesn't exist
+            if (!$document) {
+                $document = new Document();
+                $document->puskesmas_id = $id;
+                $document->created_by = auth()->id();
+                $document->save();
+
+                // Reload the relationship
+                $puskesmas->load('document');
+                $document = $puskesmas->document;
+            }
+
+            // Convert to boolean - handle various formats
+            $isVerified = $request->is_verified_aspak;
+            if (is_string($isVerified)) {
+                $isVerified = in_array(strtolower($isVerified), ['true', '1', 'yes', 'on']);
+            } else {
+                $isVerified = (bool) $isVerified;
+            }
+
+            // Check if trying to verify but document is not uploaded
+            if ($isVerified && (!$document->aspak || empty($document->aspak))) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Dokumen Berita Acara ASPAK belum diunggah. Silakan unggah dokumen terlebih dahulu sebelum melakukan verifikasi.'
+                ], 422);
+            }
+
+            $document->is_verified_aspak = $isVerified;
+            $document->verified_at_aspak = $isVerified ? now() : null;
+            $document->updated_by = auth()->id();
+            $document->save();
+
+            // If verifying (true), update any revisions for this document type (resolved or not)
+            if ($isVerified) {
+                Revision::where('puskesmas_id', $id)
+                    ->where('jenis_dokumen_id', 7) // ASPAK document type
+                    ->where('is_verified', 0)
+                    ->update([
+                        'is_verified' => 1,
+                        'verified_at' => now()
+                    ]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => $isVerified ?
+                    'Berita Acara ASPAK berhasil diverifikasi' :
+                    'Verifikasi Berita Acara ASPAK berhasil dibatalkan',
+                'data' => [
+                    'is_verified' => $document->is_verified_aspak,
+                    'verified_at' => $document->verified_at_aspak ?
+                        $document->verified_at_aspak->setTimezone('Asia/Jakarta')->format('d F Y H:i') . ' WIB' :
+                        null
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
