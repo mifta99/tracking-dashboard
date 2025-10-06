@@ -561,36 +561,267 @@
             @endif
         </div>
         <div class="card-body p-3">
-            <div class="row">
+            <div class="row border-bottom pb-2 mb-3">
                 <div class="col-md-6">
                     <table class="table table-sm table-borderless table-kv mb-0">
                         <tr><td>Berita Acara Kalibrasi</td><td>@if($doc && $doc->kalibrasi)<a class="text-decoration-none" target="_blank" href="{{ asset('storage/' . $doc->kalibrasi) }}">View Here</a>@else - @endif</td></tr>
-                        <tr><td>Berita Acara BAST</td><td>@if($doc && $doc->bast)<a class="text-decoration-none" target="_blank" href="{{ asset('storage/' . $doc->bast) }}">View Here</a>@else - @endif</td></tr>
-                        <tr><td>Berita Acara BASTO</td><td>@if($doc && $doc->basto)<a class="text-decoration-none" target="_blank" href="{{ asset('storage/' . $doc->basto) }}">View Here</a>@else - @endif</td></tr>
-                        <tr><td>Berita Acara ASPAK</td><td>@if($doc && $doc->aspak)<a class="text-decoration-none" target="_blank" href="{{ asset('storage/' . $doc->aspak) }}">View Here</a>@else - @endif</td></tr>
                     </table>
                 </div>
                 <div class="col-md-6">
                     <table class="table table-sm table-borderless table-kv mb-0">
                         <tr>
-                            <td>Verifikasi Kemenkes</td>
+                            <td>Verifikasi Berita Acara Kalibrasi</td>
                             <td>
-                                <form id="verifDocumentForm">
+                                <form id="verifKalibrasiForm">
                                     @csrf
-                                    <div class="form-group">
+                                    <div class="form-group mb-0">
                                         <div class="custom-control custom-switch">
-                                            <input type="checkbox" name="verif_kemenkes" class="custom-control-input" id="verifiedDocument"
-                                                {{ (auth()->user()->role->role_name !== 'kemenkes' || ($doc && $doc->verif_kemenkes)) ? 'disabled' : '' }}
-                                                {{ ($doc && $doc->verif_kemenkes) ? 'checked' : '' }}>
-                                            <label class="custom-control-label" for="verifiedDocument">
-                                                {{ ($doc && $doc->verif_kemenkes) ? 'Terverifikasi' : 'Belum Terverifikasi' }}
+                                            <input type="checkbox" class="custom-control-input" name="is_verified_kalibrasi" id="verifiedKalibrasi"
+                                                {{ (auth()->user()->role->role_name !== 'kemenkes' || ($doc && $doc->is_verified_kalibrasi)) ? 'disabled' : '' }}
+                                                {{ ($doc && $doc->is_verified_kalibrasi) ? 'checked' : '' }}>
+                                            <label class="custom-control-label" for="verifiedKalibrasi">
+                                                {{ ($doc && $doc->is_verified_kalibrasi) ? 'Terverifikasi ' : 'Belum Terverifikasi' }}
                                             </label>
                                         </div>
                                     </div>
                                 </form>
                             </td>
                         </tr>
-                        <tr><td>Tanggal Verifikasi</td><td>{{ $doc->tgl_verif_kemenkes ? $doc->tgl_verif_kemenkes->setTimezone('Asia/Jakarta')->format('d F Y H:i') . ' WIB' : '-' }}</td></tr>
+                        <tr {{ ($doc && $doc->verified_at_kalibrasi) ? '' : 'hidden' }}><td>Tanggal Verifikasi Kalibrasi</td><td>{{ ($doc && $doc->verified_at_kalibrasi) ? $doc->verified_at_kalibrasi->setTimezone('Asia/Jakarta')->format('d F Y H:i') . ' WIB' : '-' }}</td></tr>
+                        <tr {{ ($doc && $doc->is_verified_kalibrasi) ? 'hidden' : '' }}>
+                            @if($revisions['kalibrasi'])
+                            <td>{{ $revisions['kalibrasi']->is_resolved ? 'Revisi Terselesaikan' : 'Catatan Revisi' }}</td>
+                            <td>
+                                <div class="{{ $revisions['kalibrasi']->is_resolved ? 'text-success' : 'text-danger' }}">
+                                    {!! nl2br(e($revisions['kalibrasi']->catatan)) !!}<br>
+                                    <small class="text-muted">Direvisi pada {{ $revisions['kalibrasi']->created_at->setTimezone('Asia/Jakarta')->format('d F Y H:i') }} WIB</small>
+                                    @if($revisions['kalibrasi']->resolved_at)
+                                        <br><small class="text-muted">Dokumen revisi telah diunggah ulang pada {{ $revisions['kalibrasi']->resolved_at->setTimezone('Asia/Jakarta')->format('d F Y H:i') }} WIB</small>
+                                    @endif
+                                </div>
+                                @if(!$revisions['kalibrasi']->is_resolved && auth()->user() && auth()->user()->role->role_name == 'kemenkes')
+                                    <button class="btn btn-sm mt-2 btn-danger revisi-btn"
+                                                data-toggle="modal" data-target="#revisiModal"
+                                                data-doc-type="kalibrasi"
+                                                data-doc-name="Berita Acara Kalibrasi"
+                                                data-jenis-dokumen-id="1">
+                                            <i class="fas fa-edit"></i> Edit Catatan Revisi
+                                    </button>
+                                @endif
+                            </td>
+                            @else
+                                @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes')
+                                <td>Revisi Berita Acara Kalibrasi</td>
+                                <td>
+                                    <button class="btn btn-sm ml-auto btn-danger revisi-btn"
+                                                data-toggle="modal" data-target="#revisiModal"
+                                                data-doc-type="kalibrasi"
+                                                data-doc-name="Berita Acara Kalibrasi"
+                                                data-jenis-dokumen-id="1">
+                                            <i class="fas fa-edit"></i> Catatan Revisi
+                                    </button>
+                                </td>
+                                @endif
+                            @endif
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div class="row border-bottom pb-2 mb-3">
+                <div class="col-md-6">
+                    <table class="table table-sm table-borderless table-kv mb-0">
+                        <tr><td>Berita Acara BAST</td><td>@if($doc && $doc->bast)<a class="text-decoration-none" target="_blank" href="{{ asset('storage/' . $doc->bast) }}">View Here</a>@else - @endif</td></tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <table class="table table-sm table-borderless table-kv mb-0">
+                        <tr>
+                            <td>Verifikasi Berita Acara BAST</td>
+                            <td>
+                                <form id="verifBastForm">
+                                    @csrf
+                                    <div class="form-group mb-0">
+                                        <div class="custom-control custom-switch">
+                                            <input type="checkbox" class="custom-control-input" name="is_verified_bast" id="verifiedBast"
+                                                {{ (auth()->user()->role->role_name !== 'kemenkes' || ($doc && $doc->is_verified_bast)) ? 'disabled' : '' }}
+                                                {{ ($doc && $doc->is_verified_bast) ? 'checked' : '' }}>
+                                            <label class="custom-control-label" for="verifiedBast">
+                                                {{ ($doc && $doc->is_verified_bast) ? 'Terverifikasi ' : 'Belum Terverifikasi' }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                </form>
+                            </td>
+                        </tr>
+                        <tr {{ ($doc && $doc->verified_at_bast) ? '' : 'hidden' }}><td>Tanggal Verifikasi BAST</td><td>{{ ($doc && $doc->verified_at_bast) ? $doc->verified_at_bast->setTimezone('Asia/Jakarta')->format('d F Y H:i') . ' WIB' : '-' }}</td></tr>
+                        <tr {{ ($doc && $doc->is_verified_bast) ? 'hidden' : '' }}>
+                            @if($revisions['bast'])
+                            <td>{{ $revisions['bast']->is_resolved ? 'Revisi Terselesaikan' : 'Catatan Revisi' }}</td>
+                            <td>
+                                <div class="{{ $revisions['bast']->is_resolved ? 'text-success' : 'text-danger' }}">
+                                    {!! nl2br(e($revisions['bast']->catatan)) !!}<br>
+                                    <small class="text-muted">Direvisi pada {{ $revisions['bast']->created_at->setTimezone('Asia/Jakarta')->format('d F Y H:i') }} WIB</small>
+                                    @if($revisions['bast']->resolved_at)
+                                        <br><small class="text-muted">Dokumen revisi telah diunggah ulang pada {{ $revisions['bast']->resolved_at->setTimezone('Asia/Jakarta')->format('d F Y H:i') }} WIB</small>
+                                    @endif
+                                </div>
+                                @if(!$revisions['bast']->is_resolved && auth()->user() && auth()->user()->role->role_name == 'kemenkes')
+                                    <button class="btn btn-sm mt-2 btn-danger revisi-btn"
+                                                data-toggle="modal" data-target="#revisiModal"
+                                                data-doc-type="bast"
+                                                data-doc-name="Berita Acara BAST"
+                                                data-jenis-dokumen-id="2">
+                                            <i class="fas fa-edit"></i> Edit Catatan Revisi
+                                    </button>
+                                @endif
+                            </td>
+                            @else
+                                @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes')
+                                <td>Revisi Berita Acara BAST</td>
+                                <td>
+                                    <button class="btn btn-sm ml-auto btn-danger revisi-btn"
+                                                data-toggle="modal" data-target="#revisiModal"
+                                                data-doc-type="bast"
+                                                data-doc-name="Berita Acara BAST"
+                                                data-jenis-dokumen-id="2">
+                                            <i class="fas fa-edit"></i> Catatan Revisi
+                                    </button>
+                                </td>
+                                @endif
+                            @endif
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div class="row border-bottom pb-2 mb-3">
+                <div class="col-md-6">
+                    <table class="table table-sm table-borderless table-kv mb-0">
+                        <tr><td>Berita Acara BASTO</td><td>@if($doc && $doc->basto)<a class="text-decoration-none" target="_blank" href="{{ asset('storage/' . $doc->basto) }}">View Here</a>@else - @endif</td></tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <table class="table table-sm table-borderless table-kv mb-0">
+                        <tr>
+                            <td>Verifikasi Berita Acara BASTO</td>
+                            <td>
+                                <form id="verifBastoForm">
+                                    @csrf
+                                    <div class="form-group mb-0">
+                                        <div class="custom-control custom-switch">
+                                            <input type="checkbox" class="custom-control-input" name="is_verified_basto" id="verifiedBasto"
+                                                {{ (auth()->user()->role->role_name !== 'kemenkes' || ($doc && $doc->is_verified_basto)) ? 'disabled' : '' }}
+                                                {{ ($doc && $doc->is_verified_basto) ? 'checked' : '' }}>
+                                            <label class="custom-control-label" for="verifiedBasto">
+                                                {{ ($doc && $doc->is_verified_basto) ? 'Terverifikasi ' : 'Belum Terverifikasi' }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                </form>
+                            </td>
+                        </tr>
+                        <tr {{ ($doc && $doc->verified_at_basto) ? '' : 'hidden' }}><td>Tanggal Verifikasi BASTO</td><td>{{ ($doc && $doc->verified_at_basto) ? $doc->verified_at_basto->setTimezone('Asia/Jakarta')->format('d F Y H:i') . ' WIB' : '-' }}</td></tr>
+                        <tr {{ ($doc && $doc->is_verified_basto) ? 'hidden' : '' }}>
+                            @if($revisions['basto'])
+                            <td>{{ $revisions['basto']->is_resolved ? 'Revisi Terselesaikan' : 'Catatan Revisi' }}</td>
+                            <td>
+                                <div class="{{ $revisions['basto']->is_resolved ? 'text-success' : 'text-danger' }}">
+                                    {!! nl2br(e($revisions['basto']->catatan)) !!}<br>
+                                    <small class="text-muted">Direvisi pada {{ $revisions['basto']->created_at->setTimezone('Asia/Jakarta')->format('d F Y H:i') }} WIB</small>
+                                    @if($revisions['basto']->resolved_at)
+                                        <br><small class="text-muted">Dokumen revisi telah diunggah ulang pada {{ $revisions['basto']->resolved_at->setTimezone('Asia/Jakarta')->format('d F Y H:i') }} WIB</small>
+                                    @endif
+                                </div>
+                                @if(!$revisions['basto']->is_resolved && auth()->user() && auth()->user()->role->role_name == 'kemenkes')
+                                    <button class="btn btn-sm mt-2 btn-danger revisi-btn"
+                                                data-toggle="modal" data-target="#revisiModal"
+                                                data-doc-type="basto"
+                                                data-doc-name="Berita Acara BASTO"
+                                                data-jenis-dokumen-id="6">
+                                            <i class="fas fa-edit"></i> Edit Catatan Revisi
+                                    </button>
+                                @endif
+                            </td>
+                            @else
+                                @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes')
+                                <td>Revisi Berita Acara BASTO</td>
+                                <td>
+                                    <button class="btn btn-sm ml-auto btn-danger revisi-btn"
+                                                data-toggle="modal" data-target="#revisiModal"
+                                                data-doc-type="basto"
+                                                data-doc-name="Berita Acara BASTO"
+                                                data-jenis-dokumen-id="6">
+                                            <i class="fas fa-edit"></i> Catatan Revisi
+                                    </button>
+                                </td>
+                                @endif
+                            @endif
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <table class="table table-sm table-borderless table-kv mb-0">
+                        <tr><td>Berita Acara ASPAK</td><td>@if($doc && $doc->aspak)<a class="text-decoration-none" target="_blank" href="{{ asset('storage/' . $doc->aspak) }}">View Here</a>@else - @endif</td></tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <table class="table table-sm table-borderless table-kv mb-0">
+                        <tr>
+                            <td>Verifikasi Berita Acara ASPAK</td>
+                            <td>
+                                <form id="verifAspakForm">
+                                    @csrf
+                                    <div class="form-group mb-0">
+                                        <div class="custom-control custom-switch">
+                                            <input type="checkbox" class="custom-control-input" name="is_verified_aspak" id="verifiedAspak"
+                                                {{ (auth()->user()->role->role_name !== 'kemenkes' || ($doc && $doc->is_verified_aspak)) ? 'disabled' : '' }}
+                                                {{ ($doc && $doc->is_verified_aspak) ? 'checked' : '' }}>
+                                            <label class="custom-control-label" for="verifiedAspak">
+                                                {{ ($doc && $doc->is_verified_aspak) ? 'Terverifikasi ' : 'Belum Terverifikasi' }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                </form>
+                            </td>
+                        </tr>
+                        <tr {{ ($doc && $doc->verified_at_aspak) ? '' : 'hidden' }}><td>Tanggal Verifikasi ASPAK</td><td>{{ ($doc && $doc->verified_at_aspak) ? $doc->verified_at_aspak->setTimezone('Asia/Jakarta')->format('d F Y H:i') . ' WIB' : '-' }}</td></tr>
+                        <tr {{ ($doc && $doc->is_verified_aspak) ? 'hidden' : '' }}>
+                            @if($revisions['aspak'])
+                            <td>{{ $revisions['aspak']->is_resolved ? 'Revisi Terselesaikan' : 'Catatan Revisi' }}</td>
+                            <td>
+                                <div class="{{ $revisions['aspak']->is_resolved ? 'text-success' : 'text-danger' }}">
+                                    {!! nl2br(e($revisions['aspak']->catatan)) !!}<br>
+                                    <small class="text-muted">Direvisi pada {{ $revisions['aspak']->created_at->setTimezone('Asia/Jakarta')->format('d F Y H:i') }} WIB</small>
+                                    @if($revisions['aspak']->resolved_at)
+                                        <br><small class="text-muted">Dokumen revisi telah diunggah ulang pada {{ $revisions['aspak']->resolved_at->setTimezone('Asia/Jakarta')->format('d F Y H:i') }} WIB</small>
+                                    @endif
+                                </div>
+                                @if(!$revisions['aspak']->is_resolved && auth()->user() && auth()->user()->role->role_name == 'kemenkes')
+                                    <button class="btn btn-sm mt-2 btn-danger revisi-btn"
+                                                data-toggle="modal" data-target="#revisiModal"
+                                                data-doc-type="aspak"
+                                                data-doc-name="Berita Acara ASPAK"
+                                                data-jenis-dokumen-id="7">
+                                            <i class="fas fa-edit"></i> Edit Catatan Revisi
+                                    </button>
+                                @endif
+                            </td>
+                            @else
+                                @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes')
+                                <td>Revisi Berita Acara ASPAK</td>
+                                <td>
+                                    <button class="btn btn-sm ml-auto btn-danger revisi-btn"
+                                                data-toggle="modal" data-target="#revisiModal"
+                                                data-doc-type="aspak"
+                                                data-doc-name="Berita Acara ASPAK"
+                                                data-jenis-dokumen-id="7">
+                                            <i class="fas fa-edit"></i> Catatan Revisi
+                                    </button>
+                                </td>
+                                @endif
+                            @endif
+                        </tr>
                     </table>
                 </div>
             </div>
@@ -1666,6 +1897,7 @@ $(function(){
 });
 
 
+
 // Verification Function
 function createVerificationHandler(formId, switchId, routeName, documentName, parameterName) {
     const $form = $(formId);
@@ -1706,6 +1938,8 @@ function createVerificationHandler(formId, switchId, routeName, documentName, pa
             });
             return false;
         }
+
+
 
         // Prevent the change temporarily for confirmation
         $this.prop('checked', currentState);
@@ -1867,8 +2101,38 @@ $(function() {
         'is_verified_pelatihan'
     );
 
-    // You can add more document verification handlers here following the same pattern
-    // For documents table, you would add similar handlers for kalibrasi, bast, basto, aspak
+    // Documents table verification handlers
+    createVerificationHandler(
+        '#verifKalibrasiForm',
+        '#verifiedKalibrasi',
+        '{{ route("api-verification-request.kalibrasi-verification", ["id" => $puskesmas->id]) }}',
+        'Berita Acara Kalibrasi',
+        'is_verified_kalibrasi'
+    );
+
+    createVerificationHandler(
+        '#verifBastForm',
+        '#verifiedBast',
+        '{{ route("api-verification-request.bast-verification", ["id" => $puskesmas->id]) }}',
+        'Berita Acara BAST',
+        'is_verified_bast'
+    );
+
+    createVerificationHandler(
+        '#verifBastoForm',
+        '#verifiedBasto',
+        '{{ route("api-verification-request.basto-verification", ["id" => $puskesmas->id]) }}',
+        'Berita Acara BASTO',
+        'is_verified_basto'
+    );
+
+    createVerificationHandler(
+        '#verifAspakForm',
+        '#verifiedAspak',
+        '{{ route("api-verification-request.aspak-verification", ["id" => $puskesmas->id]) }}',
+        'Berita Acara ASPAK',
+        'is_verified_aspak'
+    );
 });
 
 // Revision Modal Handler

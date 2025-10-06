@@ -53,6 +53,19 @@ Route::middleware(['auth', 'roles:2,3'])->prefix('api-verification-request')->na
     Route::post('/pelatihan-verification/{id}', [App\Http\Controllers\VerificationRequest\API\APIVerificationRequestController::class, 'pelatihanVerification'])
         ->name('pelatihan-verification');
 
+    // Document Verification Routes
+    Route::post('/kalibrasi-verification/{id}', [App\Http\Controllers\VerificationRequest\API\APIVerificationRequestController::class, 'kalibrasiVerification'])
+        ->name('kalibrasi-verification');
+
+    Route::post('/bast-verification/{id}', [App\Http\Controllers\VerificationRequest\API\APIVerificationRequestController::class, 'bastVerification'])
+        ->name('bast-verification');
+
+    Route::post('/basto-verification/{id}', [App\Http\Controllers\VerificationRequest\API\APIVerificationRequestController::class, 'bastoVerification'])
+        ->name('basto-verification');
+
+    Route::post('/aspak-verification/{id}', [App\Http\Controllers\VerificationRequest\API\APIVerificationRequestController::class, 'aspakVerification'])
+        ->name('aspak-verification');
+
     // Revision Routes
     Route::post('/add-revision/{id}', [App\Http\Controllers\VerificationRequest\API\APIVerificationRequestController::class, 'addRevision'])
         ->name('add-revision');

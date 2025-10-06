@@ -142,6 +142,7 @@ class VerificationRequestController extends Controller
 
         // Get revision data for documents - only filter by is_verified = 0
         $revisions = [
+            // UjiFungsi document revisions
             'instalasi' => $puskesmas->revisions()
                 ->where('jenis_dokumen_id', 3)
                 ->where('is_verified', 0)
@@ -154,6 +155,27 @@ class VerificationRequestController extends Controller
                 ->first(),
             'pelatihan' => $puskesmas->revisions()
                 ->where('jenis_dokumen_id', 5)
+                ->where('is_verified', 0)
+                ->latest()
+                ->first(),
+            // Document table revisions
+            'kalibrasi' => $puskesmas->revisions()
+                ->where('jenis_dokumen_id', 1)
+                ->where('is_verified', 0)
+                ->latest()
+                ->first(),
+            'bast' => $puskesmas->revisions()
+                ->where('jenis_dokumen_id', 2)
+                ->where('is_verified', 0)
+                ->latest()
+                ->first(),
+            'basto' => $puskesmas->revisions()
+                ->where('jenis_dokumen_id', 6)
+                ->where('is_verified', 0)
+                ->latest()
+                ->first(),
+            'aspak' => $puskesmas->revisions()
+                ->where('jenis_dokumen_id', 7)
                 ->where('is_verified', 0)
                 ->latest()
                 ->first(),
