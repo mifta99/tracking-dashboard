@@ -312,25 +312,6 @@
                         <tr><td>Status Penerimaan</td><td>{{ ($peng && $peng->tgl_diterima) ? 'Diterima' : '-' }}</td></tr>
                         <tr><td>Bukti Tanda Terima</td><td>@if($peng && $peng->link_tanda_terima)<a class="text-decoration-none" target="_blank" href="{{ asset('storage/' . $peng->link_tanda_terima) }}">View Here</a>@else - @endif</td></tr>
                         <tr><td>Catatan</td><td>{{ $peng->catatan ?? '-' }}</td></tr>
-                        <tr>
-                            <td>Verifikasi Kemenkes</td>
-                            <td>
-                                <form id="verifDeliveryForm">
-                                    @csrf
-                                    <div class="form-group">
-                                        <div class="custom-control custom-switch">
-                                            <input type="checkbox" class="custom-control-input" id="verifiedDelivery" name="verif_kemenkes"
-                                                {{ (auth()->user()->role->role_name !== 'kemenkes' || ($peng && $peng->verif_kemenkes)) ? 'disabled' : '' }}
-                                                {{ ($peng && $peng->verif_kemenkes) ? 'checked' : '' }}>
-                                            <label class="custom-control-label" for="verifiedDelivery">
-                                                {{ ($peng && $peng->verif_kemenkes) ? 'Verified' : 'Verified' }}
-                                            </label>
-                                        </div>
-                                    </div>
-                                </form>
-                            </td>
-                        </tr>
-                        <tr><td>Tanggal Verifikasi</td><td>{{ $peng->tgl_verif_kemenkes ? $peng->tgl_verif_kemenkes->setTimezone('Asia/Jakarta')->format('d F Y H:i') . ' WIB' : '-' }}</td></tr>
                     </table>
                 </div>
             </div>

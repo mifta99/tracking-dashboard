@@ -38,6 +38,11 @@ Route::middleware(['auth', 'roles:2,3'])->prefix('verification-request')->name('
     Route::get('/detail/{id}', [App\Http\Controllers\VerificationRequest\VerificationRequestController::class, 'detail'])->name('detail');
 });
 
+Route::middleware(['auth', 'roles:2,3'])->prefix('daftar-revisi')->name('daftar-revisi.')->group(function () {
+    Route::get('/', [App\Http\Controllers\DaftarRevisiController::class, 'index'])->name('index');
+    Route::get('/fetch-data', [App\Http\Controllers\DaftarRevisiController::class, 'fetchData'])->name('fetch-data');
+});
+
 Route::middleware(['auth', 'roles:2,3'])->prefix('api-verification-request')->name('api-verification-request.')->group(function () {
     Route::POST('/basic-information/{id}', [App\Http\Controllers\VerificationRequest\API\APIVerificationRequestController::class, 'editBasicInformation'])->name('basic-information');
     Route::POST('/delivery-information/{id}', [App\Http\Controllers\VerificationRequest\API\APIVerificationRequestController::class, 'editDeliveryInformation'])->name('delivery-information');

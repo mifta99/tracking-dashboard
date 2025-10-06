@@ -345,6 +345,12 @@ return [
             'icon' => 'fas fa-fw fa-check-circle',
             'can'   => ['kemenkes']
         ],
+        [
+            'text' => 'Daftar Revisi',
+            'url'  => '/daftar-revisi',
+            'icon' => 'fas fa-fw fa-exclamation-triangle',
+            'can'   => ['endo']
+        ],
                 [
             'text' => 'Pelaporan Keluhan',
             'url'  => '/raised-issue',
