@@ -78,7 +78,7 @@
 
     <div class="card mb-3 shadow-sm">
         <div class="card-header py-2 pr-1 text-white d-flex align-items-center" style="background:#ee8c0b;">
-            <span class="section-title-bar" style="color: white;">Current Progress</span>
+            <span class="section-title-bar" style="color: white;">Status Tahapan</span>
         </div>
         <div class="card-body p-3">
             @php
@@ -158,7 +158,7 @@
                 <div class="mt-3">
                     <div class="row">
                         <div class="col-md-6">
-                            <small class="text-muted">Current Stage: <strong>{{ $stepMeta[$currentStep]['label'] ?? 'Unknown' }}</strong></small>
+                            <small class="text-muted">Tahapan Saat ini: <strong>{{ $stepMeta[$currentStep]['label'] ?? 'Unknown' }}</strong></small>
                         </div>
                         <div class="col-md-6 text-right">
                             <small class="text-muted">Progress: {{ $currentStep }}/{{ count($stepMeta) }}</small>
@@ -179,7 +179,7 @@
         <div class="col-lg-6">
             <div class="card h-100 shadow-sm">
             <div class="card-header py-2 pr-1 bg-primary text-white d-flex align-items-center">
-                <span class="section-title-bar">Basic Informations</span>
+                <span class="section-title-bar">Informasi Puskesmas</span>
                 @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes')
                 <button class="btn btn-sm btn-primary ml-auto" data-toggle="modal" data-target="#basicInfoModal">
                     <i class="fas fa-edit"></i> Edit
@@ -215,7 +215,7 @@
             <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                <div class="modal-header bg-primary text-white">
-               <h5 class="modal-title">Edit Basic Information</h5>
+               <h5 class="modal-title">Edit Informasi Puskesmas</h5>
                <button type="button" class="close text-white" data-dismiss="modal">
                   <span>&times;</span>
                </button>
@@ -292,7 +292,7 @@
         <div class="col-lg-6">
             <div class="card h-100 shadow-sm">
                 <div class="card-header py-2 pr-1 bg-success text-white d-flex align-items-center">
-                    <span class="section-title-bar">Delivery Information</span>
+                    <span class="section-title-bar">Informasi Pengiriman</span>
                     @if(auth()->user() && auth()->user()->role->role_name == 'endo')
                     <button class="btn btn-sm btn-success ml-auto" data-toggle="modal" data-target="#deliveryModal"><i class="fas fa-edit"></i> Edit</button>
                     @endif
@@ -300,11 +300,10 @@
                 <div class="card-body p-3">
                     <table class="table table-sm table-borderless table-kv mb-0">
                         <tr><td>Tanggal Pengiriman</td><td>{{ optional($peng->tgl_pengiriman)->format('d F Y') ?? '-' }}</td></tr>
-                        <tr><td>ETA</td><td>{{ $peng->eta ? $peng->eta . ' Days' : '-' }}</td></tr>
+                        <tr><td>ETA</td><td>{{ optional($peng->eta)->format('d F Y') ?? '-' }}</td></tr>
                         <tr><td>RESI</td><td>{{ $peng->resi ?? '-' }}</td></tr>
                         <tr><td>Link Tracking</td><td>@if($peng && $peng->tracking_link)<a class="text-decoration-none" target="_blank" href="{{ $peng->tracking_link }}">View Here</a>@else - @endif</td></tr>
                         <tr><td>Serial Number</td><td>{{ $puskesmas->equipment->serial_number ?? '-' }}</td></tr>
-                        <tr><td>Target Alat Diterima</td><td>{{ optional($peng->target_tgl)->format('d F Y') ?? '-' }}</td></tr>
                         <tr><td>Tanggal Diterima</td><td>{{ optional($peng->tgl_diterima)->format('d F Y') ?? '-' }}</td></tr>
                         <tr><td>Nama Penerima</td><td>{{ $peng->nama_penerima ?? '-' }}</td></tr>
                         <tr><td>Jabatan Penerima</td><td>{{ $peng->jabatan_penerima ?? '-' }}</td></tr>
@@ -478,7 +477,7 @@
     <!-- Equipment Issue -->
     <div class="card shadow-sm mb-4">
         <div class="card-header py-2 pr-1 bg-danger text-white d-flex align-items-center">
-            <span class="section-title-bar">Equipment Issue</span>
+            <span class="section-title-bar">Pelaporan Keluhan</span>
         </div>
         <div class="card-body p-3">
             <div class="table-responsive">
@@ -508,7 +507,7 @@
     <!-- Incident Management -->
     <div class="card shadow-sm mb-4">
         <div class="card-header py-2 pr-1 d-flex align-items-center" style="background:#e226d2;">
-            <span class="section-title-bar text-white">Incident Management</span>
+            <span class="section-title-bar text-white">Pelaporan Insiden</span>
         </div>
         <div class="card-body p-3">
             <div class="table-responsive">
@@ -564,7 +563,7 @@
         <div class="modal-dialog modal-xl" role="document">
             <div class="modal-content">
                 <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title">Edit Delivery Information</h5>
+                    <h5 class="modal-title">Edit Informasi Pengiriman</h5>
                     <button type="button" class="close text-white" data-dismiss="modal"><span>&times;</span></button>
                 </div>
                 <form id="deliveryForm" enctype="multipart/form-data">
@@ -578,7 +577,7 @@
                             </div>
                             <div class="form-group col-md-2">
                                 <label class="small mb-1">ETA (Hari)</label>
-                                <input type="number" class="form-control form-control-sm" name="eta" value="{{ $peng->eta }}" min="0" max="365">
+                                <input type="date" class="form-control form-control-sm" name="eta" value="{{ optional($peng->eta)->format('Y-m-d') }}">
                             </div>
                             <div class="form-group col-md-3">
                                 <label class="small mb-1">RESI</label>
@@ -592,10 +591,6 @@
                                 <label class="small mb-1">Serial Number</label>
                                 <input type="text" class="form-control form-control-sm" name="serial_number" value="{{ $puskesmas->equipment->serial_number ?? '' }}" placeholder="Enter serial number">
                                 <small class="form-text text-muted">System will create equipment record if new</small>
-                            </div>
-                            <div class="form-group col-md-3">
-                                <label class="small mb-1">Target Alat Diterima</label>
-                                <input type="date" class="form-control form-control-sm" name="target_tgl" value="{{ optional($peng->target_tgl)->format('Y-m-d') }}">
                             </div>
                         </div>
                         <div class="mb-2 mt-3 pb-1 border-bottom"><strong class="text-muted small">Penerimaan</strong></div>
@@ -1168,11 +1163,11 @@ $(function(){
             if(res && res.success){
                 // Update visible table values without reload
                 const data = res.data || {};
-                const $deliveryTable = $('.card-header:contains("Delivery Information")').next('.card-body').find('table.table-kv');
+                const $deliveryTable = $('.card-header:contains("Informasi Pengiriman")').next('.card-body').find('table.table-kv');
 
                 // Update delivery information fields
                 if(data.tgl_pengiriman !== undefined) $deliveryTable.find('tr:contains("Tanggal Pengiriman") td:last').text(data.tgl_pengiriman || '-');
-                if(data.eta !== undefined) $deliveryTable.find('tr:contains("ETA") td:last').text(data.eta ? data.eta + ' Days' : '-');
+                if(data.eta !== undefined) $deliveryTable.find('tr:contains("ETA") td:last').text(data.eta || '-');
                 if(data.resi !== undefined) $deliveryTable.find('tr:contains("RESI") td:last').text(data.resi || '-');
                 if(data.tracking_link !== undefined) {
                     const trackingCell = $deliveryTable.find('tr:contains("Link Tracking") td:last');
@@ -1183,7 +1178,6 @@ $(function(){
                     }
                 }
                 if(data.serial_number !== undefined) $deliveryTable.find('tr:contains("Serial Number") td:last').text(data.serial_number || '-');
-                if(data.target_tgl !== undefined) $deliveryTable.find('tr:contains("Target Alat Diterima") td:last').text(data.target_tgl || '-');
                 if(data.tgl_diterima !== undefined) $deliveryTable.find('tr:contains("Tanggal Diterima") td:last').text(data.tgl_diterima || '-');
                 if(data.nama_penerima !== undefined) $deliveryTable.find('tr:contains("Nama Penerima") td:last').text(data.nama_penerima || '-');
                 if(data.jabatan_penerima !== undefined) $deliveryTable.find('tr:contains("Jabatan Penerima") td:last').text(data.jabatan_penerima || '-');
