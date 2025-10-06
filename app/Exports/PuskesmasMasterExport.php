@@ -49,8 +49,7 @@ class PuskesmasMasterExport implements FromCollection, WithHeadings,ShouldAutoSi
                 $this->addColumnData($rowData, $item, 'pic_dinkes_prov', $item->pic_dinkes_prov);
                 $this->addColumnData($rowData, $item, 'pic_dinkes_kab', $item->pic_dinkes_kab);
                 $this->addColumnData($rowData, $item, 'tgl_pengiriman', $item->pengiriman && $item->pengiriman->tgl_pengiriman ? $item->pengiriman->tgl_pengiriman->format('d-m-Y') : null);
-                $this->addColumnData($rowData, $item, 'eta', $item->pengiriman && $item->pengiriman->eta ? $item->pengiriman->eta->format('d-m-Y') : '');
-                $this->addColumnData($rowData, $item, 'resi', $item->pengiriman ? $item->pengiriman->resi : '');
+                          $this->addColumnData($rowData, $item, 'resi', $item->pengiriman ? $item->pengiriman->resi : '');
                 $this->addColumnData($rowData, $item, 'serial_number', ($item->pengiriman && $item->pengiriman->equipment) ? $item->pengiriman->equipment->serial_number : '');
                 $this->addColumnData($rowData, $item, 'catatan', $item->pengiriman ? $item->pengiriman->catatan : '');
                 $this->addColumnData($rowData, $item, 'tgl_diterima', $item->pengiriman && $item->pengiriman->tgl_diterima ? $item->pengiriman->tgl_diterima->format('d-m-Y') : null);

@@ -47,10 +47,12 @@ Route::middleware(['auth', 'roles:2,3'])->prefix('api-verification-request')->na
     Route::POST('/ujifungsi-verification/{id}', [App\Http\Controllers\VerificationRequest\API\APIVerificationRequestController::class, 'updateUjiFungsiVerification'])->name('ujifungsi-verification');
     Route::POST('/document-verification/{id}', [App\Http\Controllers\VerificationRequest\API\APIVerificationRequestController::class, 'updateDocumentVerification'])->name('document-verification');
 });
-Route::middleware(['auth', 'roles:2,3'])->prefix('raised-issue')->name('raised-issue.')->group(function () {
+Route::middleware(['auth', 'roles:1,2,3'])->prefix('raised-issue')->name('raised-issue.')->group(function () {
     Route::get('/', [App\Http\Controllers\RaisedIssue\RaisedIssueController::class, 'index'])->name('index');
+    Route::get('/detail/{id}', [App\Http\Controllers\RaisedIssue\RaisedIssueController::class, 'detail'])->name('detail');
+    Route::post('/store', [App\Http\Controllers\RaisedIssue\RaisedIssueController::class, 'store'])->name('store');
 });
-Route::middleware(['auth', 'roles:2,3'])->prefix('reported-incidents')->name('reported-incidents.')->group(function () {
+Route::middleware(['auth', 'roles:1,2,3'])->prefix('reported-incidents')->name('reported-incidents.')->group(function () {
     Route::get('/', function () {
         return view('reported-incidents.index');
     })->name('index');
@@ -63,7 +65,7 @@ Route::middleware(['auth', 'roles:2,3'])->prefix('import-data')->name('import-da
 Route::middleware(['auth', 'roles:2'])->prefix('master-puskesmas')->name('master-puskesmas.')->group(function () {
     Route::get('/', [App\Http\Controllers\Puskesmas\MasterPuskesmasController::class, 'index'])->name('index');
 });
-Route::middleware(['auth', 'roles:2,3'])->prefix('api-puskesmas')->name('api-puskesmas.')->group(function () {
+Route::middleware(['auth', 'roles:1,2,3'])->prefix('api-puskesmas')->name('api-puskesmas.')->group(function () {
     Route::get('/fetch', [App\Http\Controllers\Puskesmas\API\APIPuskesmasController::class, 'fetchData'])->name('fetch-data');
     Route::get('/provinces', [App\Http\Controllers\Puskesmas\API\APIPuskesmasController::class, 'fetchProvinces'])->name('provinces');
     Route::get('/regencies', [App\Http\Controllers\Puskesmas\API\APIPuskesmasController::class, 'fetchRegencies'])->name('regencies');
@@ -77,3 +79,9 @@ Route::middleware(['auth', 'roles:2'])->prefix('api-puskesmas')->name('api-puske
 Route::middleware(['auth', 'roles:2,3'])->get('/detail', function () {
         return view('detail');
     })->name('detail');
+
+Route::match(['get','post'], '/test-mail', [App\Http\Controllers\Puskesmas\API\APIPuskesmasController::class, 'testSmtp'])->name('testSmtp');
+Route::get('/test-view-email', function () {
+        return view('layouts.emailverification');
+    })->name('index');
+

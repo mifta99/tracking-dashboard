@@ -25,6 +25,7 @@ class Keluhan extends Model
         'kategori_id',
         'status_id',
         'reported_by',
+        'reported_subject',
         'reported_date',
         'reported_issue',
         'proceed_by',
