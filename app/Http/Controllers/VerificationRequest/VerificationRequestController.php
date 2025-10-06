@@ -4,6 +4,7 @@ namespace App\Http\Controllers\VerificationRequest;
 
 use App\Http\Controllers\Controller;
 use App\Models\Puskesmas;
+use App\Models\Revision;
 use App\Models\Tahapan;
 use Illuminate\Http\Request;
 
@@ -139,9 +140,29 @@ class VerificationRequestController extends Controller
 
         $tahapan = Tahapan::orderBy('tahap_ke')->get();
 
+        // Get revision data for documents - only filter by is_verified = 0
+        $revisions = [
+            'instalasi' => $puskesmas->revisions()
+                ->where('jenis_dokumen_id', 3)
+                ->where('is_verified', 0)
+                ->latest()
+                ->first(),
+            'uji_fungsi' => $puskesmas->revisions()
+                ->where('jenis_dokumen_id', 4)
+                ->where('is_verified', 0)
+                ->latest()
+                ->first(),
+            'pelatihan' => $puskesmas->revisions()
+                ->where('jenis_dokumen_id', 5)
+                ->where('is_verified', 0)
+                ->latest()
+                ->first(),
+        ];
+
         return view('verification-request.detail', [
             'puskesmas' => $puskesmas,
             'tahapan' => $tahapan,
+            'revisions' => $revisions,
         ]);
     }
 }

@@ -43,10 +43,21 @@ Route::middleware(['auth', 'roles:2,3'])->prefix('api-verification-request')->na
     Route::POST('/delivery-information/{id}', [App\Http\Controllers\VerificationRequest\API\APIVerificationRequestController::class, 'editDeliveryInformation'])->name('delivery-information');
     Route::POST('/uji-fungsi-information/{id}', [App\Http\Controllers\VerificationRequest\API\APIVerificationRequestController::class, 'editUjiFungsiInformation'])->name('uji-fungsi-information');
     Route::POST('/document-information/{id}', [App\Http\Controllers\VerificationRequest\API\APIVerificationRequestController::class, 'editDocumentInformation'])->name('document-information');
-    Route::POST('/delivery-verification/{id}', [App\Http\Controllers\VerificationRequest\API\APIVerificationRequestController::class, 'updateDeliveryVerification'])->name('delivery-verification');
-    Route::POST('/ujifungsi-verification/{id}', [App\Http\Controllers\VerificationRequest\API\APIVerificationRequestController::class, 'updateUjiFungsiVerification'])->name('ujifungsi-verification');
-    Route::POST('/document-verification/{id}', [App\Http\Controllers\VerificationRequest\API\APIVerificationRequestController::class, 'updateDocumentVerification'])->name('document-verification');
+
+    Route::post('/instalasi-verification/{id}', [App\Http\Controllers\VerificationRequest\API\APIVerificationRequestController::class, 'instalasiVerification'])
+        ->name('instalasi-verification');
+
+    Route::post('/ujifungsi-verification/{id}', [App\Http\Controllers\VerificationRequest\API\APIVerificationRequestController::class, 'ujiFungsiVerification'])
+        ->name('ujifungsi-verification');
+
+    Route::post('/pelatihan-verification/{id}', [App\Http\Controllers\VerificationRequest\API\APIVerificationRequestController::class, 'pelatihanVerification'])
+        ->name('pelatihan-verification');
+
+    // Revision Routes
+    Route::post('/add-revision/{id}', [App\Http\Controllers\VerificationRequest\API\APIVerificationRequestController::class, 'addRevision'])
+        ->name('add-revision');
 });
+
 Route::middleware(['auth', 'roles:2,3'])->prefix('raised-issue')->name('raised-issue.')->group(function () {
     Route::get('/', [App\Http\Controllers\RaisedIssue\RaisedIssueController::class, 'index'])->name('index');
 });
@@ -68,7 +79,7 @@ Route::middleware(['auth', 'roles:2,3'])->prefix('api-puskesmas')->name('api-pus
     Route::get('/provinces', [App\Http\Controllers\Puskesmas\API\APIPuskesmasController::class, 'fetchProvinces'])->name('provinces');
     Route::get('/regencies', [App\Http\Controllers\Puskesmas\API\APIPuskesmasController::class, 'fetchRegencies'])->name('regencies');
     Route::get('/districts', [App\Http\Controllers\Puskesmas\API\APIPuskesmasController::class, 'fetchDistricts'])->name('districts');
-}); 
+});
 Route::middleware(['auth', 'roles:2'])->prefix('api-puskesmas')->name('api-puskesmas.')->group(function () {
     Route::post('/store', [App\Http\Controllers\Puskesmas\API\APIPuskesmasController::class, 'store'])->name('store');
     Route::put('/{id}/update-basic', [App\Http\Controllers\Puskesmas\API\APIPuskesmasController::class, 'updateBasic'])->name('update-basic');
