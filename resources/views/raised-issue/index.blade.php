@@ -14,7 +14,7 @@
                 <div class="mr-2">
                     <span class="badge badge-light" style="color:#ce8220; background:#fff;">Filter & Manage</span>
                 </div>
-                @if(auth()->user() && auth()->user()->role->name === 'puskesmas')
+                @if(auth()->user() && auth()->user()->role->role_name === 'puskesmas')
                 <div class="card-tools">
                     <button type="button" class="btn btn-primary btn-sm" id="btn-add-issue">
                         <i class="fas fa-plus"></i> Tambah Keluhan Baru
@@ -23,7 +23,9 @@
                 @endif
             </div>
         </div>
+        
         <div class="card-body">
+            @if(auth()->user() && auth()->user()->role->role_name != 'puskesmas')
             <!-- Filter Section -->
             <div class="mb-3 p-3 border rounded" style="background:#f8f9fc;">
                 <div class="form-row">
@@ -63,7 +65,7 @@
                     </div>
                 </div>
             </div>
-
+            @endif
             <table class="table table-bordered table-striped table-sm text-sm" id="issues-table" style="width:100%;">
                 <thead>
                     <tr>
@@ -73,8 +75,8 @@
                         <th>Kecamatan</th>
                         <th>Nama Puskesmas</th>
                         <th>Tanggal Keluhan</th>
-                        <th>PIC Puskesmas</th>
                         <th>Keluhan</th>
+                        <th>Detail Keluhan</th>
                         <th class="text-center">Status</th>
                         <th class="text-center">Action</th>
                     </tr>
@@ -93,28 +95,111 @@
                         <td>{{ $issue->reporter->puskesmas->kecamatan_name ?? '-' }}</td>
                         <td>{{ $issue->reporter->puskesmas->name ?? 'N/A' }}</td>
                         <td data-date="{{ $issue->created_at->format('Y-m') }}">{{ $issue->created_at->format('d-m-Y') }}</td>
-                        <td>{{ $issue->reporter->puskesmas->kepala  ?? 'N/A' }}</td>
-                        <td style="max-width:250px; white-space:normal;">{{ $issue->reported_issue }}</td>
+                        <td>{{ $issue->reported_subject ?? 'N/A' }}</td>
+                        <td style="white-space:normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ $issue->reported_issue }}</td>
                         <td class="text-center">
                             @php
                                 $statusClass = '';
-                                $statusLabel = ucfirst(str_replace('_', ' ', $issue->statusKeluhan->status ?? 'N/A'));
-                                switch($issue->status_id) {
-                                    case 1: $statusClass = 'badge-danger'; break;
+                                $statusLabel = ucfirst(str_replace('_', ' ', $issue->kategoriKeluhan->kategori ?? 'N/A'));
+                                switch($issue->kategori_id) {
+                                    case 1: $statusClass = 'badge-secondary'; break;
                                     case 2: $statusClass = 'badge-warning'; break;
-                                    case 3: $statusClass = 'badge-success'; break;
+                                    case 3: $statusClass = 'badge-danger'; break;
                                     default: $statusClass = 'badge-secondary';
                                 }
                             @endphp
                             <span class="badge {{ $statusClass }}">{{ $statusLabel }}</span>
                         </td>
                         <td class="text-center">
-                            <a href="" class="text-center btn btn-xs btn-outline-primary"><i class="fas fa-search"></i></a>
+                            <a href="{{ route('raised-issue.detail', $issue->id) }}" class="text-center btn btn-xs btn-outline-primary"><i class="fas fa-search"></i></a>
                         </td>
                     </tr>
                     @endforeach
                 </tbody>
             </table>
+        </div>
+    </div>
+
+    <!-- Modal Tambah Keluhan -->
+    <div class="modal fade" id="addIssueModal" tabindex="-1" role="dialog" aria-labelledby="addIssueModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addIssueModalLabel">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                        Tambah Keluhan Baru
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form id="addIssueForm" method="POST" action="{{ route('raised-issue.store') }}">
+                    <div class="modal-body">
+                        @csrf
+                        
+                        <div class="alert alert-info mb-4">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            <strong>Petunjuk:</strong> Lengkapi form di bawah untuk melaporkan keluhan terkait alat kesehatan T-Piece.
+                        </div>
+
+                        <div class="row">
+
+                            <!-- Prioritas -->
+                            <div class="col-sm-12">
+                                <div class="form-group">
+                                    <label for="priority" class="required">Kategori Keluhan</label>
+                                    <select class="form-control" id="priority" name="priority" required>
+                                        <option value="" disabled selected>Kategori Keluhan</option>
+                                        @foreach($keluhanTipe as $kategori)
+                                            <option value="{{ $kategori->id }}">{{ $kategori->kategori }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- Subject Keluhan -->
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="issue_subject" class="required">Subjek Keluhan</label>
+                                    <input type="text" class="form-control" id="issue_subject" name="issue_subject" 
+                                           placeholder="Contoh: Alat T-Piece tidak berfungsi dengan baik" 
+                                           maxlength="255" required>
+                                    <small class="form-text text-muted">Maksimal 255 karakter</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- Deskripsi Keluhan -->
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="issue_description" class="required">Deskripsi Detail Keluhan</label>
+                                    <textarea class="form-control" id="issue_description" name="issue_description" 
+                                              rows="5" placeholder="Jelaskan keluhan secara detail, termasuk:
+- Kapan masalah terjadi
+- Langkah yang sudah dicoba
+- Dampak terhadap pelayanan
+- Informasi lain yang relevan" required></textarea>
+                                    <small class="form-text text-muted">
+                                        <span id="char-count">0</span>/1000 karakter
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                            <i class="fas fa-times mr-1"></i> Batal
+                        </button>
+                        <button type="submit" class="btn btn-submit" id="submitBtn">
+                            <i class="fas fa-paper-plane mr-1"></i> Kirim Keluhan
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 @stop
@@ -127,12 +212,46 @@
         #issues-table tbody td { vertical-align: middle; }
         .dataTables_wrapper .dataTables_filter input { border-radius:4px; }
         .badge { font-size: 11px; }
+        
+        /* Modal Styles */
+        .modal-header {
+            background: linear-gradient(135deg, #ce8220, #f4a261);
+            color: white;
+        }
+        
+        .form-group label {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .required::after {
+            content: ' *';
+            color: #e74c3c;
+        }
+        
+        textarea.form-control {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .btn-submit {
+            background: linear-gradient(135deg, #ce8220, #f4a261);
+            border: none;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .btn-submit:hover {
+            background: linear-gradient(135deg, #b8741c, #e8925a);
+            color: white;
+        }
     </style>
 @stop
 
 @section('js')
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         $(function(){
             // Initialize DataTable
@@ -247,6 +366,102 @@
 
             // Redraw after adding custom search
             table.draw();
+            
+            // Modal Management
+            $('#btn-add-issue').on('click', function() {
+                $('#addIssueModal').modal('show');
+            });
+
+            // Character counter for description
+            $('#issue_description').on('input', function() {
+                const maxLength = 1000;
+                const currentLength = $(this).val().length;
+                $('#char-count').text(currentLength);
+                
+                if (currentLength > maxLength) {
+                    $(this).val($(this).val().substring(0, maxLength));
+                    $('#char-count').text(maxLength);
+                }
+                
+                // Change color based on length
+                if (currentLength > maxLength * 0.9) {
+                    $('#char-count').removeClass('text-muted').addClass('text-warning');
+                } else if (currentLength === maxLength) {
+                    $('#char-count').removeClass('text-warning').addClass('text-danger');
+                } else {
+                    $('#char-count').removeClass('text-warning text-danger').addClass('text-muted');
+                }
+            });
+
+            // Form submission
+            $('#addIssueForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                // Validate form
+                if (!this.checkValidity()) {
+                    e.stopPropagation();
+                    $(this).addClass('was-validated');
+                    return;
+                }
+                
+                // Show loading state
+                const $submitBtn = $('#submitBtn');
+                const originalText = $submitBtn.html();
+                $submitBtn.prop('disabled', true)
+                          .html('<i class="fas fa-spinner fa-spin mr-1"></i> Mengirim...');
+                
+                // Prepare form data
+                const formData = {
+                    _token: $('input[name="_token"]').val(),
+                    priority: $('#priority').val(),
+                    issue_subject: $('#issue_subject').val(),
+                    issue_description: $('#issue_description').val(),
+                };
+                
+                // Submit via AJAX (placeholder - adjust endpoint as needed)
+                $.ajax({
+                    url: $(this).attr('action'),
+                    method: 'POST',
+                    data: formData,
+                    success: function(response) {
+                        $submitBtn.prop('disabled', false).html(originalText);
+                        $('#addIssueModal').modal('hide');
+                        
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil!',
+                            text: 'Keluhan berhasil dikirim. Tim kami akan segera menindaklanjuti.',
+                            timer: 3000,
+                            showConfirmButton: true
+                        }).then(() => {
+                            // Reload page or update table
+                            location.reload();
+                        });
+                    },
+                    error: function(xhr) {
+                        $submitBtn.prop('disabled', false).html(originalText);
+                        
+                        let errorMessage = 'Terjadi kesalahan saat mengirim keluhan.';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMessage = xhr.responseJSON.message;
+                        }
+                        
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal!',
+                            text: errorMessage,
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                });
+            });
+
+            // Reset form when modal is closed
+            $('#addIssueModal').on('hidden.bs.modal', function() {
+                $('#addIssueForm')[0].reset();
+                $('#addIssueForm').removeClass('was-validated');
+                $('#char-count').text('0').removeClass('text-warning text-danger').addClass('text-muted');
+            });
         });
     </script>
 @stop

@@ -361,7 +361,7 @@ return [
             'text' => 'Pelaporan Insiden',
             'url'  => '/reported-incidents',
             'icon' => 'fas fa-fw fa-heartbeat',
-            'can'   => ['endo','kemenkes','puskesmas']
+            'can'   => ['endo','kemenkes']
         ],
                 [
             'text' => 'Impor Data',

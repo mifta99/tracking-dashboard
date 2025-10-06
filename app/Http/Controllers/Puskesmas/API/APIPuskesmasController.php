@@ -3,13 +3,15 @@
 namespace App\Http\Controllers\Puskesmas\API;
 
 use App\Http\Controllers\Controller;
+use App\Mail\EmailVerificationMail;
 use App\Models\Pengiriman;
 use App\Models\Puskesmas;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
 
-use function PHPUnit\Framework\isEmpty;
 
 class APIPuskesmasController extends Controller
 {
@@ -353,6 +355,76 @@ class APIPuskesmasController extends Controller
             ], 500);
         }
     }
-}
 
+    public function testSmtp(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'to' => 'nullable|email',
+                'code' => 'nullable|string|max:20',
+                'verification_url' => 'nullable|url',
+                'expires_at' => 'nullable|date',
+                'name' => 'nullable|string|max:255',
+                'app_name' => 'nullable|string|max:255',
+                'mailer' => 'nullable|string',
+            ]);
+
+            $recipient = $validated['to'] ?? 'tpieceverfication@gmail.com';
+            $mailerName = $validated['mailer'] ?? config('mail.default');
+
+            $verificationCode = $validated['code'] ?? str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+            $verificationUrl = $validated['verification_url'] ?? rtrim(config('app.url'), '/') . '/email/verify?code=' . urlencode($verificationCode);
+
+            $expiresAtInput = $validated['expires_at'] ?? null;
+            $expiresAt = $expiresAtInput
+                ? Carbon::parse($expiresAtInput)->setTimezone('Asia/Jakarta')
+                : Carbon::now('Asia/Jakarta')->addDay();
+
+            $recipientName = $validated['name'] ?? null;
+            $appName = $validated['app_name'] ?? null;
+
+            Mail::mailer($mailerName)
+                ->to($recipient)
+                ->send(new EmailVerificationMail(
+                    $verificationCode,
+                    $verificationUrl,
+                    $expiresAt,
+                    $recipientName,
+                    $appName
+                ));
+
+            $cfg = config("mail.mailers.$mailerName") ?? [];
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Verification email dispatched.',
+                'debug' => [
+                    'to' => $recipient,
+                    'mailer' => $mailerName,
+                    'code' => $verificationCode,
+                    'verification_url' => $verificationUrl,
+                    'expires_at_iso' => $expiresAt ? $expiresAt->toIso8601String() : null,
+                    'expires_at_local' => $expiresAt ? $expiresAt->copy()->locale('id')->translatedFormat('d F Y H:i') . ' WIB' : null,
+                    'host' => $cfg['host'] ?? null,
+                    'port' => $cfg['port'] ?? null,
+                    'encryption' => $cfg['encryption'] ?? null,
+                    'from' => config('mail.from.address'),
+                ],
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Throwable $e) {
+            Log::error('SMTP test failed: ' . $e->getMessage(), ['exception' => $e]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'SMTP test failed: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+}
 
