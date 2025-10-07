@@ -39,11 +39,127 @@
         .shipment-status-flow .sf-step.done:not(:last-child):after,
         .shipment-status-flow .sf-step.active:not(:last-child):after{background:#28a745;}
         .shipment-status-flow .sf-step.final.done .sf-circle{box-shadow:0 0 0 4px #fff inset,0 0 0 4px #28a745,0 2px 8px rgba(0,0,0,.3);}
+        
+        /* Verification Status Indicators */
+        .shipment-status-flow .sf-step .verification-indicator {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            border: 2px solid #fff;
+            z-index: 3;
+        }
+        
+        /* Verified Steps - Blue ring and blue indicator */
+        .shipment-status-flow .sf-step.verified-step .sf-circle {
+            box-shadow: 0 0 0 4px #fff inset, 0 0 0 6px #007bff, 0 2px 8px rgba(0,0,0,.2);
+        }
+        .shipment-status-flow .sf-step.verified-step .verification-indicator {
+            background: #007bff;
+            color: white;
+        }
+        
+        /* Revision Steps - Red ring and warning indicator */
+        .shipment-status-flow .sf-step.revision-step .sf-circle {
+            box-shadow: 0 0 0 4px #fff inset, 0 0 0 6px #dc3545, 0 2px 8px rgba(0,0,0,.2);
+        }
+        .shipment-status-flow .sf-step.revision-step .verification-indicator {
+            background: #dc3545;
+            color: white;
+        }
+        
+        /* Pending Verification Steps - Orange ring and clock indicator */
+        .shipment-status-flow .sf-step.pending-verification .sf-circle {
+            box-shadow: 0 0 0 4px #fff inset, 0 0 0 6px #ffc107, 0 2px 8px rgba(0,0,0,.2);
+        }
+        .shipment-status-flow .sf-step.pending-verification .verification-indicator {
+            background: #ffc107;
+            color: #333;
+        }
+        
+        /* Active and Done states with verification override */
+        .shipment-status-flow .sf-step.active.verified-step .sf-circle,
+        .shipment-status-flow .sf-step.done.verified-step .sf-circle {
+            background: #28a745;
+            color: #fff;
+            box-shadow: 0 0 0 4px #fff inset, 0 0 0 6px #007bff, 0 2px 8px rgba(0,0,0,.3);
+        }
+        
+        .shipment-status-flow .sf-step.active.verified-step .verification-indicator,
+        .shipment-status-flow .sf-step.done.verified-step .verification-indicator {
+            background: #007bff;
+            color: white;
+        }
+        
+        .shipment-status-flow .sf-step.active.revision-step .sf-circle,
+        .shipment-status-flow .sf-step.done.revision-step .sf-circle {
+            background: #28a745;
+            color: #fff;
+            box-shadow: 0 0 0 4px #fff inset, 0 0 0 6px #dc3545, 0 2px 8px rgba(0,0,0,.3);
+        }
+        
+        .shipment-status-flow .sf-step.active.pending-verification .sf-circle,
+        .shipment-status-flow .sf-step.done.pending-verification .sf-circle {
+            background: #28a745;
+            color: #fff;
+            box-shadow: 0 0 0 4px #fff inset, 0 0 0 6px #ffc107, 0 2px 8px rgba(0,0,0,.3);
+        }
+        
+        /* Verification Legend */
+        .verification-legend {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            padding: 8px 12px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border-left: 4px solid #007bff;
+        }
+        
+        .legend-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 4px;
+            border: 2px solid #fff;
+            box-shadow: 0 0 0 1px rgba(0,0,0,0.1);
+        }
+        
+        .legend-indicator.verified-legend {
+            background: #007bff;
+        }
+        
+        .legend-indicator.revision-legend {
+            background: #dc3545;
+        }
+        
+        .legend-indicator.pending-legend {
+            background: #ffc107;
+        }
+        
         @media (max-width:640px){
             .shipment-status-flow{flex-direction:column;align-items:stretch;}
             .shipment-status-flow .sf-step{padding:0 0 1.2rem 2.7rem;text-align:left;}
             .shipment-status-flow .sf-step:not(:last-child):after{left:28px;top:56px;width:8px;height:100%;}
             .shipment-status-flow .sf-circle{margin:0 0 6px;}
+            .shipment-status-flow .sf-step .verification-indicator {
+                top: 4px;
+                right: 4px;
+            }
+            .verification-legend {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .verification-legend small {
+                margin-bottom: 4px;
+            }
         }
 
         /* Verified switches - Blue styling */
@@ -87,9 +203,55 @@
                 $currentStep = 0;
                 $stepMeta = [];
 
-                // Build step metadata from Tahapan table
+                // Define variables needed for verification status
+                $doc = optional($puskesmas->document);
+                $uji = optional($puskesmas->ujiFungsi);
+
+                // Build step metadata from Tahapan table with verification status
                 if($tahapan && $tahapan->count() > 0) {
                     foreach($tahapan as $t) {
+                        // Get verification status for each step
+                        $verificationStatus = 'none'; // none, verified, revision, pending
+                        $hasRevision = false;
+                        $isVerified = false;
+
+                        switch($t->tahap_ke) {
+                            case 3: // Penerimaan -> is_verified_bast (documents table)
+                                $isVerified = $doc && $doc->is_verified_bast;
+                                $hasRevision = isset($revisions['bast']) && !$revisions['bast']->is_resolved;
+                                break;
+                            case 4: // Instalasi -> is_verified_instalasi (uji_fungsi table)
+                                $isVerified = $uji && $uji->is_verified_instalasi;
+                                $hasRevision = isset($revisions['instalasi']) && !$revisions['instalasi']->is_resolved;
+                                break;
+                            case 5: // Uji Fungsi -> is_verified_uji_fungsi (uji_fungsi table)
+                                $isVerified = $uji && $uji->is_verified_uji_fungsi;
+                                $hasRevision = isset($revisions['uji_fungsi']) && !$revisions['uji_fungsi']->is_resolved;
+                                break;
+                            case 6: // Pelatihan Alat -> is_verified_pelatihan (uji_fungsi table)
+                                $isVerified = $uji && $uji->is_verified_pelatihan;
+                                $hasRevision = isset($revisions['pelatihan']) && !$revisions['pelatihan']->is_resolved;
+                                break;
+                            case 7: // BASTO -> is_verified_basto (documents table)
+                                $isVerified = $doc && $doc->is_verified_basto;
+                                $hasRevision = isset($revisions['basto']) && !$revisions['basto']->is_resolved;
+                                break;
+                            case 8: // ASPAK -> is_verified_aspak (documents table)
+                                $isVerified = $doc && $doc->is_verified_aspak;
+                                $hasRevision = isset($revisions['aspak']) && !$revisions['aspak']->is_resolved;
+                                break;
+                        }
+
+                        // Determine verification status - only for steps that are active or completed
+                        if ($hasRevision) {
+                            $verificationStatus = 'revision';
+                        } elseif ($isVerified) {
+                            $verificationStatus = 'verified';
+                        } elseif ($t->tahap_ke >= 3 && $t->tahap_ke <= 8) {
+                            // Only show pending if the step is reached (will be determined later based on current step)
+                            $verificationStatus = 'pending';
+                        }
+
                         $stepMeta[$t->tahap_ke] = [
                             'label' => $t->tahapan,
                             'icon' => $t->tahap_ke == 1 ? 'fas fa-box-open' :
@@ -98,7 +260,10 @@
                                      ($t->tahap_ke == 4 ? 'fas fa-tools' :
                                      ($t->tahap_ke == 5 ? 'fas fa-pen-square' :
                                      ($t->tahap_ke == 6 ? 'fas fa-chalkboard-teacher' :
-                                     ($t->tahap_ke == 7 ? 'fas fa-clipboard-check' : 'fas fa-check-circle'))))))
+                                     ($t->tahap_ke == 7 ? 'fas fa-clipboard-check' : 'fas fa-check-circle')))))),
+                            'verification_status' => $verificationStatus,
+                            'is_verified' => $isVerified,
+                            'has_revision' => $hasRevision
                         ];
                     }
                 }
@@ -107,32 +272,11 @@
                 if($peng) {
                     $showTimeline = true;
 
-                    // Check conditions for each stage
-                    $hasShipping = !empty($peng->tgl_pengiriman);
-                    $hasResi = !empty($peng->resi);
-                    $hasReceipt = !empty($peng->tgl_diterima) || !empty($peng->link_tanda_terima);
-                    $hasInstallation = $puskesmas->ujiFungsi && !empty($puskesmas->ujiFungsi->tgl_instalasi);
-                    $hasTest = $puskesmas->ujiFungsi && !empty($puskesmas->ujiFungsi->tgl_uji_fungsi);
-                    $hasVerification = !empty($peng->verif_kemenkes);
-
                     // Set current step based on tahapan_id or progress conditions
                     if($peng->tahapan_id) {
                         $currentStep = $peng->tahapan_id;
                     } else {
-                        // Fallback logic if tahapan_id is not set
-                        if(!$hasShipping) {
-                            $currentStep = 0; // Not started
-                        } elseif($hasShipping && !$hasResi) {
-                            $currentStep = 1; // Preparation/Shipping
-                        } elseif($hasResi && !$hasReceipt) {
-                            $currentStep = 2; // Delivery
-                        } elseif($hasReceipt && !$hasTest) {
-                            $currentStep = 3; // Installation/Testing
-                        } elseif($hasTest && !$hasVerification) {
-                            $currentStep = 4; // Documentation
-                        } else {
-                            $currentStep = count($stepMeta); // Completed
-                        }
+                        $currentStep = 0;
                     }
                 }
             @endphp
@@ -147,9 +291,47 @@
                             } elseif($i == $currentStep) {
                                 $cls = ($currentStep == count($stepMeta)) ? 'done final' : 'active';
                             }
+                            
+                            // Add verification status classes - only for active or completed steps
+                            $verificationCls = '';
+                            $showVerificationIndicator = false;
+                            
+                            // Only show verification status if step is active or completed
+                            if($i <= $currentStep && $meta['verification_status'] != 'none') {
+                                switch($meta['verification_status']) {
+                                    case 'verified':
+                                        $verificationCls = 'verified-step';
+                                        $showVerificationIndicator = true;
+                                        break;
+                                    case 'revision':
+                                        $verificationCls = 'revision-step';
+                                        $showVerificationIndicator = true;
+                                        break;
+                                    case 'pending':
+                                        $verificationCls = 'pending-verification';
+                                        $showVerificationIndicator = true;
+                                        break;
+                                }
+                            }
                         @endphp
-                        <div class="sf-step {{ $cls }} {{ $i == count($stepMeta) ? 'final' : '' }}" data-step="{{ $i }}">
-                            <div class="sf-circle"><i class="{{ $meta['icon'] }}"></i></div>
+                        <div class="sf-step {{ $cls }} {{ $verificationCls }} {{ $i == count($stepMeta) ? 'final' : '' }}" 
+                             data-step="{{ $i }}" 
+                             data-verification="{{ $meta['verification_status'] }}"
+                             title="{{ $meta['label'] }}{{ $showVerificationIndicator ? ' - ' . ucfirst($meta['verification_status']) : '' }}">
+                            <div class="sf-circle">
+                                <i class="{{ $meta['icon'] }}"></i>
+                                @if($showVerificationIndicator)
+                                    <div class="verification-indicator">
+                                        @if($meta['verification_status'] == 'verified')
+                                            <i class="fas fa-check-circle"></i>
+                                        @elseif($meta['verification_status'] == 'revision')
+                                            <i class="fas fa-exclamation-triangle"></i>
+                                        @elseif($meta['verification_status'] == 'pending')
+                                            <i class="fas fa-clock"></i>
+                                        @endif
+                                    </div>
+                                @endif
+                            </div>
                             <div class="sf-label">{{ $meta['label'] }}</div>
                         </div>
                     @endforeach
@@ -162,6 +344,27 @@
                         </div>
                         <div class="col-md-6 text-right">
                             <small class="text-muted">Progress: {{ $currentStep }}/{{ count($stepMeta) }}</small>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-12">
+                            <div class="verification-legend">
+                                <small class="text-muted mr-3">
+                                    <strong>Status Verifikasi:</strong>
+                                </small>
+                                <small class="text-muted mr-3">
+                                    <span class="legend-indicator verified-legend"></span>
+                                    <i class="fas fa-check-circle text-primary"></i> Terverifikasi
+                                </small>
+                                <small class="text-muted mr-3">
+                                    <span class="legend-indicator revision-legend"></span>
+                                    <i class="fas fa-exclamation-triangle text-danger"></i> Perlu Revisi
+                                </small>
+                                <small class="text-muted">
+                                    <span class="legend-indicator pending-legend"></span>
+                                    <i class="fas fa-clock text-warning"></i> Menunggu Verifikasi
+                                </small>
+                            </div>
                         </div>
                     </div>
                 </div>
