@@ -349,6 +349,8 @@ return [
             'text' => 'Daftar Revisi',
             'url'  => '/daftar-revisi',
             'icon' => 'fas fa-fw fa-exclamation-triangle',
+            'label' => 0, // Will be updated dynamically
+            'label_color' => 'danger',
             'can'   => ['endo']
         ],
                 [
