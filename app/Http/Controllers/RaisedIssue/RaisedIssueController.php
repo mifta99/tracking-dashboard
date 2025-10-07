@@ -17,13 +17,8 @@ class RaisedIssueController extends Controller
      */
     public function index()
     {
-        $data = Keluhan::query();
-        if(auth()->user()->role_id == 1){ // Puskesmas
-            $data = $data->where('puskesmas_id', auth()->user()->puskesmas_id);
-        }
-        $data = $data->get();
         $keluhanTipe = KategoriKeluhan::all();
-        return view('raised-issue.index', ['data' => $data, 'keluhanTipe' => $keluhanTipe]);
+        return view('raised-issue.index', ['keluhanTipe' => $keluhanTipe]);
     }
     public function store(Request $request): JsonResponse
     {
