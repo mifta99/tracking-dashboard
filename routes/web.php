@@ -26,6 +26,7 @@ Route::middleware(['auth','profile.complete'])->get('/', function () {
 Route::get('/login', [App\Http\Controllers\Auth\LoginController::class, 'login'])->name('login');
 Route::post('/login', [App\Http\Controllers\Auth\LoginController::class, 'loginProcess'])->name('login.process');
 Route::post('/logout', [App\Http\Controllers\Auth\LoginController::class, 'logout'])->name('logout');
+Route::get('/reset-password', [App\Http\Controllers\Auth\LoginController::class, 'resetPassword'])->name('reset-password');
 
 // Profile management routes for puskesmas users
 Route::middleware(['auth', 'roles:1'])->prefix('puskesmas/profile')->name('puskesmas.profile.')->group(function () {
@@ -34,7 +35,7 @@ Route::middleware(['auth', 'roles:1'])->prefix('puskesmas/profile')->name('puske
 });
 
 Route::middleware(['auth', 'roles:2,3'])->prefix('verification-request')->name('verification-request.')->group(function () {
-    Route::get('/api/fetch/{status?}', [App\Http\Controllers\VerificationRequest\VerificationRequestController::class, 'fetch'])->name('fetch');
+    Route::get('/api/fetch/', [App\Http\Controllers\VerificationRequest\VerificationRequestController::class, 'fetch'])->name('fetch');
     Route::get('/{status?}', [App\Http\Controllers\VerificationRequest\VerificationRequestController::class, 'index'])->name('index');
     Route::get('/detail/{id}', [App\Http\Controllers\VerificationRequest\VerificationRequestController::class, 'detail'])->name('detail');
 });
@@ -95,6 +96,7 @@ Route::middleware(['auth', 'roles:1,2,3'])->prefix('reported-incidents')->name('
     Route::get('/', function () {
         return view('reported-incidents.index');
     })->name('index');
+    Route::get('/detail/{id?}', [App\Http\Controllers\Incident\IncidentController::class, 'detail'])->name('detail');
 });
 Route::middleware(['auth', 'roles:2,3'])->prefix('import-data')->name('import-data.')->group(function () {
     Route::get('/', [App\Http\Controllers\ImportData\ImportDataController::class, 'index'])->name('index');
@@ -124,3 +126,6 @@ Route::get('/test-view-email', function () {
         return view('layouts.emailverification');
     })->name('index');
 
+Route::middleware(['auth', 'roles:1,2,3'])->post('/email/verification', [App\Http\Controllers\PuskesmasProfileController::class, 'sendVerificationMail'])->name('verification.send');
+Route::middleware(['auth', 'roles:1,2,3'])->post('/email/verification/confirm', [App\Http\Controllers\PuskesmasProfileController::class, 'verifyEmailCode'])->name('verification.verify');
+Route::middleware(['auth', 'roles:1,2,3'])->post('/api/check-email', [App\Http\Controllers\PuskesmasProfileController::class, 'checkEmail'])->name('api.check-email');
