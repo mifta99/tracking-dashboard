@@ -210,6 +210,30 @@
             padding: 0.25rem 0.5rem;
             font-size: 0.875rem;
         }
+
+        /* File preview styling */
+        .file-preview-item {
+            transition: transform 0.2s;
+        }
+
+        .file-preview-item:hover {
+            transform: translateY(-2px);
+        }
+
+        .required {
+            font-weight: 600;
+        }
+
+        /* Modal styling adjustments */
+        #addIssueModal .modal-header {
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+
+        #addIssueModal .alert-info {
+            background-color: #e3f2fd;
+            border-color: #2196f3;
+            color: #1565c0;
+        }
     </style>
 @endsection
 
@@ -1085,7 +1109,7 @@
         <div class="card-header py-2 pr-1 bg-danger text-white d-flex align-items-center">
             <span class="section-title-bar">Pelaporan Keluhan</span>
             @if(auth()->user() && auth()->user()->role->role_name == 'puskesmas')
-            <button class="btn btn-sm btn-danger ml-auto" data-toggle="modal" data-target="#documentsModal"><i class="fas fa-edit"></i> Laporkan Keluhan Baru</button>
+            <button class="btn btn-sm btn-danger ml-auto" data-toggle="modal" data-target="#addIssueModal"><i class="fas fa-edit"></i> Laporkan Keluhan Baru</button>
             @endif
         </div>
         <div class="card-body p-3">
@@ -1107,6 +1131,97 @@
                         <!-- Data will be populated here via AJAX -->
                     </tbody>
                 </table>
+            </div>
+        </div>
+    </div>
+
+     <!-- Modal Tambah Keluhan -->
+    <div class="modal fade" id="addIssueModal" tabindex="-1" role="dialog" aria-labelledby="addIssueModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="addIssueModalLabel">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                        Tambah Keluhan Baru
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form id="addIssueForm" method="POST" action="{{ route('raised-issue.store') }}" enctype="multipart/form-data">
+                    <div class="modal-body">
+                        @csrf
+
+                        <div class="alert alert-info mb-4">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            <strong>Petunjuk:</strong> Lengkapi form di bawah untuk melaporkan keluhan terkait alat kesehatan T-Piece yang diterima.
+                        </div>
+                        <div class="row">
+                            <!-- Subject Keluhan -->
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="issue_subject" class="required">Judul Keluhan <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="issue_subject" name="issue_subject"
+                                           placeholder="Masukkan judul / ringkasan keluhan"
+                                           maxlength="255" required>
+                                    <small class="form-text text-muted">Maksimal 255 karakter</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- Deskripsi Keluhan -->
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="issue_description" class="required">Deskripsi Detail Keluhan <span class="text-danger">*</span></label>
+                                    <textarea class="form-control" id="issue_description" name="issue_description"
+                                              rows="5" placeholder="Jelaskan keluhan secara detail" maxlength="1000" required></textarea>
+                                    <small class="form-text text-muted">
+                                        <span id="char-count">0</span>/1000 karakter
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+
+
+                        <div class="row">
+                            <!-- Bukti Dokumentasi -->
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label>Bukti Dokumentasi</label>
+
+                                    <!-- File input for multiple selection -->
+                                    <input type="file" id="file-input-multiple" class="form-control-file mb-2"
+                                           accept="image/jpeg,image/jpg,image/png" multiple>
+                                    <small class="form-text text-muted">
+                                        Maksimal 5 file, masing-masing 5MB (JPG, PNG)
+                                    </small>
+
+                                    <!-- Selected files list with previews -->
+                                    <div id="selected-files-container" style="display: none;">
+                                        <h6 class="mb-2">File Terpilih:</h6>
+                                        <div id="selected-files-list" class="row">
+                                            <!-- Files will be displayed here with previews -->
+                                        </div>
+                                    </div>
+
+                                    <!-- Hidden inputs to store file data for form submission -->
+                                    <div id="hidden-file-inputs"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                            <i class="fas fa-times mr-1"></i> Batal
+                        </button>
+                        <button type="submit" class="btn btn-danger" id="submitBtn">
+                            <i class="fas fa-paper-plane mr-1"></i> Kirim Keluhan
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -2549,6 +2664,300 @@ $(document).ready(function() {
 function viewKeluhanDetail(id) {
     // Placeholder for detail view functionality
     toastr.info('Detail keluhan akan segera tersedia');
+}
+
+// Global variables for file management
+let selectedFiles = [];
+
+// Keluhan Form Management
+$(document).ready(function() {
+    // Character counter for description
+    $('#issue_description').on('input', function() {
+        const current = $(this).val().length;
+        $('#char-count').text(current);
+
+        if (current > 1000) {
+            $('#char-count').addClass('text-danger');
+        } else {
+            $('#char-count').removeClass('text-danger');
+        }
+    });
+
+    // File input change handler
+    $('#file-input-multiple').on('change', function() {
+        const files = Array.from(this.files);
+
+        files.forEach(file => {
+            // Check if file already exists
+            if (selectedFiles.some(f => f.name === file.name && f.size === file.size)) {
+                toastr.warning(`File ${file.name} sudah dipilih`);
+                return;
+            }
+
+            // Check file size
+            if (file.size > 5120 * 1024) { // 5MB
+                toastr.warning(`File ${file.name} terlalu besar (maksimal 5MB)`);
+                return;
+            }
+
+            // Check total files
+            if (selectedFiles.length >= 5) {
+                toastr.warning('Maksimal 5 file yang dapat diunggah');
+                return;
+            }
+
+            // Add file to selected list
+            selectedFiles.push(file);
+        });
+
+        // Update display
+        updateFileDisplay();
+
+        // Don't clear the input so user can see what they selected
+    });
+
+    // Form submission
+    $('#addIssueForm').on('submit', function(e) {
+        e.preventDefault();
+        submitKeluhanForm();
+    });
+
+    // Reset form when modal closes
+    $('#addIssueModal').on('hidden.bs.modal', function() {
+        resetKeluhanForm();
+    });
+
+    // Function to update file display with image previews
+    function updateFileDisplay() {
+        const $container = $('#selected-files-container');
+        const $list = $('#selected-files-list');
+
+        if (selectedFiles.length === 0) {
+            $container.hide();
+            return;
+        }
+
+        $container.show();
+        $list.empty();
+
+        selectedFiles.forEach((file, index) => {
+            const $fileItem = $(`
+                <div class="col-md-3 col-sm-4 col-6 mb-3">
+                    <div class="card">
+                        <div class="card-img-top position-relative" style="height: 150px; overflow: hidden;">
+                            <div id="preview-${index}" class="w-100 h-100 d-flex align-items-center justify-content-center bg-light">
+                                <i class="fas fa-spinner fa-spin"></i>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-danger position-absolute remove-file-btn"
+                                    style="top: 5px; right: 5px; z-index: 10;" data-index="${index}">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="card-body p-2">
+                            <h6 class="card-title text-truncate mb-1" title="${file.name}">${file.name}</h6>
+                            <small class="text-muted">${formatFileSize(file.size)}</small>
+                        </div>
+                    </div>
+                </div>
+            `);
+            $list.append($fileItem);
+
+            // Create image preview
+            createImagePreview(file, index);
+        });
+
+        // Update hidden inputs
+        updateHiddenInputs();
+    }
+
+    // Function to create image preview
+    function createImagePreview(file, index) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const $preview = $(`#preview-${index}`);
+            $preview.html(`
+                <img src="${e.target.result}" class="img-fluid" style="width: 100%; height: 100%; object-fit: cover;" alt="Preview">
+            `);
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // Function to update hidden inputs for form submission
+    function updateHiddenInputs() {
+        const $container = $('#hidden-file-inputs');
+        $container.empty();
+
+        selectedFiles.forEach((file, index) => {
+            // Create a hidden file input for each selected file
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.name = 'documentation[]';
+            fileInput.style.display = 'none';
+
+            // Create a new FileList with just this file
+            const dt = new DataTransfer();
+            dt.items.add(file);
+            fileInput.files = dt.files;
+
+            $container.append(fileInput);
+        });
+    }
+
+    // Remove file event handler
+    $(document).on('click', '.remove-file-btn', function() {
+        const index = parseInt($(this).data('index'));
+        selectedFiles.splice(index, 1);
+        updateFileDisplay();
+
+        if (selectedFiles.length === 0) {
+            toastr.info('Semua file telah dihapus');
+        }
+    });
+});
+
+// Handle file preview
+function handleFilePreview(files) {
+    const $preview = $('#documentation-preview');
+    const $container = $('#preview-container');
+
+    // Always clear previous previews first
+    $container.empty();
+
+    if (files.length === 0) {
+        $preview.hide();
+        return;
+    }
+
+    if (files.length > 5) {
+        toastr.warning('Maksimal 5 file yang dapat diunggah');
+        $('#issue_documentation').val('');
+        $preview.hide();
+        return;
+    }
+
+    $preview.show();
+
+    let validFileCount = 0;
+
+    Array.from(files).forEach(function(file, index) {
+        if (file.size > 5120 * 1024) { // 5MB
+            toastr.warning(`File ${file.name} terlalu besar (maksimal 5MB)`);
+            return;
+        }
+
+        validFileCount++;
+
+        const $fileItem = $(`
+            <div class="file-preview-item mr-3 mb-2" style="max-width: 120px;">
+                <div class="border rounded p-2 text-center">
+                    <i class="fas ${getFileIcon(file.type)} fa-2x mb-1"></i>
+                    <small class="d-block text-truncate" title="${file.name}">${file.name}</small>
+                    <small class="text-muted">${formatFileSize(file.size)}</small>
+                </div>
+            </div>
+        `);
+
+        $container.append($fileItem);
+    });
+
+    // Show count of valid files
+    if (validFileCount > 0) {
+        const $countBadge = $(`<small class="text-muted ml-2">(${validFileCount} file${validFileCount > 1 ? 's' : ''})</small>`);
+        $container.append($countBadge);
+    }
+}
+
+// Get file icon based on type
+function getFileIcon(type) {
+    if (type.startsWith('image/')) return 'fa-image text-success';
+    if (type === 'application/pdf') return 'fa-file-pdf text-danger';
+    return 'fa-file text-secondary';
+}
+
+// Format file size
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+// Submit keluhan form
+function submitKeluhanForm() {
+    const $btn = $('#submitBtn');
+    const $form = $('#addIssueForm');
+
+    // Disable submit button
+    $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Mengirim...');
+
+    // Create FormData manually
+    const formData = new FormData();
+
+    // Add form fields
+    formData.append('_token', $('input[name="_token"]').val());
+    formData.append('issue_subject', $('#issue_subject').val());
+    formData.append('issue_description', $('#issue_description').val());
+
+    // Add selected files
+    selectedFiles.forEach((file, index) => {
+        formData.append('documentation[]', file);
+    });
+
+    $.ajax({
+        url: $form.attr('action'),
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(response) {
+            if (response.success) {
+                toastr.success(response.message);
+                $('#addIssueModal').modal('hide');
+
+                // Refresh the keluhan table if it exists
+                if ($('#keluhanTable').length && $.fn.DataTable.isDataTable('#keluhanTable')) {
+                    $('#keluhanTable').DataTable().ajax.reload();
+                }
+            } else {
+                toastr.error(response.message || 'Terjadi kesalahan');
+            }
+        },
+        error: function(xhr) {
+            let message = 'Terjadi kesalahan saat mengirim keluhan';
+
+            if (xhr.status === 422) {
+                const errors = xhr.responseJSON.errors;
+                if (errors) {
+                    message = Object.values(errors)[0][0];
+                }
+            }
+
+            toastr.error(message);
+        },
+        complete: function() {
+            // Re-enable submit button
+            $btn.prop('disabled', false).html('<i class="fas fa-paper-plane mr-1"></i> Kirim Keluhan');
+        }
+    });
+}
+
+// Reset keluhan form
+function resetKeluhanForm() {
+    $('#addIssueForm')[0].reset();
+    $('#char-count').text('0').removeClass('text-danger');
+
+    // Clear selected files
+    selectedFiles = [];
+    $('#selected-files-container').hide();
+    $('#hidden-file-inputs').empty();
+
+    // Clear file input
+    $('#file-input-multiple').val('');
+
+    // Clear old preview system
+    $('#documentation-preview').hide();
+    $('#preview-container').empty();
 }
 </script>
 @endsection

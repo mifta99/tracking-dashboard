@@ -13,7 +13,7 @@ class KeluhanController extends Controller
     {
         // Get the puskesmas_id from the request
         $puskesmasId = $request->input('puskesmas_id');
-        
+
         if (!$puskesmasId) {
             return response()->json([
                 'success' => false,
@@ -36,7 +36,7 @@ class KeluhanController extends Controller
                     'tanggal_dilaporkan_raw' => $item->reported_date,
                     'keluhan' => $item->reported_issue ?? '-',
                     'kategori_keluhan' => $item->kategoriKeluhan->kategori ?? '-',
-                    'jumlah_downtime' => $item->total_downtime ? $item->total_downtime . ' jam' : '-',
+                    'jumlah_downtime' => $item->total_downtime ? $item->total_downtime . ' hari' : '-',
                     'tanggal_selesai' => $item->resolved_date ? $item->resolved_date->format('d-m-Y') : '-',
                     'tanggal_selesai_raw' => $item->resolved_date,
                     'status' => $item->statusKeluhan->status ?? '-',

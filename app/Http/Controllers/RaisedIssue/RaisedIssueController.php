@@ -8,6 +8,7 @@ use App\Models\Keluhan;
 use App\Models\Puskesmas;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
 
 class RaisedIssueController extends Controller
 {
@@ -28,30 +29,56 @@ class RaisedIssueController extends Controller
     {
         $validated = $request->validate([
             'issue_subject' => 'required|string|max:255',
-            'issue_description' => 'required|string',
-            'priority' => 'required|exists:kategori_keluhan,id',
+            'issue_description' => 'required|string|max:1000',
+            'documentation' => 'nullable|array|max:5',
+            'documentation.*' => 'file|mimes:jpeg,jpg,png|max:5120', // 5MB per file
         ], [
-            'issue_subject.required' => 'Judul wajib diisi',
+            'issue_subject.required' => 'Judul keluhan wajib diisi',
             'issue_subject.max' => 'Judul maksimal 255 karakter',
-            'issue_description.required' => 'Deskripsi wajib diisi',
+            'issue_description.required' => 'Deskripsi keluhan wajib diisi',
             'issue_description.max' => 'Deskripsi maksimal 1000 karakter',
-            'priority.required' => 'Prioritas wajib diisi',
-            'priority.exists' => 'Prioritas tidak valid',
+            'documentation.max' => 'Maksimal 5 file dokumentasi',
+            'documentation.*.mimes' => 'File harus berformat JPG atau PNG',
+            'documentation.*.max' => 'Ukuran file maksimal 5MB',
         ]);
 
         try {
-            Keluhan::create([
+            // Create the keluhan record with default values for admin-filled fields
+            $keluhan = Keluhan::create([
                 'puskesmas_id' => auth()->user()->puskesmas_id,
                 'reported_subject' => $validated['issue_subject'],
                 'reported_issue' => $validated['issue_description'],
-                'kategori_id' => $validated['priority'],
+                'kategori_id' => null,
                 'reported_by' => auth()->user()->id,
-                'status_id' => 1, 
-                'reported_date'=> now(),
+                'status_id' => 1, // Default status: new/baru
+                'reported_date' => now(),
+                'total_downtime' => null, // Will be filled by admin
             ]);
-            return response()->json(['message' => 'Keluhan berhasil ditambahkan'], 200);
+
+            // Handle file uploads if present
+            if ($request->hasFile('documentation')) {
+                foreach ($request->file('documentation') as $index => $file) {
+                    $filename = time() . '_' . $index . '_' . $file->getClientOriginalName();
+                    $path = $file->storeAs('keluhan-documentation', $filename, 'public');
+
+                    // Create documentation record with only the required field
+                    $keluhan->dokumentasiKeluhan()->create([
+                        'link_foto' => $path,
+                    ]);
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Keluhan berhasil dilaporkan dan akan segera ditindaklanjuti.'
+            ], 200);
+
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Terjadi kesalahan saat menyimpan keluhan: ' . $e->getMessage()], 500);
+            Log::error('Error storing keluhan: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat menyimpan keluhan. Silakan coba lagi.'
+            ], 500);
         }
     }
     public function detail($id)
