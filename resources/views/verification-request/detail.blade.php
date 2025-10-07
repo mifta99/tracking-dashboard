@@ -107,32 +107,11 @@
                 if($peng) {
                     $showTimeline = true;
 
-                    // Check conditions for each stage
-                    $hasShipping = !empty($peng->tgl_pengiriman);
-                    $hasResi = !empty($peng->resi);
-                    $hasReceipt = !empty($peng->tgl_diterima) || !empty($peng->link_tanda_terima);
-                    $hasInstallation = $puskesmas->ujiFungsi && !empty($puskesmas->ujiFungsi->tgl_instalasi);
-                    $hasTest = $puskesmas->ujiFungsi && !empty($puskesmas->ujiFungsi->tgl_uji_fungsi);
-                    $hasVerification = !empty($peng->verif_kemenkes);
-
                     // Set current step based on tahapan_id or progress conditions
                     if($peng->tahapan_id) {
                         $currentStep = $peng->tahapan_id;
                     } else {
-                        // Fallback logic if tahapan_id is not set
-                        if(!$hasShipping) {
-                            $currentStep = 0; // Not started
-                        } elseif($hasShipping && !$hasResi) {
-                            $currentStep = 1; // Preparation/Shipping
-                        } elseif($hasResi && !$hasReceipt) {
-                            $currentStep = 2; // Delivery
-                        } elseif($hasReceipt && !$hasTest) {
-                            $currentStep = 3; // Installation/Testing
-                        } elseif($hasTest && !$hasVerification) {
-                            $currentStep = 4; // Documentation
-                        } else {
-                            $currentStep = count($stepMeta); // Completed
-                        }
+                        $currentStep = 0;
                     }
                 }
             @endphp
