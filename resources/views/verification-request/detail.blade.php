@@ -21,6 +21,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <!-- SweetAlert2 CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css">
     <style>
         .table-kv td{padding:.35rem .25rem;vertical-align:top;font-size:.875rem;}
         .table-kv td:first-child{font-weight:600;width:230px;color:#212529;}
@@ -39,7 +41,7 @@
         .shipment-status-flow .sf-step.done:not(:last-child):after,
         .shipment-status-flow .sf-step.active:not(:last-child):after{background:#28a745;}
         .shipment-status-flow .sf-step.final.done .sf-circle{box-shadow:0 0 0 4px #fff inset,0 0 0 4px #28a745,0 2px 8px rgba(0,0,0,.3);}
-        
+
         /* Verification Status Indicators */
         .shipment-status-flow .sf-step .verification-indicator {
             position: absolute;
@@ -55,7 +57,7 @@
             border: 2px solid #fff;
             z-index: 3;
         }
-        
+
         /* Verified Steps - Blue ring and blue indicator */
         .shipment-status-flow .sf-step.verified-step .sf-circle {
             box-shadow: 0 0 0 4px #fff inset, 0 0 0 6px #007bff, 0 2px 8px rgba(0,0,0,.2);
@@ -64,7 +66,7 @@
             background: #007bff;
             color: white;
         }
-        
+
         /* Revision Steps - Red ring and warning indicator */
         .shipment-status-flow .sf-step.revision-step .sf-circle {
             box-shadow: 0 0 0 4px #fff inset, 0 0 0 6px #dc3545, 0 2px 8px rgba(0,0,0,.2);
@@ -73,7 +75,7 @@
             background: #dc3545;
             color: white;
         }
-        
+
         /* Pending Verification Steps - Orange ring and clock indicator */
         .shipment-status-flow .sf-step.pending-verification .sf-circle {
             box-shadow: 0 0 0 4px #fff inset, 0 0 0 6px #ffc107, 0 2px 8px rgba(0,0,0,.2);
@@ -82,7 +84,7 @@
             background: #ffc107;
             color: #333;
         }
-        
+
         /* Active and Done states with verification override */
         .shipment-status-flow .sf-step.active.verified-step .sf-circle,
         .shipment-status-flow .sf-step.done.verified-step .sf-circle {
@@ -90,27 +92,27 @@
             color: #fff;
             box-shadow: 0 0 0 4px #fff inset, 0 0 0 6px #007bff, 0 2px 8px rgba(0,0,0,.3);
         }
-        
+
         .shipment-status-flow .sf-step.active.verified-step .verification-indicator,
         .shipment-status-flow .sf-step.done.verified-step .verification-indicator {
             background: #007bff;
             color: white;
         }
-        
+
         .shipment-status-flow .sf-step.active.revision-step .sf-circle,
         .shipment-status-flow .sf-step.done.revision-step .sf-circle {
             background: #28a745;
             color: #fff;
             box-shadow: 0 0 0 4px #fff inset, 0 0 0 6px #dc3545, 0 2px 8px rgba(0,0,0,.3);
         }
-        
+
         .shipment-status-flow .sf-step.active.pending-verification .sf-circle,
         .shipment-status-flow .sf-step.done.pending-verification .sf-circle {
             background: #28a745;
             color: #fff;
             box-shadow: 0 0 0 4px #fff inset, 0 0 0 6px #ffc107, 0 2px 8px rgba(0,0,0,.3);
         }
-        
+
         /* Verification Legend */
         .verification-legend {
             display: flex;
@@ -121,7 +123,7 @@
             border-radius: 6px;
             border-left: 4px solid #007bff;
         }
-        
+
         .legend-indicator {
             display: inline-block;
             width: 12px;
@@ -131,19 +133,19 @@
             border: 2px solid #fff;
             box-shadow: 0 0 0 1px rgba(0,0,0,0.1);
         }
-        
+
         .legend-indicator.verified-legend {
             background: #007bff;
         }
-        
+
         .legend-indicator.revision-legend {
             background: #dc3545;
         }
-        
+
         .legend-indicator.pending-legend {
             background: #ffc107;
         }
-        
+
         @media (max-width:640px){
             .shipment-status-flow{flex-direction:column;align-items:stretch;}
             .shipment-status-flow .sf-step{padding:0 0 1.2rem 2.7rem;text-align:left;}
@@ -185,6 +187,28 @@
         /* Ensure consistent header height even when buttons are not present */
         .card-header.d-flex.align-items-center {
             min-height: 46px; /* Minimum height to accommodate button size */
+        }
+
+        /* DataTable styling to match daftar-revisi */
+        #keluhanTable {
+            font-size: 0.875rem;
+        }
+
+        #keluhanTable thead th {
+            font-size: 11pt;
+            font-weight: 600;
+            background-color: #f8f9fa;
+            border-color: #dee2e6;
+        }
+
+        #keluhanTable tbody td {
+            font-size: 10pt;
+            vertical-align: middle;
+        }
+
+        .btn-action {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
         }
     </style>
 @endsection
@@ -291,11 +315,11 @@
                             } elseif($i == $currentStep) {
                                 $cls = ($currentStep == count($stepMeta)) ? 'done final' : 'active';
                             }
-                            
+
                             // Add verification status classes - only for active or completed steps
                             $verificationCls = '';
                             $showVerificationIndicator = false;
-                            
+
                             // Only show verification status if step is active or completed
                             if($i <= $currentStep && $meta['verification_status'] != 'none') {
                                 switch($meta['verification_status']) {
@@ -314,8 +338,8 @@
                                 }
                             }
                         @endphp
-                        <div class="sf-step {{ $cls }} {{ $verificationCls }} {{ $i == count($stepMeta) ? 'final' : '' }}" 
-                             data-step="{{ $i }}" 
+                        <div class="sf-step {{ $cls }} {{ $verificationCls }} {{ $i == count($stepMeta) ? 'final' : '' }}"
+                             data-step="{{ $i }}"
                              data-verification="{{ $meta['verification_status'] }}"
                              title="{{ $meta['label'] }}{{ $showVerificationIndicator ? ' - ' . ucfirst($meta['verification_status']) : '' }}">
                             <div class="sf-circle">
@@ -1016,7 +1040,7 @@
     @if(!empty($peng->resi))
     <div class="card shadow-sm mb-4" id="trackingCard" data-initial-do="{{ $peng->resi }}">
         <div class="card-header py-2 pr-1 bg-info text-white d-flex align-items-center">
-            <span class="section-title-bar">Delivery Progress Tracking</span>
+            <span class="section-title-bar">Pelacakan Pengiriman</span>
             <button class="btn btn-sm btn-info ml-auto" id="btn-refresh-tracking"><i class="fas fa-sync"></i> Refresh</button>
         </div>
         <div class="card-body p-3">
@@ -1055,35 +1079,38 @@
     </div>
     @endif
 
-    <!-- Equipment Issue -->
+    <!-- Equipment Issue - Only show if tahapan_id is greater than 2 -->
+    @if($peng && $peng->tahapan_id && $peng->tahapan_id > 2)
     <div class="card shadow-sm mb-4">
         <div class="card-header py-2 pr-1 bg-danger text-white d-flex align-items-center">
             <span class="section-title-bar">Pelaporan Keluhan</span>
+            @if(auth()->user() && auth()->user()->role->role_name == 'puskesmas')
+            <button class="btn btn-sm btn-danger ml-auto" data-toggle="modal" data-target="#documentsModal"><i class="fas fa-edit"></i> Laporkan Keluhan Baru</button>
+            @endif
         </div>
         <div class="card-body p-3">
             <div class="table-responsive">
-                <table class="table table-sm table-striped table-bordered mb-0">
-                    <thead class="thead-light">
+                <table class="table table-bordered table-striped table-sm" id="keluhanTable">
+                    <thead>
                         <tr>
-                            <th>Reported Date</th>
-                            <th>Reported Issue</th>
-                            <th>Downtime Category</th>
-                            <th>Resolved Date</th>
-                            <th>Status</th>
-                            <th>Action</th>
+                            <th style="font-size: 11pt;">No.</th>
+                            <th style="font-size: 11pt;">Tanggal Dilaporkan</th>
+                            <th style="font-size: 11pt;">Keluhan</th>
+                            <th style="font-size: 11pt;">Kategori Keluhan</th>
+                            <th style="font-size: 11pt;">Jumlah Downtime</th>
+                            <th style="font-size: 11pt;">Tanggal Selesai</th>
+                            <th style="font-size: 11pt;">Status</th>
+                            <th class="text-center" style="font-size: 11pt;">Actions</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr>
-                            <td colspan="6" class="text-center text-muted py-4">
-                                <i class="fas fa-info-circle"></i> No equipment issues reported yet
-                            </td>
-                        </tr>
+                    <tbody style="font-size: 10pt;">
+                        <!-- Data will be populated here via AJAX -->
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
+    @endif
 
     <!-- Incident Management -->
     <div class="card shadow-sm mb-4">
@@ -1157,7 +1184,7 @@
                                 <input type="date" class="form-control form-control-sm" name="tgl_pengiriman" value="{{ optional($peng->tgl_pengiriman)->format('Y-m-d') }}">
                             </div>
                             <div class="form-group col-md-2">
-                                <label class="small mb-1">ETA (Hari)</label>
+                                <label class="small mb-1">ETA</label>
                                 <input type="date" class="form-control form-control-sm" name="eta" value="{{ optional($peng->eta)->format('Y-m-d') }}">
                             </div>
                             <div class="form-group col-md-3">
@@ -2383,5 +2410,145 @@ $(function() {
         $('#revisiForm')[0].reset();
     });
 });
+</script>
+
+<!-- DataTables JS -->
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    // Initialize Keluhan DataTable only if the table exists (tahapan_id > 2)
+    if ($('#keluhanTable').length > 0) {
+        $('#keluhanTable').DataTable({
+            processing: true,
+            serverSide: false,
+            responsive: true,
+            pageLength: 10,
+            lengthMenu: [[5, 10, 25, 50], [5, 10, 25, 50]],
+            order: [[1, 'desc']], // Sort by date descending
+            language: {
+                processing: "Memuat data...",
+                search: "Cari:",
+                lengthMenu: "Tampilkan _MENU_ data per halaman",
+                info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+                infoEmpty: "Menampilkan 0 sampai 0 dari 0 data",
+                infoFiltered: "(difilter dari _MAX_ total data)",
+                paginate: {
+                    first: "Pertama",
+                    last: "Terakhir",
+                    next: "Selanjutnya",
+                    previous: "Sebelumnya"
+                },
+                emptyTable: "Tidak ada data keluhan yang tersedia",
+                zeroRecords: "Tidak ada data yang cocok"
+            },
+            columns: [
+                { data: null, orderable: false, searchable: false, width: '5%' },
+                { data: 'tanggal_dilaporkan', name: 'tanggal_dilaporkan', width: '12%' },
+                { data: 'keluhan', name: 'keluhan', width: '30%' },
+                { data: 'kategori_keluhan', name: 'kategori_keluhan', width: '15%' },
+                { data: 'jumlah_downtime', name: 'jumlah_downtime', width: '12%' },
+                { data: 'tanggal_selesai', name: 'tanggal_selesai', width: '12%' },
+                { data: 'status', name: 'status', width: '10%' },
+                { data: 'actions', name: 'actions', orderable: false, searchable: false, width: '8%' }
+            ],
+            columnDefs: [
+                {
+                    targets: 0,
+                    render: function (data, type, row, meta) {
+                        return meta.row + meta.settings._iDisplayStart + 1;
+                    }
+                },
+                {
+                    targets: 2, // Keluhan column
+                    render: function (data, type, row) {
+                        if (data && data.length > 100) {
+                            return `<div style="max-width:300px; white-space:normal;">${data.substring(0, 100)}...</div>`;
+                        }
+                        return `<div style="max-width:300px; white-space:normal;">${data || '-'}</div>`;
+                    }
+                },
+                {
+                    targets: 3, // Status column
+                    render: function (data, type, row) {
+                        let badgeClass = 'badge-secondary';
+                        const statusLower = (data || '').toLowerCase();
+
+                        switch (statusLower) {
+                            case 'rendah':
+                                badgeClass = 'badge-warning';
+                                break;
+                            case 'sedang':
+                                badgeClass = 'badge-info';
+                                break;
+                            case 'kritis':
+                                badgeClass = 'badge-danger';
+                                break;
+                        }
+
+                        return `<span class="badge ${badgeClass}">${data || '-'}</span>`;
+                    }
+                },
+                {
+                    targets: 6, // Status column
+                    render: function (data, type, row) {
+                        let badgeClass = 'badge-secondary';
+                        const statusLower = (data || '').toLowerCase();
+
+                        switch (statusLower) {
+                            case 'baru':
+                                badgeClass = 'badge-warning';
+                                break;
+                            case 'proses':
+                                badgeClass = 'badge-info';
+                                break;
+                            case 'selesai':
+                                badgeClass = 'badge-success';
+                                break;
+                        }
+
+                        return `<span class="badge ${badgeClass}">${data || '-'}</span>`;
+                    }
+                },
+                {
+                    targets: 7, // Actions
+                    render: function (data, type, row) {
+                        return `<div class="d-flex justify-content-center align-items-center">
+                                    <a href="#" class="text-secondary" title="Lihat Detail" onclick="viewKeluhanDetail(${row.id})">
+                                        <i class="fas fa-search"></i>
+                                    </a>
+                                </div>`;
+                    }
+                }
+            ],
+            ajax: {
+                url: '{{ route('keluhan.fetch-data') }}',
+                type: 'GET',
+                data: {
+                    puskesmas_id: '{{ $puskesmas->id }}'
+                },
+                dataSrc: function(json) {
+                    if (json.success) {
+                        return json.data;
+                    } else {
+                        console.error('Error loading keluhan data:', json.message);
+                        return [];
+                    }
+                },
+                error: function(xhr, error, code) {
+                    console.error('AJAX Error:', error);
+                    toastr.error('Gagal memuat data keluhan');
+                }
+            }
+        });
+    }
+});
+
+// Function to view keluhan detail (placeholder)
+function viewKeluhanDetail(id) {
+    // Placeholder for detail view functionality
+    toastr.info('Detail keluhan akan segera tersedia');
+}
 </script>
 @endsection

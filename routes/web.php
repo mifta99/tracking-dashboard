@@ -43,6 +43,11 @@ Route::middleware(['auth', 'roles:2,3'])->prefix('daftar-revisi')->name('daftar-
     Route::get('/fetch-data', [App\Http\Controllers\DaftarRevisiController::class, 'fetchData'])->name('fetch-data');
 });
 
+Route::middleware(['auth'])->prefix('keluhan')->name('keluhan.')->group(function () {
+    Route::get('/fetch-data', [App\Http\Controllers\KeluhanController::class, 'fetchData'])->name('fetch-data');
+    Route::get('/master-data', [App\Http\Controllers\KeluhanController::class, 'getMasterData'])->name('master-data');
+});
+
 Route::middleware(['auth', 'roles:2,3'])->prefix('api-verification-request')->name('api-verification-request.')->group(function () {
     Route::POST('/basic-information/{id}', [App\Http\Controllers\VerificationRequest\API\APIVerificationRequestController::class, 'editBasicInformation'])->name('basic-information');
     Route::POST('/delivery-information/{id}', [App\Http\Controllers\VerificationRequest\API\APIVerificationRequestController::class, 'editDeliveryInformation'])->name('delivery-information');
