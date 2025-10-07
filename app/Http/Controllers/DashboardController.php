@@ -27,18 +27,9 @@ class DashboardController extends Controller
     public function index()
     {
         $dataPuskesmasCount = Puskesmas::count();
-        $dataStatus = collect(
-            [
-                'shipment_process' =>Pengiriman::where('tahapan_id', 1)->count(),
-                'on_delivery' => Pengiriman::where('tahapan_id', 2)->count(),
-                'received' => Pengiriman::where('tahapan_id', 3)->count(),
-                'installation' => Pengiriman::where('tahapan_id', 4)->count(),
-                'function_test' => Pengiriman::where('tahapan_id', 5)->count(),
-                'item_training' => Pengiriman::where('tahapan_id', 6)->count(),
-                'basto' => Pengiriman::where('tahapan_id', 7)->count(),
-                'aspak' => Pengiriman::where('tahapan_id', 8)->count(),
-            ]
-        );
+        foreach (Tahapan::all() as $tahapan) {
+            $dataStatus[$tahapan->tahapan] = Pengiriman::where('tahapan_id', $tahapan->id)->count();
+        }
         $tahapan = Tahapan::all();
         return view('dashboard', ['countPuskesmas' => $dataPuskesmasCount, 'dataStatus' => $dataStatus, 'tahapan' => $tahapan]);
     }

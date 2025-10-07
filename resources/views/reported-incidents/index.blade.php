@@ -59,6 +59,57 @@
             </table>
         </div>
     </div> --}}
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span class="h5 mb-0">Start of Incident</span>
+            <a href="" class="btn btn-sm btn-primary">
+                <i class="fas fa-plus"></i> New Incident
+            </a>
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-bordered table-striped mb-0" id="reported-incidents-table">
+                <thead>
+                    <tr>
+                        <th class="text-center" style="width:160px">Tanggal</th>
+                        <th class="text-center">Kategori Insiden</th>
+                        <th class="text-center" style="width:140px">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @php
+                        $items = isset($reportedIncidents) ? $reportedIncidents : (isset($incidents) ? $incidents : collect());
+                    @endphp
+                    @forelse($items as $incident)
+                        @php
+                            $date = $incident->tanggal_kejadian ?? $incident->date ?? null;
+                            $category = $incident->kategori_insiden ?? $incident->category ?? '-';
+                            $status = $incident->status ?? 'unknown';
+                            $badgeClass = [
+                                'open' => 'danger',
+                                'in_progress' => 'warning',
+                                'closed' => 'success',
+                            ][$status] ?? 'secondary';
+                        @endphp
+                        <tr>
+                            <td class="text-center">{{ $date ? \Illuminate\Support\Carbon::parse($date)->format('d-m-Y') : '-' }}</td>
+                            <td>{{ $category }}</td>
+                            <td class="text-center">
+                                <span class="badge badge-{{ $badgeClass }}">
+                                    {{ \Illuminate\Support\Str::of($status)->replace('_', ' ')->title() }}
+                                </span>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="3" class="text-center text-muted py-3">
+                                <i class="fas fa-info-circle"></i> No incidents reported yet
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
 @stop
 
 @section('css')

@@ -29,7 +29,8 @@ class User extends Authenticatable
         'jabatan',
         'instansi',
         'no_hp',
-        'must_change_password'
+        'must_change_password',
+        'email_verified_at',
     ];
 
     /**

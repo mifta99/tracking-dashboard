@@ -95,6 +95,13 @@ class LoginController extends Controller
                     return redirect()->intended('/')->with('success','Successfully Login');
                 }
                 
+                
+            }
+            $userByPuskesmasId = User::where('puskesmas_id', $request->email)->first();
+            if($userByPuskesmasId){
+                if(Auth::attempt(['email' => $userByPuskesmasId->email, 'password' => $request->password])){
+                    return redirect()->intended('/')->with('success','Successfully Login');
+                }
             }
         return redirect('login')->withInput()->withErrors(['login_message'=>'Email atau Password Salah !']);
       }
@@ -106,6 +113,11 @@ class LoginController extends Controller
         $request->session()->regenerateToken();
         
         return redirect('/login')->with('success', 'Successfully logged out');
+    }
+
+    public function resetPassword()
+    {
+        return view('auth.passwords.reset');
     }
 
 }

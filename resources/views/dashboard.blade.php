@@ -348,24 +348,45 @@
                         if (row.pengiriman) {
                             const tahapId = row.pengiriman.tahapan_id;
                             switch (tahapId) {
-                                case 1:
-                                    return '<div class="d-flex justify-content-center align-items-center"><span class="badge badge-info badge-sm">Shipment Process</span></div>';
-                                case 2:
-                                    return '<div class="d-flex justify-content-center align-items-center"><span class="badge badge-warning badge-sm">On Delivery</span></div>';
-                                case 3:
-                                    return '<div class="d-flex justify-content-center align-items-center"><span class="badge badge-success badge-sm">Received</span></div>';
-                                case 4:
-                                    return '<div class="d-flex justify-content-center align-items-center"><span class="badge badge-primary badge-sm">Instalasi</span></div>';
-                                case 5:
-                                    return '<div class="d-flex justify-content-center align-items-center"><span class="badge badge-dark badge-sm">Uji Fungsi</span></div>';
-                                case 6:
-                                    return '<div class="d-flex justify-content-center align-items-center"><span class="badge badge-light badge-sm text-dark">Pelatihan Alat</span></div>';
-                                case 7:
-                                    return '<div class="d-flex justify-content-center align-items-center"><span class="badge badge-danger badge-sm">BASTO</span></div>';
-                                case 8:
-                                    return '<div class="d-flex justify-content-center align-items-center"><span class="badge badge-success badge-sm">ASPAK</span></div>';
-                                default:
-                                    return '<div class="d-flex justify-content-center align-items-center"><span class="badge badge-secondary badge-sm">Belum Diproses</span></div>';
+                                @foreach ($dataStatus as $status => $count)
+                                case {{ $loop->index + 1 }}:
+                                    @php
+                                        $statusText = ucfirst(str_replace("_", " ", $status));
+                                        $badgeClass = 'badge-secondary';
+                                        
+                                        // Match colors with verification request index
+                                        switch($status) {
+                                            case 'Pengemasan':
+                                                $badgeClass = 'badge-secondary';
+                                                break;
+                                            case 'Dalam Pengiriman':
+                                                $badgeClass = 'badge-info';
+                                                break;
+                                            case 'Penerimaan':
+                                                $badgeClass = 'badge-primary';
+                                                break;
+                                            case 'Instalasi':
+                                                $badgeClass = 'badge-warning text-dark';
+                                                break;
+                                            case 'Uji Fungsi':
+                                                $badgeClass = 'bg-purple text-white';
+                                                break;
+                                            case 'Pelatihan Alat':
+                                                $badgeClass = 'badge-dark';
+                                                break;
+                                            case 'ASPAK':
+                                                $badgeClass = 'badge-success';
+                                                break;
+                                            case 'BASTO':
+                                                $badgeClass = 'badge-danger';
+                                                break;
+                                            default:
+                                                $badgeClass = 'badge-light';
+                                                break;
+                                        }
+                                    @endphp
+                                    return '<div class="d-flex justify-content-center align-items-center"><span class="badge {{ $badgeClass }} badge-sm">{{ $statusText }}</span></div>';
+                                @endforeach
                             }
                         }
                         return '<div class="d-flex justify-content-center align-items-center"><span class="badge badge-secondary badge-sm">Belum Diproses</span></div>';
@@ -504,14 +525,9 @@
 
         // ===== Tracking Summary & Monthly Charts =====
         const trackingStatusOrder = [
-            { key: 'shipment_process', label: 'Shipment Process' },
-            { key: 'on_delivery', label: 'On Delivery' },
-            { key: 'received', label: 'Received' },
-            { key: 'installation', label: 'Instalasi' },
-            { key: 'function_test', label: 'Uji Fungsi' },
-            { key: 'item_training', label: 'Pelatihan Alat' },
-            { key: 'basto', label: 'BASTO' },
-            { key: 'aspak', label: 'ASPAK' }
+            @foreach ($dataStatus as $status => $count)
+            { key: '{{ $status }}', label: '{{ ucfirst(str_replace("_", " ", $status)) }}' },
+            @endforeach
         ];
         const trackingBarColors = ['#1d4ed8', '#0ea5e9', '#22c55e', '#eab308', '#ef4444', '#a855f7', '#f97316', '#64748b'];
         const trackingRawStatusData = @json($dataStatus);

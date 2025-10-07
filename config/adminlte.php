@@ -357,7 +357,7 @@ return [
             'text' => 'Pelaporan Keluhan',
             'url'  => '/raised-issue',
             'icon' => 'fas fa-fw fa-exclamation-circle',
-            'can'   => ['endo','kemenkes','puskesmas']
+            'can'   => ['endo','kemenkes']
         ],
         [
             'text' => 'Pelaporan Insiden',

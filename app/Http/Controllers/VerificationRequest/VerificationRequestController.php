@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\VerificationRequest;
 
 use App\Http\Controllers\Controller;
+use App\Models\Pengiriman;
 use App\Models\Puskesmas;
 use App\Models\Revision;
 use App\Models\Tahapan;
+use App\Models\UjiFungsi;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class VerificationRequestController extends Controller
@@ -13,115 +16,215 @@ class VerificationRequestController extends Controller
     /**
      * Display a listing of Puskesmas that have shipment date (tgl_pengiriman) filled.
      */
-    public function index( $statusVerifikasi=null)
+    public function index()
     {
-        // Optional filters could be added later (province, regency, etc.)
-        if($statusVerifikasi == 'uji-fungsi'){
-            $puskesmas = Puskesmas::query()
-            ->with([
-                'district.regency.province',
-                'ujiFungsi:id,puskesmas_id,verif_kemenkes,tgl_verif_kemenkes',
-                'document:id,puskesmas_id,verif_kemenkes,tgl_verif_kemenkes'
-            ])
-            ->whereHas('pengiriman')
-            ->whereHas('ujiFungsi')
-            ->whereDoesntHave('document')
-            ->orderBy('name')
-            ->get();
-        }else if($statusVerifikasi == 'documents'){
-            $puskesmas = Puskesmas::query()
-            ->with([
-                'district.regency.province',
-                'ujiFungsi:id,puskesmas_id,verif_kemenkes,tgl_verif_kemenkes',
-                'document:id,puskesmas_id,verif_kemenkes,tgl_verif_kemenkes'
-            ])
-            ->whereHas('pengiriman')
-            ->whereHas('ujiFungsi')
-            ->whereHas('document')
-            ->orderBy('name')
-            ->get();
-        }else{
-                $puskesmas = Puskesmas::query()
-            ->with([
-                'district.regency.province',
-                'pengiriman:id,puskesmas_id,tgl_pengiriman,verif_kemenkes,tgl_verif_kemenkes',
-                'document:id,puskesmas_id,verif_kemenkes,tgl_verif_kemenkes'
-            ])
-            ->whereHas('pengiriman')
-            ->whereDoesntHave('ujiFungsi')
-            ->whereDoesntHave('document')
-            ->orderBy('name')
-            ->get();
-
-        }
-
-        return view('verification-request.index', [
-            'verificationRequests' => $puskesmas,
-        ]);
+        return view('verification-request.index');
     }
 
     /**
      * Return JSON list filtered by province/regency/district while still requiring tgl_pengiriman not null
      */
-    public function fetch(Request $request, $statusVerifikasi=null)
+    public function fetch(Request $request, $statusVerifikasi = null)
     {
         $provinceId = $request->get('province_id');
         $regencyId  = $request->get('regency_id');
         $districtId = $request->get('district_id');
+        $statusFilter = $statusVerifikasi ?? $request->get('status');
+        $statusVerificationFilter = $request->get('status_filter');
+
+        $draw   = (int) $request->get('draw', 1);
+        $start  = max((int) $request->get('start', 0), 0);
+        $length = (int) $request->get('length', 25);
+        if ($length < 0) {
+            $length = -1;
+        }
 
         $query = Puskesmas::query()
             ->with([
                 'district.regency.province',
                 'pengiriman:id,puskesmas_id,tgl_pengiriman,verif_kemenkes,tgl_verif_kemenkes',
-                'document:id,puskesmas_id,verif_kemenkes,tgl_verif_kemenkes'
+                'document:id,puskesmas_id,kalibrasi,is_verified_kalibrasi,bast,is_verified_bast,aspak,is_verified_aspak,basto,is_verified_basto,verif_kemenkes,tgl_verif_kemenkes',
+                'ujiFungsi:id,puskesmas_id,doc_instalasi,is_verified_instalasi,doc_uji_fungsi,is_verified_uji_fungsi,doc_pelatihan,is_verified_pelatihan'
             ]);
-
-        if($statusVerifikasi == 'uji-fungsi'){
-             $query->whereHas('pengiriman')
-            ->whereHas('ujiFungsi')
-            ->whereDoesntHave('document');
-        }else if($statusVerifikasi == 'documents'){
-             $query->whereHas('pengiriman')
-            ->whereHas('ujiFungsi')
-            ->whereHas('document');
-        }else{
-             $query->whereHas('pengiriman')
-            ->whereDoesntHave('ujiFungsi')
-            ->whereDoesntHave('document');
-        }
 
         if ($districtId) {
             $query->where('district_id', $districtId);
         } elseif ($regencyId) {
-            $query->whereHas('district.regency', function($q) use ($regencyId){
+            $query->whereHas('district.regency', function ($q) use ($regencyId) {
                 $q->where('id', $regencyId);
             });
         } elseif ($provinceId) {
-            $query->whereHas('district.regency.province', function($q) use ($provinceId){
+            $query->whereHas('district.regency.province', function ($q) use ($provinceId) {
                 $q->where('id', $provinceId);
             });
         }
 
+        $recordsTotal = (clone $query)->count();
 
-        $data = $query->orderBy('name')->get()->map(function($p){
+        $searchValue = $request->input('search.value');
+        if ($searchValue && strlen(trim($searchValue)) >= 2) { 
+            $searchValue = trim($searchValue);
+            $like = '%' . $searchValue . '%';
+            
+            $query->where(function ($searchQuery) use ($like) {
+                $searchQuery->where('name', 'like', $like)
+                    ->orWhereHas('district', function ($districtQuery) use ($like) {
+                        $districtQuery->where('name', 'like', $like)
+                            ->orWhereHas('regency', function ($regencyQuery) use ($like) {
+                                $regencyQuery->where('name', 'like', $like)
+                                    ->orWhereHas('province', function ($provinceQuery) use ($like) {
+                                        $provinceQuery->where('name', 'like', $like);
+                                    });
+                            });
+                    });
+            });
+        }
+
+        $recordsFiltered = (clone $query)->count();
+
+        $orderColumnIndex = (int) $request->input('order.0.column', 1);
+        $orderDirection = strtolower($request->input('order.0.dir', 'asc')) === 'desc' ? 'desc' : 'asc';
+
+        switch ($orderColumnIndex) {
+            case 1:
+                $query->orderBy('name', $orderDirection);
+                break;
+            case 5:
+                $query->orderBy(
+                    Pengiriman::select('tgl_pengiriman')
+                        ->whereColumn('pengiriman.puskesmas_id', 'puskesmas.id')
+                        ->limit(1),
+                    $orderDirection
+                );
+                break;
+            default:
+                $query->orderBy('name', 'asc');
+                break;
+        }
+
+        if ($length !== -1) {
+            $query->skip($start)->take($length > 0 ? $length : 25);
+        }
+
+        $data = $query->get()->map(function (Puskesmas $puskesmas) {
+            $pengiriman = $puskesmas->pengiriman;
+            $document = $puskesmas->document;
+            $ujiFungsi = $puskesmas->ujiFungsi;
+            $tglPengiriman = $pengiriman && $pengiriman->tgl_pengiriman
+                ? $pengiriman->tgl_pengiriman->format('d-m-Y')
+                : null;
+
+            // Collect documents that need verification
+            $pendingDocs = [];
+            
+            if ($document) {
+                if (!(bool)$document->is_verified_kalibrasi && $document->kalibrasi != null) {
+                    $pendingDocs[] = 'Kalibrasi';
+                }
+                if (!(bool)$document->is_verified_bast && $document->bast != null) {
+                    $pendingDocs[] = 'BAST';
+                }
+                if (!(bool)$document->is_verified_aspak && $document->aspak != null) {
+                    $pendingDocs[] = 'ASPAK';
+                }
+                if (!(bool)$document->is_verified_basto && $document->basto != null) {
+                    $pendingDocs[] = 'BASTO';
+                }
+            }
+            
+            if ($ujiFungsi) {
+                if (!(bool)$ujiFungsi->is_verified_instalasi && $ujiFungsi->doc_instalasi != null) {
+                    $pendingDocs[] = 'Instalasi';
+                }
+                if (!(bool)$ujiFungsi->is_verified_uji_fungsi && $ujiFungsi->doc_uji_fungsi != null) {
+                    $pendingDocs[] = 'Uji Fungsi';
+                }
+                if (!(bool)$ujiFungsi->is_verified_pelatihan && $ujiFungsi->doc_pelatihan != null) {
+                    $pendingDocs[] = 'Pelatihan';
+                }
+            }
+
             return [
-                'id' => $p->id,
-                'name' => $p->name,
-                'province' => $p->district->regency->province->name ?? '-',
-                'regency' => $p->district->regency->name ?? '-',
-                'district' => $p->district->name ?? '-',
-                'tgl_pengiriman' => ($p->pengiriman && $p->pengiriman->tgl_pengiriman) ? $p->pengiriman->tgl_pengiriman->format('d-m-Y') : null,
-                'verif_kemenkes' => (bool) ($p->pengiriman->verif_kemenkes ?? false),
+                'id' => $puskesmas->id,
+                'name' => $puskesmas->name,
+                'province' => optional(optional(optional($puskesmas->district)->regency)->province)->name ?? '-',
+                'regency' => optional(optional($puskesmas->district)->regency)->name ?? '-',
+                'district' => optional($puskesmas->district)->name ?? '-',
+                'tgl_pengiriman' => $tglPengiriman,
+                'verif_kalibrasi' => $document ? (!(bool)$document->is_verified_kalibrasi && $document->kalibrasi != null) : false,
+                'verif_bast' => $document ? (!(bool)$document->is_verified_bast && $document->bast != null) : false,
+                'verif_instalasi' => $ujiFungsi ? (!(bool)$ujiFungsi->is_verified_instalasi && $ujiFungsi->doc_instalasi != null) : false,
+                'verif_uji_fungsi' => $ujiFungsi ? (!(bool)$ujiFungsi->is_verified_uji_fungsi && $ujiFungsi->doc_uji_fungsi != null) : false,
+                'verif_pelatihan_alat' => $ujiFungsi ? (!(bool)$ujiFungsi->is_verified_pelatihan && $ujiFungsi->doc_pelatihan != null) : false,
+                'verif_aspak' => $document ? (!(bool)$document->is_verified_aspak && $document->aspak != null) : false,
+                'verif_basto' => $document ? (!(bool)$document->is_verified_basto && $document->basto != null) : false,
+                'pending_docs' => $pendingDocs,
+                'pending_count' => count($pendingDocs),
+                'has_pending_verification' => count($pendingDocs) > 0
             ];
-        });
+        })->filter(function ($item) use ($statusVerificationFilter) {
+            // Only show Puskesmas that have documents ready for verification
+            if (!$item['has_pending_verification']) {
+                return false;
+            }
+            
+            // Apply status filter if specified
+            if ($statusVerificationFilter) {
+                $filters = explode(',', $statusVerificationFilter);
+                $matchesFilter = false;
+                
+                foreach ($filters as $filter) {
+                    $filter = trim($filter);
+                    switch ($filter) {
+                        case 'has_kalibrasi':
+                            if ($item['verif_kalibrasi']) $matchesFilter = true;
+                            break;
+                        case 'has_bast':
+                            if ($item['verif_bast']) $matchesFilter = true;
+                            break;
+                        case 'has_instalasi':
+                            if ($item['verif_instalasi']) $matchesFilter = true;
+                            break;
+                        case 'has_uji_fungsi':
+                            if ($item['verif_uji_fungsi']) $matchesFilter = true;
+                            break;
+                        case 'has_pelatihan':
+                            if ($item['verif_pelatihan_alat']) $matchesFilter = true;
+                            break;
+                        case 'has_aspak':
+                            if ($item['verif_aspak']) $matchesFilter = true;
+                            break;
+                        case 'has_basto':
+                            if ($item['verif_basto']) $matchesFilter = true;
+                            break;
+                        case 'count_1':
+                            if ($item['pending_count'] == 1) $matchesFilter = true;
+                            break;
+                        case 'count_2':
+                            if ($item['pending_count'] == 2) $matchesFilter = true;
+                            break;
+                        case 'count_3_plus':
+                            if ($item['pending_count'] >= 3) $matchesFilter = true;
+                            break;
+                    }
+                }
+                
+                return $matchesFilter;
+            }
+            
+            return true;
+        })->values();
+
+        // Update recordsFiltered to reflect the actual filtered count
+        $actualFilteredCount = count($data);
 
         return response()->json([
-            'success' => true,
-            'count' => $data->count(),
+            'draw' => $draw,
+            'recordsTotal' => $recordsTotal,
+            'recordsFiltered' => $actualFilteredCount,
             'data' => $data,
         ]);
     }
-
     /**
      * Show detail page for a specific Puskesmas.
      */

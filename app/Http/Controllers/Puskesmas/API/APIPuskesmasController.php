@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Mail\EmailVerificationMail;
 use App\Models\Pengiriman;
 use App\Models\Puskesmas;
+use App\Models\PuskesmasEmailVerification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
@@ -426,5 +427,10 @@ class APIPuskesmasController extends Controller
             ], 500);
         }
     }
-}
 
+    /**
+     * Check if email is available for use
+     */
+    
+
+}
