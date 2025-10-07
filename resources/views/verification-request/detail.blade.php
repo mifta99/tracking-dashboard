@@ -21,6 +21,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <!-- SweetAlert2 CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css">
     <style>
         .table-kv td{padding:.35rem .25rem;vertical-align:top;font-size:.875rem;}
         .table-kv td:first-child{font-weight:600;width:230px;color:#212529;}
@@ -39,7 +41,7 @@
         .shipment-status-flow .sf-step.done:not(:last-child):after,
         .shipment-status-flow .sf-step.active:not(:last-child):after{background:#28a745;}
         .shipment-status-flow .sf-step.final.done .sf-circle{box-shadow:0 0 0 4px #fff inset,0 0 0 4px #28a745,0 2px 8px rgba(0,0,0,.3);}
-        
+
         /* Verification Status Indicators */
         .shipment-status-flow .sf-step .verification-indicator {
             position: absolute;
@@ -55,7 +57,7 @@
             border: 2px solid #fff;
             z-index: 3;
         }
-        
+
         /* Verified Steps - Blue ring and blue indicator */
         .shipment-status-flow .sf-step.verified-step .sf-circle {
             box-shadow: 0 0 0 4px #fff inset, 0 0 0 6px #007bff, 0 2px 8px rgba(0,0,0,.2);
@@ -64,7 +66,7 @@
             background: #007bff;
             color: white;
         }
-        
+
         /* Revision Steps - Red ring and warning indicator */
         .shipment-status-flow .sf-step.revision-step .sf-circle {
             box-shadow: 0 0 0 4px #fff inset, 0 0 0 6px #dc3545, 0 2px 8px rgba(0,0,0,.2);
@@ -73,7 +75,7 @@
             background: #dc3545;
             color: white;
         }
-        
+
         /* Pending Verification Steps - Orange ring and clock indicator */
         .shipment-status-flow .sf-step.pending-verification .sf-circle {
             box-shadow: 0 0 0 4px #fff inset, 0 0 0 6px #ffc107, 0 2px 8px rgba(0,0,0,.2);
@@ -82,7 +84,7 @@
             background: #ffc107;
             color: #333;
         }
-        
+
         /* Active and Done states with verification override */
         .shipment-status-flow .sf-step.active.verified-step .sf-circle,
         .shipment-status-flow .sf-step.done.verified-step .sf-circle {
@@ -90,27 +92,27 @@
             color: #fff;
             box-shadow: 0 0 0 4px #fff inset, 0 0 0 6px #007bff, 0 2px 8px rgba(0,0,0,.3);
         }
-        
+
         .shipment-status-flow .sf-step.active.verified-step .verification-indicator,
         .shipment-status-flow .sf-step.done.verified-step .verification-indicator {
             background: #007bff;
             color: white;
         }
-        
+
         .shipment-status-flow .sf-step.active.revision-step .sf-circle,
         .shipment-status-flow .sf-step.done.revision-step .sf-circle {
             background: #28a745;
             color: #fff;
             box-shadow: 0 0 0 4px #fff inset, 0 0 0 6px #dc3545, 0 2px 8px rgba(0,0,0,.3);
         }
-        
+
         .shipment-status-flow .sf-step.active.pending-verification .sf-circle,
         .shipment-status-flow .sf-step.done.pending-verification .sf-circle {
             background: #28a745;
             color: #fff;
             box-shadow: 0 0 0 4px #fff inset, 0 0 0 6px #ffc107, 0 2px 8px rgba(0,0,0,.3);
         }
-        
+
         /* Verification Legend */
         .verification-legend {
             display: flex;
@@ -121,7 +123,7 @@
             border-radius: 6px;
             border-left: 4px solid #007bff;
         }
-        
+
         .legend-indicator {
             display: inline-block;
             width: 12px;
@@ -131,19 +133,19 @@
             border: 2px solid #fff;
             box-shadow: 0 0 0 1px rgba(0,0,0,0.1);
         }
-        
+
         .legend-indicator.verified-legend {
             background: #007bff;
         }
-        
+
         .legend-indicator.revision-legend {
             background: #dc3545;
         }
-        
+
         .legend-indicator.pending-legend {
             background: #ffc107;
         }
-        
+
         @media (max-width:640px){
             .shipment-status-flow{flex-direction:column;align-items:stretch;}
             .shipment-status-flow .sf-step{padding:0 0 1.2rem 2.7rem;text-align:left;}
@@ -185,6 +187,52 @@
         /* Ensure consistent header height even when buttons are not present */
         .card-header.d-flex.align-items-center {
             min-height: 46px; /* Minimum height to accommodate button size */
+        }
+
+        /* DataTable styling to match daftar-revisi */
+        #keluhanTable {
+            font-size: 0.875rem;
+        }
+
+        #keluhanTable thead th {
+            font-size: 11pt;
+            font-weight: 600;
+            background-color: #f8f9fa;
+            border-color: #dee2e6;
+        }
+
+        #keluhanTable tbody td {
+            font-size: 10pt;
+            vertical-align: middle;
+        }
+
+        .btn-action {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        /* File preview styling */
+        .file-preview-item {
+            transition: transform 0.2s;
+        }
+
+        .file-preview-item:hover {
+            transform: translateY(-2px);
+        }
+
+        .required {
+            font-weight: 600;
+        }
+
+        /* Modal styling adjustments */
+        #addIssueModal .modal-header {
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+
+        #addIssueModal .alert-info {
+            background-color: #e3f2fd;
+            border-color: #2196f3;
+            color: #1565c0;
         }
     </style>
 @endsection
@@ -291,11 +339,11 @@
                             } elseif($i == $currentStep) {
                                 $cls = ($currentStep == count($stepMeta)) ? 'done final' : 'active';
                             }
-                            
+
                             // Add verification status classes - only for active or completed steps
                             $verificationCls = '';
                             $showVerificationIndicator = false;
-                            
+
                             // Only show verification status if step is active or completed
                             if($i <= $currentStep && $meta['verification_status'] != 'none') {
                                 switch($meta['verification_status']) {
@@ -314,8 +362,8 @@
                                 }
                             }
                         @endphp
-                        <div class="sf-step {{ $cls }} {{ $verificationCls }} {{ $i == count($stepMeta) ? 'final' : '' }}" 
-                             data-step="{{ $i }}" 
+                        <div class="sf-step {{ $cls }} {{ $verificationCls }} {{ $i == count($stepMeta) ? 'final' : '' }}"
+                             data-step="{{ $i }}"
                              data-verification="{{ $meta['verification_status'] }}"
                              title="{{ $meta['label'] }}{{ $showVerificationIndicator ? ' - ' . ucfirst($meta['verification_status']) : '' }}">
                             <div class="sf-circle">
@@ -1016,7 +1064,7 @@
     @if(!empty($peng->resi))
     <div class="card shadow-sm mb-4" id="trackingCard" data-initial-do="{{ $peng->resi }}">
         <div class="card-header py-2 pr-1 bg-info text-white d-flex align-items-center">
-            <span class="section-title-bar">Delivery Progress Tracking</span>
+            <span class="section-title-bar">Pelacakan Pengiriman</span>
             <button class="btn btn-sm btn-info ml-auto" id="btn-refresh-tracking"><i class="fas fa-sync"></i> Refresh</button>
         </div>
         <div class="card-body p-3">
@@ -1055,35 +1103,129 @@
     </div>
     @endif
 
-    <!-- Equipment Issue -->
+    <!-- Equipment Issue - Only show if tahapan_id is greater than 2 -->
+    @if($peng && $peng->tahapan_id && $peng->tahapan_id > 2)
     <div class="card shadow-sm mb-4">
         <div class="card-header py-2 pr-1 bg-danger text-white d-flex align-items-center">
             <span class="section-title-bar">Pelaporan Keluhan</span>
+            @if(auth()->user() && auth()->user()->role->role_name == 'puskesmas')
+            <button class="btn btn-sm btn-danger ml-auto" data-toggle="modal" data-target="#addIssueModal"><i class="fas fa-edit"></i> Laporkan Keluhan Baru</button>
+            @endif
         </div>
         <div class="card-body p-3">
             <div class="table-responsive">
-                <table class="table table-sm table-striped table-bordered mb-0">
-                    <thead class="thead-light">
+                <table class="table table-bordered table-striped table-sm" id="keluhanTable">
+                    <thead>
                         <tr>
-                            <th>Reported Date</th>
-                            <th>Reported Issue</th>
-                            <th>Downtime Category</th>
-                            <th>Resolved Date</th>
-                            <th>Status</th>
-                            <th>Action</th>
+                            <th style="font-size: 11pt;">No.</th>
+                            <th style="font-size: 11pt;">Tanggal Dilaporkan</th>
+                            <th style="font-size: 11pt;">Keluhan</th>
+                            <th style="font-size: 11pt;">Kategori Keluhan</th>
+                            <th style="font-size: 11pt;">Jumlah Downtime</th>
+                            <th style="font-size: 11pt;">Tanggal Selesai</th>
+                            <th style="font-size: 11pt;">Status</th>
+                            <th class="text-center" style="font-size: 11pt;">Actions</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr>
-                            <td colspan="6" class="text-center text-muted py-4">
-                                <i class="fas fa-info-circle"></i> No equipment issues reported yet
-                            </td>
-                        </tr>
+                    <tbody style="font-size: 10pt;">
+                        <!-- Data will be populated here via AJAX -->
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
+
+     <!-- Modal Tambah Keluhan -->
+    <div class="modal fade" id="addIssueModal" tabindex="-1" role="dialog" aria-labelledby="addIssueModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="addIssueModalLabel">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                        Tambah Keluhan Baru
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form id="addIssueForm" method="POST" action="{{ route('raised-issue.store') }}" enctype="multipart/form-data">
+                    <div class="modal-body">
+                        @csrf
+
+                        <div class="alert alert-info mb-4">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            <strong>Petunjuk:</strong> Lengkapi form di bawah untuk melaporkan keluhan terkait alat kesehatan T-Piece yang diterima.
+                        </div>
+                        <div class="row">
+                            <!-- Subject Keluhan -->
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="issue_subject" class="required">Judul Keluhan <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="issue_subject" name="issue_subject"
+                                           placeholder="Masukkan judul / ringkasan keluhan"
+                                           maxlength="255" required>
+                                    <small class="form-text text-muted">Maksimal 255 karakter</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- Deskripsi Keluhan -->
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="issue_description" class="required">Deskripsi Detail Keluhan <span class="text-danger">*</span></label>
+                                    <textarea class="form-control" id="issue_description" name="issue_description"
+                                              rows="5" placeholder="Jelaskan keluhan secara detail" maxlength="1000" required></textarea>
+                                    <small class="form-text text-muted">
+                                        <span id="char-count">0</span>/1000 karakter
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+
+
+                        <div class="row">
+                            <!-- Bukti Dokumentasi -->
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label>Bukti Dokumentasi</label>
+
+                                    <!-- File input for multiple selection -->
+                                    <input type="file" id="file-input-multiple" class="form-control-file mb-2"
+                                           accept="image/jpeg,image/jpg,image/png" multiple>
+                                    <small class="form-text text-muted">
+                                        Maksimal 5 file, masing-masing 5MB (JPG, PNG)
+                                    </small>
+
+                                    <!-- Selected files list with previews -->
+                                    <div id="selected-files-container" style="display: none;">
+                                        <h6 class="mb-2">File Terpilih:</h6>
+                                        <div id="selected-files-list" class="row">
+                                            <!-- Files will be displayed here with previews -->
+                                        </div>
+                                    </div>
+
+                                    <!-- Hidden inputs to store file data for form submission -->
+                                    <div id="hidden-file-inputs"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                            <i class="fas fa-times mr-1"></i> Batal
+                        </button>
+                        <button type="submit" class="btn btn-danger" id="submitBtn">
+                            <i class="fas fa-paper-plane mr-1"></i> Kirim Keluhan
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    @endif
 
     <!-- Incident Management -->
     <div class="card shadow-sm mb-4">
@@ -1157,7 +1299,7 @@
                                 <input type="date" class="form-control form-control-sm" name="tgl_pengiriman" value="{{ optional($peng->tgl_pengiriman)->format('Y-m-d') }}">
                             </div>
                             <div class="form-group col-md-2">
-                                <label class="small mb-1">ETA (Hari)</label>
+                                <label class="small mb-1">ETA</label>
                                 <input type="date" class="form-control form-control-sm" name="eta" value="{{ optional($peng->eta)->format('Y-m-d') }}">
                             </div>
                             <div class="form-group col-md-3">
@@ -2383,5 +2525,436 @@ $(function() {
         $('#revisiForm')[0].reset();
     });
 });
+</script>
+
+<!-- DataTables JS -->
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    // Initialize Keluhan DataTable only if the table exists (tahapan_id > 2)
+    if ($('#keluhanTable').length > 0) {
+        $('#keluhanTable').DataTable({
+            processing: true,
+            serverSide: false,
+            responsive: true,
+            pageLength: 10,
+            lengthMenu: [[5, 10, 25, 50], [5, 10, 25, 50]],
+            order: [[1, 'desc']], // Sort by date descending
+            language: {
+                processing: "Memuat data...",
+                search: "Cari:",
+                lengthMenu: "Tampilkan _MENU_ data per halaman",
+                info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+                infoEmpty: "Menampilkan 0 sampai 0 dari 0 data",
+                infoFiltered: "(difilter dari _MAX_ total data)",
+                paginate: {
+                    first: "Pertama",
+                    last: "Terakhir",
+                    next: "Selanjutnya",
+                    previous: "Sebelumnya"
+                },
+                emptyTable: "Tidak ada data keluhan yang tersedia",
+                zeroRecords: "Tidak ada data yang cocok"
+            },
+            columns: [
+                { data: null, orderable: false, searchable: false, width: '5%' },
+                { data: 'tanggal_dilaporkan', name: 'tanggal_dilaporkan', width: '12%' },
+                { data: 'keluhan', name: 'keluhan', width: '30%' },
+                { data: 'kategori_keluhan', name: 'kategori_keluhan', width: '15%' },
+                { data: 'jumlah_downtime', name: 'jumlah_downtime', width: '12%' },
+                { data: 'tanggal_selesai', name: 'tanggal_selesai', width: '12%' },
+                { data: 'status', name: 'status', width: '10%' },
+                { data: 'actions', name: 'actions', orderable: false, searchable: false, width: '8%' }
+            ],
+            columnDefs: [
+                {
+                    targets: 0,
+                    render: function (data, type, row, meta) {
+                        return meta.row + meta.settings._iDisplayStart + 1;
+                    }
+                },
+                {
+                    targets: 2, // Keluhan column
+                    render: function (data, type, row) {
+                        if (data && data.length > 100) {
+                            return `<div style="max-width:300px; white-space:normal;">${data.substring(0, 100)}...</div>`;
+                        }
+                        return `<div style="max-width:300px; white-space:normal;">${data || '-'}</div>`;
+                    }
+                },
+                {
+                    targets: 3, // Status column
+                    render: function (data, type, row) {
+                        let badgeClass = 'badge-secondary';
+                        const statusLower = (data || '').toLowerCase();
+
+                        switch (statusLower) {
+                            case 'rendah':
+                                badgeClass = 'badge-warning';
+                                break;
+                            case 'sedang':
+                                badgeClass = 'badge-info';
+                                break;
+                            case 'kritis':
+                                badgeClass = 'badge-danger';
+                                break;
+                        }
+
+                        return `<span class="badge ${badgeClass}">${data || '-'}</span>`;
+                    }
+                },
+                {
+                    targets: 6, // Status column
+                    render: function (data, type, row) {
+                        let badgeClass = 'badge-secondary';
+                        const statusLower = (data || '').toLowerCase();
+
+                        switch (statusLower) {
+                            case 'baru':
+                                badgeClass = 'badge-warning';
+                                break;
+                            case 'proses':
+                                badgeClass = 'badge-info';
+                                break;
+                            case 'selesai':
+                                badgeClass = 'badge-success';
+                                break;
+                        }
+
+                        return `<span class="badge ${badgeClass}">${data || '-'}</span>`;
+                    }
+                },
+                {
+                    targets: 7, // Actions
+                    render: function (data, type, row) {
+                        const detailUrl = '{{ route("raised-issue.detail", ":id") }}'.replace(':id', row.id);
+                        return `<div class="d-flex justify-content-center align-items-center">
+                                    <a href="${detailUrl}" class="text-secondary" title="Lihat Detail">
+                                        <i class="fas fa-search"></i>
+                                    </a>
+                                </div>`;
+                    }
+                }
+            ],
+            ajax: {
+                url: '{{ route('keluhan.fetch-data') }}',
+                type: 'GET',
+                data: {
+                    puskesmas_id: '{{ $puskesmas->id }}'
+                },
+                dataSrc: function(json) {
+                    if (json.success) {
+                        return json.data;
+                    } else {
+                        console.error('Error loading keluhan data:', json.message);
+                        return [];
+                    }
+                },
+                error: function(xhr, error, code) {
+                    console.error('AJAX Error:', error);
+                    toastr.error('Gagal memuat data keluhan');
+                }
+            }
+        });
+    }
+});
+
+
+
+// Global variables for file management
+let selectedFiles = [];
+
+// Keluhan Form Management
+$(document).ready(function() {
+    // Character counter for description
+    $('#issue_description').on('input', function() {
+        const current = $(this).val().length;
+        $('#char-count').text(current);
+
+        if (current > 1000) {
+            $('#char-count').addClass('text-danger');
+        } else {
+            $('#char-count').removeClass('text-danger');
+        }
+    });
+
+    // File input change handler
+    $('#file-input-multiple').on('change', function() {
+        const files = Array.from(this.files);
+
+        files.forEach(file => {
+            // Check if file already exists
+            if (selectedFiles.some(f => f.name === file.name && f.size === file.size)) {
+                toastr.warning(`File ${file.name} sudah dipilih`);
+                return;
+            }
+
+            // Check file size
+            if (file.size > 5120 * 1024) { // 5MB
+                toastr.warning(`File ${file.name} terlalu besar (maksimal 5MB)`);
+                return;
+            }
+
+            // Check total files
+            if (selectedFiles.length >= 5) {
+                toastr.warning('Maksimal 5 file yang dapat diunggah');
+                return;
+            }
+
+            // Add file to selected list
+            selectedFiles.push(file);
+        });
+
+        // Update display
+        updateFileDisplay();
+
+        // Don't clear the input so user can see what they selected
+    });
+
+    // Form submission
+    $('#addIssueForm').on('submit', function(e) {
+        e.preventDefault();
+        submitKeluhanForm();
+    });
+
+    // Reset form when modal closes
+    $('#addIssueModal').on('hidden.bs.modal', function() {
+        resetKeluhanForm();
+    });
+
+    // Function to update file display with image previews
+    function updateFileDisplay() {
+        const $container = $('#selected-files-container');
+        const $list = $('#selected-files-list');
+
+        if (selectedFiles.length === 0) {
+            $container.hide();
+            return;
+        }
+
+        $container.show();
+        $list.empty();
+
+        selectedFiles.forEach((file, index) => {
+            const $fileItem = $(`
+                <div class="col-md-3 col-sm-4 col-6 mb-3">
+                    <div class="card">
+                        <div class="card-img-top position-relative" style="height: 150px; overflow: hidden;">
+                            <div id="preview-${index}" class="w-100 h-100 d-flex align-items-center justify-content-center bg-light">
+                                <i class="fas fa-spinner fa-spin"></i>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-danger position-absolute remove-file-btn"
+                                    style="top: 5px; right: 5px; z-index: 10;" data-index="${index}">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="card-body p-2">
+                            <h6 class="card-title text-truncate mb-1" title="${file.name}">${file.name}</h6>
+                            <small class="text-muted">${formatFileSize(file.size)}</small>
+                        </div>
+                    </div>
+                </div>
+            `);
+            $list.append($fileItem);
+
+            // Create image preview
+            createImagePreview(file, index);
+        });
+
+        // Update hidden inputs
+        updateHiddenInputs();
+    }
+
+    // Function to create image preview
+    function createImagePreview(file, index) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const $preview = $(`#preview-${index}`);
+            $preview.html(`
+                <img src="${e.target.result}" class="img-fluid" style="width: 100%; height: 100%; object-fit: cover;" alt="Preview">
+            `);
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // Function to update hidden inputs for form submission
+    function updateHiddenInputs() {
+        const $container = $('#hidden-file-inputs');
+        $container.empty();
+
+        selectedFiles.forEach((file, index) => {
+            // Create a hidden file input for each selected file
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.name = 'documentation[]';
+            fileInput.style.display = 'none';
+
+            // Create a new FileList with just this file
+            const dt = new DataTransfer();
+            dt.items.add(file);
+            fileInput.files = dt.files;
+
+            $container.append(fileInput);
+        });
+    }
+
+    // Remove file event handler
+    $(document).on('click', '.remove-file-btn', function() {
+        const index = parseInt($(this).data('index'));
+        selectedFiles.splice(index, 1);
+        updateFileDisplay();
+
+        if (selectedFiles.length === 0) {
+            toastr.info('Semua file telah dihapus');
+        }
+    });
+});
+
+// Handle file preview
+function handleFilePreview(files) {
+    const $preview = $('#documentation-preview');
+    const $container = $('#preview-container');
+
+    // Always clear previous previews first
+    $container.empty();
+
+    if (files.length === 0) {
+        $preview.hide();
+        return;
+    }
+
+    if (files.length > 5) {
+        toastr.warning('Maksimal 5 file yang dapat diunggah');
+        $('#issue_documentation').val('');
+        $preview.hide();
+        return;
+    }
+
+    $preview.show();
+
+    let validFileCount = 0;
+
+    Array.from(files).forEach(function(file, index) {
+        if (file.size > 5120 * 1024) { // 5MB
+            toastr.warning(`File ${file.name} terlalu besar (maksimal 5MB)`);
+            return;
+        }
+
+        validFileCount++;
+
+        const $fileItem = $(`
+            <div class="file-preview-item mr-3 mb-2" style="max-width: 120px;">
+                <div class="border rounded p-2 text-center">
+                    <i class="fas ${getFileIcon(file.type)} fa-2x mb-1"></i>
+                    <small class="d-block text-truncate" title="${file.name}">${file.name}</small>
+                    <small class="text-muted">${formatFileSize(file.size)}</small>
+                </div>
+            </div>
+        `);
+
+        $container.append($fileItem);
+    });
+
+    // Show count of valid files
+    if (validFileCount > 0) {
+        const $countBadge = $(`<small class="text-muted ml-2">(${validFileCount} file${validFileCount > 1 ? 's' : ''})</small>`);
+        $container.append($countBadge);
+    }
+}
+
+// Get file icon based on type
+function getFileIcon(type) {
+    if (type.startsWith('image/')) return 'fa-image text-success';
+    if (type === 'application/pdf') return 'fa-file-pdf text-danger';
+    return 'fa-file text-secondary';
+}
+
+// Format file size
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+// Submit keluhan form
+function submitKeluhanForm() {
+    const $btn = $('#submitBtn');
+    const $form = $('#addIssueForm');
+
+    // Disable submit button
+    $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Mengirim...');
+
+    // Create FormData manually
+    const formData = new FormData();
+
+    // Add form fields
+    formData.append('_token', $('input[name="_token"]').val());
+    formData.append('issue_subject', $('#issue_subject').val());
+    formData.append('issue_description', $('#issue_description').val());
+
+    // Add selected files
+    selectedFiles.forEach((file, index) => {
+        formData.append('documentation[]', file);
+    });
+
+    $.ajax({
+        url: $form.attr('action'),
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(response) {
+            if (response.success) {
+                toastr.success(response.message);
+                $('#addIssueModal').modal('hide');
+
+                // Refresh the keluhan table if it exists
+                if ($('#keluhanTable').length && $.fn.DataTable.isDataTable('#keluhanTable')) {
+                    $('#keluhanTable').DataTable().ajax.reload();
+                }
+            } else {
+                toastr.error(response.message || 'Terjadi kesalahan');
+            }
+        },
+        error: function(xhr) {
+            let message = 'Terjadi kesalahan saat mengirim keluhan';
+
+            if (xhr.status === 422) {
+                const errors = xhr.responseJSON.errors;
+                if (errors) {
+                    message = Object.values(errors)[0][0];
+                }
+            }
+
+            toastr.error(message);
+        },
+        complete: function() {
+            // Re-enable submit button
+            $btn.prop('disabled', false).html('<i class="fas fa-paper-plane mr-1"></i> Kirim Keluhan');
+        }
+    });
+}
+
+// Reset keluhan form
+function resetKeluhanForm() {
+    $('#addIssueForm')[0].reset();
+    $('#char-count').text('0').removeClass('text-danger');
+
+    // Clear selected files
+    selectedFiles = [];
+    $('#selected-files-container').hide();
+    $('#hidden-file-inputs').empty();
+
+    // Clear file input
+    $('#file-input-multiple').val('');
+
+    // Clear old preview system
+    $('#documentation-preview').hide();
+    $('#preview-container').empty();
+}
 </script>
 @endsection

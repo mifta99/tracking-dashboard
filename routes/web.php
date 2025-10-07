@@ -1,5 +1,6 @@
 <?php
 
+use GuzzleHttp\Middleware;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -26,7 +27,6 @@ Route::get('/login', [App\Http\Controllers\Auth\LoginController::class, 'login']
 Route::post('/login', [App\Http\Controllers\Auth\LoginController::class, 'loginProcess'])->name('login.process');
 Route::post('/logout', [App\Http\Controllers\Auth\LoginController::class, 'logout'])->name('logout');
 
-Route::get('/reset-password', [App\Http\Controllers\Auth\LoginController::class, 'resetPassword'])->name('reset-password');
 // Profile management routes for puskesmas users
 Route::middleware(['auth', 'roles:1'])->prefix('puskesmas/profile')->name('puskesmas.profile.')->group(function () {
     Route::get('/', [App\Http\Controllers\PuskesmasProfileController::class, 'edit'])->name('edit');
@@ -34,7 +34,7 @@ Route::middleware(['auth', 'roles:1'])->prefix('puskesmas/profile')->name('puske
 });
 
 Route::middleware(['auth', 'roles:2,3'])->prefix('verification-request')->name('verification-request.')->group(function () {
-    Route::get('/api/fetch/', [App\Http\Controllers\VerificationRequest\VerificationRequestController::class, 'fetch'])->name('fetch');
+    Route::get('/api/fetch/{status?}', [App\Http\Controllers\VerificationRequest\VerificationRequestController::class, 'fetch'])->name('fetch');
     Route::get('/{status?}', [App\Http\Controllers\VerificationRequest\VerificationRequestController::class, 'index'])->name('index');
     Route::get('/detail/{id}', [App\Http\Controllers\VerificationRequest\VerificationRequestController::class, 'detail'])->name('detail');
 });
@@ -42,6 +42,11 @@ Route::middleware(['auth', 'roles:2,3'])->prefix('verification-request')->name('
 Route::middleware(['auth', 'roles:2,3'])->prefix('daftar-revisi')->name('daftar-revisi.')->group(function () {
     Route::get('/', [App\Http\Controllers\DaftarRevisiController::class, 'index'])->name('index');
     Route::get('/fetch-data', [App\Http\Controllers\DaftarRevisiController::class, 'fetchData'])->name('fetch-data');
+});
+
+Route::middleware(['auth'])->prefix('keluhan')->name('keluhan.')->group(function () {
+    Route::get('/fetch-data', [App\Http\Controllers\KeluhanController::class, 'fetchData'])->name('fetch-data');
+    Route::get('/master-data', [App\Http\Controllers\KeluhanController::class, 'getMasterData'])->name('master-data');
 });
 
 Route::middleware(['auth', 'roles:2,3'])->prefix('api-verification-request')->name('api-verification-request.')->group(function () {
@@ -77,10 +82,14 @@ Route::middleware(['auth', 'roles:2,3'])->prefix('api-verification-request')->na
         ->name('add-revision');
 });
 
-Route::middleware(['auth', 'roles:2,3'])->prefix('raised-issue')->name('raised-issue.')->group(function () {
-    Route::get('/', [App\Http\Controllers\RaisedIssue\RaisedIssueController::class, 'index'])->name('index');
-    Route::get('/detail/{id}', [App\Http\Controllers\RaisedIssue\RaisedIssueController::class, 'detail'])->name('detail');
-    Route::post('/store', [App\Http\Controllers\RaisedIssue\RaisedIssueController::class, 'store'])->name('store');
+Route::prefix('raised-issue')->name('raised-issue.')->group(function () {
+    Route::middleware(['auth', 'roles:1,2,3'])->group(function () {
+        Route::get('/detail/{id}', [App\Http\Controllers\RaisedIssue\RaisedIssueController::class, 'detail'])->name('detail');
+    });
+    Route::middleware(['auth', 'roles:2,3'])->group(function () {
+        Route::get('/', [App\Http\Controllers\RaisedIssue\RaisedIssueController::class, 'index'])->name('index');
+        Route::post('/store', [App\Http\Controllers\RaisedIssue\RaisedIssueController::class, 'store'])->name('store');
+    });
 });
 Route::middleware(['auth', 'roles:1,2,3'])->prefix('reported-incidents')->name('reported-incidents.')->group(function () {
     Route::get('/', function () {
@@ -111,8 +120,7 @@ Route::middleware(['auth', 'roles:2,3'])->get('/detail', function () {
     })->name('detail');
 
 Route::match(['get','post'], '/test-mail', [App\Http\Controllers\Puskesmas\API\APIPuskesmasController::class, 'testSmtp'])->name('testSmtp');
+Route::get('/test-view-email', function () {
+        return view('layouts.emailverification');
+    })->name('index');
 
-
-Route::middleware(['auth', 'roles:1,2,3'])->post('/email/verification', [App\Http\Controllers\PuskesmasProfileController::class, 'sendVerificationMail'])->name('verification.send');
-Route::middleware(['auth', 'roles:1,2,3'])->post('/email/verification/confirm', [App\Http\Controllers\PuskesmasProfileController::class, 'verifyEmailCode'])->name('verification.verify');
-Route::middleware(['auth', 'roles:1,2,3'])->post('/api/check-email', [App\Http\Controllers\PuskesmasProfileController::class, 'checkEmail'])->name('api.check-email');
