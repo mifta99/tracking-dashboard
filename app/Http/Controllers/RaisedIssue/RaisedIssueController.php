@@ -83,7 +83,7 @@ class RaisedIssueController extends Controller
     }
     public function detail($id)
     {
-        $keluhan = Keluhan::with(['puskesmas', 'kategoriKeluhan', 'statusKeluhan', 'reporter'])->find($id);
+        $keluhan = Keluhan::with(['puskesmas', 'kategoriKeluhan', 'statusKeluhan', 'reporter', 'dokumentasiKeluhan'])->find($id);
         if (!$keluhan) {
             return redirect()->route('raised-issue.index')->with('error', 'Keluhan tidak ditemukan.');
         }

@@ -2629,8 +2629,9 @@ $(document).ready(function() {
                 {
                     targets: 7, // Actions
                     render: function (data, type, row) {
+                        const detailUrl = '{{ route("raised-issue.detail", ":id") }}'.replace(':id', row.id);
                         return `<div class="d-flex justify-content-center align-items-center">
-                                    <a href="#" class="text-secondary" title="Lihat Detail" onclick="viewKeluhanDetail(${row.id})">
+                                    <a href="${detailUrl}" class="text-secondary" title="Lihat Detail">
                                         <i class="fas fa-search"></i>
                                     </a>
                                 </div>`;
@@ -2660,11 +2661,7 @@ $(document).ready(function() {
     }
 });
 
-// Function to view keluhan detail (placeholder)
-function viewKeluhanDetail(id) {
-    // Placeholder for detail view functionality
-    toastr.info('Detail keluhan akan segera tersedia');
-}
+
 
 // Global variables for file management
 let selectedFiles = [];
