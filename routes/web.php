@@ -94,10 +94,17 @@ Route::prefix('raised-issue')->name('raised-issue.')->group(function () {
     });
 });
 Route::middleware(['auth', 'roles:1,2,3'])->prefix('reported-incidents')->name('reported-incidents.')->group(function () {
-    Route::get('/', function () {
-        return view('reported-incidents.index');
-    })->name('index');
+   Route::get('/', [App\Http\Controllers\Incident\IncidentController::class, 'index'])->name('index');
+    Route::post('/store', [App\Http\Controllers\Incident\IncidentController::class, 'store'])->name('store');
     Route::get('/detail/{id?}', [App\Http\Controllers\Incident\IncidentController::class, 'detail'])->name('detail');
+    Route::patch('/{id}/update', [App\Http\Controllers\Incident\IncidentController::class, 'update'])->name('update');
+});
+
+// API Routes for dropdown data
+Route::middleware(['auth'])->prefix('api')->name('api.')->group(function () {
+    Route::get('/kategori-insiden', [App\Http\Controllers\Incident\IncidentController::class, 'getKategoriInsiden'])->name('kategori-insiden');
+    Route::get('/tahapan', [App\Http\Controllers\Incident\IncidentController::class, 'getTahapan'])->name('tahapan');
+    Route::get('/status-insiden', [App\Http\Controllers\Incident\IncidentController::class, 'getStatusInsiden'])->name('status-insiden');
 });
 Route::middleware(['auth', 'roles:2,3'])->prefix('import-data')->name('import-data.')->group(function () {
     Route::get('/', [App\Http\Controllers\ImportData\ImportDataController::class, 'index'])->name('index');

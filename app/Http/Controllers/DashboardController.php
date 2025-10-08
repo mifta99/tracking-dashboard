@@ -30,7 +30,29 @@ class DashboardController extends Controller
         foreach (Tahapan::all() as $tahapan) {
             $dataStatus[$tahapan->tahapan] = Pengiriman::where('tahapan_id', $tahapan->id)->count();
         }
+        $countDataProvince = Puskesmas::query()
+            ->join('districts', 'districts.id', '=', 'puskesmas.district_id')
+            ->join('regencies', 'regencies.id', '=', 'districts.regency_id')
+            ->join('provinces', 'provinces.id', '=', 'regencies.province_id')
+            ->distinct()
+            ->count('provinces.id');
+
+        $countRegency = Puskesmas::query()
+        ->join('districts', 'districts.id', '=', 'puskesmas.district_id')
+        ->join('regencies', 'regencies.id', '=', 'districts.regency_id')
+        ->join('provinces', 'provinces.id', '=', 'regencies.province_id')
+        ->distinct()
+        ->count('regencies.id');
+
+        $countDistrict = Puskesmas::query()
+        ->join('districts', 'districts.id', '=', 'puskesmas.district_id')
+        ->join('regencies', 'regencies.id', '=', 'districts.regency_id')
+        ->join('provinces', 'provinces.id', '=', 'regencies.province_id')
+        ->distinct()
+        ->count('districts.id');
+
+
         $tahapan = Tahapan::all();
-        return view('dashboard', ['countPuskesmas' => $dataPuskesmasCount, 'dataStatus' => $dataStatus, 'tahapan' => $tahapan]);
+        return view('dashboard', ['countPuskesmas' => $dataPuskesmasCount, 'dataStatus' => $dataStatus, 'tahapan' => $tahapan , 'countDataProvince' => $countDataProvince, 'countRegency' => $countRegency, 'countDistrict' => $countDistrict]);
     }
 }
