@@ -39,14 +39,13 @@
                         <label class="small font-weight-bold mb-1">Status</label>
                         <select id="filter-status" class="form-control form-control-sm">
                             <option value="">Semua</option>
-                            <option value="1">Open</option>
-                            <option value="2">Progress</option>
-                            <option value="3">Closed</option>
                         </select>
                     </div>
                     <div class="form-group col-md-2 mb-2">
-                        <label class="small font-weight-bold mb-1">Tanggal</label>
-                        <input type="month" id="filter-month" class="form-control form-control-sm" />
+                        <label class="small font-weight-bold mb-1">Kategori Keluhan</label>
+                        <select id="filter-kategori" class="form-control form-control-sm">
+                            <option value="">Semua</option>
+                        </select>
                     </div>
                     <div class="form-group col-md-2 mb-2 d-flex align-items-end">
                         <button id="btn-reset-filter" class="btn btn-secondary btn-sm btn-block"><i class="fas fa-undo mr-1"></i>Reset</button>
@@ -313,7 +312,31 @@
                 });
             }
 
+            // Load master data for kategori and status filters
+            const masterDataUrl = '{{ route('keluhan.master-data') }}';
+            
+            function loadMasterData(){
+                $.get(masterDataUrl).done(r=>{
+                    if(r.success){
+                        // Load status options
+                        const $status = $('#filter-status');
+                        r.data.statuses.forEach(status => {
+                            $status.append(`<option value="${status.status}">${status.status}</option>`);
+                        });
+                        
+                        // Load kategori options
+                        const $kategori = $('#filter-kategori');
+                        r.data.kategoris.forEach(kategori => {
+                            $kategori.append(`<option value="${kategori.kategori}">${kategori.kategori}</option>`);
+                        });
+                    }
+                }).fail(function() {
+                    console.log('Failed to load master data for filters');
+                });
+            }
+
             loadProvinces();
+            loadMasterData();
 
             // Filter handlers
             $('#filter-province').on('change', function(){
@@ -326,7 +349,7 @@
                 loadDistricts(selected);
                 table.draw();
             });
-            $('#filter-district, #filter-status, #filter-month').on('change keyup', function(){
+            $('#filter-district, #filter-status, #filter-kategori').on('change keyup', function(){
                 table.draw();
             });
             $('#btn-reset-filter').on('click', function(e){
@@ -335,7 +358,7 @@
                 $('#filter-regency').html('<option value="">Semua</option>').prop('disabled', true);
                 $('#filter-district').html('<option value="">Semua</option>').prop('disabled', true);
                 $('#filter-status').val('');
-                $('#filter-month').val('');
+                $('#filter-kategori').val('');
                 table.draw();
             });
 
@@ -346,23 +369,20 @@
                 const regency = $('#filter-regency').val();
                 const district = $('#filter-district').val();
                 const status = $('#filter-status').val();
-                const month = $('#filter-month').val(); // format YYYY-MM
+                const kategori = $('#filter-kategori').val();
 
-                // Data columns mapping (after hiding region columns they still exist)
+                // Data columns mapping
                 const rowProvince = data[1];
                 const rowRegency = data[2];
                 const rowDistrict = data[3];
-                const rowStatusHtml = data[8];
-                // Extract status id from original DOM row attribute if needed
-                const rowNode = table.row(dataIndex).node();
-                const rowStatusId = $(rowNode).data('status') ? String($(rowNode).data('status')) : '';
-                const dateCell = $(rowNode).find('td[data-date]').data('date'); // YYYY-MM
+                const rowStatus = data[9]; // Status column
+                const rowKategori = data[7]; // Kategori column
 
                 if(province && rowProvince !== province) return false;
                 if(regency && rowRegency !== regency) return false;
                 if(district && rowDistrict !== district) return false;
-                if(status && rowStatusId !== status) return false;
-                if(month && dateCell !== month) return false;
+                if(status && rowStatus.toLowerCase() !== status.toLowerCase()) return false;
+                if(kategori && rowKategori.toLowerCase() !== kategori.toLowerCase()) return false;
                 return true;
             });
 
