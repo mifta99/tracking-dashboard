@@ -11,7 +11,7 @@ class Insiden extends Model
 {
     use HasFactory, SoftDeletes;
     protected $primaryKey = 'id';
-
+    protected $table = 'insiden';
     /**
      * The attributes that are mass assignable.
      *

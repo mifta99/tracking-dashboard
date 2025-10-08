@@ -23,7 +23,7 @@
                     <div class="card" style="background-color: #17A2B8; height: 80px;">
                         <div class="card-body d-flex justify-content-between align-items-center position-relative h-100">
                             <div>
-                                <h4 class="text-white font-weight-bold mb-1">15</h4>
+                                <h4 class="text-white font-weight-bold mb-1">{{$countDataProvince}}</h4>
                                 <p class="text-white mb-0">Provinsi</p>
                             </div>
                             <div class=" position-absolute" style="color: #147483;font-size: 3rem; right: 15px; top: 50%; transform: translateY(-50%);">
@@ -36,7 +36,7 @@
                     <div class="card" style="background-color: #28A745; height: 80px;">
                         <div class="card-body d-flex justify-content-between align-items-center position-relative h-100">
                             <div>
-                                <h4 class="text-white font-weight-bold mb-1">{{ 53 }}</h4>
+                                <h4 class="text-white font-weight-bold mb-1">{{ $countRegency }}</h4>
                                 <p class="text-white mb-0">Kabupaten/Kota</p>
                             </div>
                             <div class=" position-absolute" style="color: #137a2b;font-size: 3rem; right: 15px; top: 50%; transform: translateY(-50%); ">
@@ -49,7 +49,7 @@
                     <div class="card" style="background-color: #FFC107; height: 80px;">
                         <div class="card-body d-flex justify-content-between align-items-center position-relative h-100">
                             <div>
-                                <h4 class="text-dark font-weight-bold mb-1">{{ 53 }}</h4>
+                                <h4 class="text-dark font-weight-bold mb-1">{{ $countDistrict}}</h4>
                                 <p class="text-dark mb-0">Kecamatan</p>
                             </div>
                             <div class=" position-absolute" style="color: #927418;font-size: 3rem; right: 15px; top: 50%; transform: translateY(-50%); ">
@@ -101,7 +101,7 @@
                 <div class="col-lg-6">
                     <div class="card card-collapsible monthly-chart-card">
                         <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
-                            <h3 class="card-title mb-0">Monthly Issue</h3>
+                            <h3 class="card-title mb-0">Keluhan Yang Terjadi pada 5 Bulan Terakhir</h3>
                             <div class="card-tools ml-auto">
                                 <button type="button" class="btn btn-tool text-white" data-card-widget="collapse">
                                     <i class="fas fa-minus"></i>
@@ -116,7 +116,7 @@
                 <div class="col-lg-6 mt-3 mt-lg-0">
                     <div class="card card-collapsible monthly-chart-card">
                         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                            <h3 class="card-title mb-0">Monthly Incident</h3>
+                            <h3 class="card-title mb-0">Insiden Yang Terjadi pada 5 Bulan Terakhir</h3>
                             <div class="card-tools ml-auto">
                                 <button type="button" class="btn btn-tool text-white" data-card-widget="collapse">
                                     <i class="fas fa-minus"></i>
@@ -531,6 +531,18 @@
         ];
         const trackingBarColors = ['#1d4ed8', '#0ea5e9', '#22c55e', '#eab308', '#ef4444', '#a855f7', '#f97316', '#64748b'];
         const trackingRawStatusData = @json($dataStatus);
+        console.log('trackingRawStatusData:', trackingRawStatusData);
+        // Randomize trackingRawStatusData values for demo purposes
+        (function () {
+            const currentValues = Object.values(trackingRawStatusData || {}).map(v => Number(v) || 0);
+            const maxExisting = currentValues.length ? Math.max(...currentValues) : 50;
+            const upperBound = Number.isFinite(maxExisting) && maxExisting > 0 ? maxExisting : 50;
+            const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+
+            trackingStatusOrder.forEach(item => {
+                trackingRawStatusData[item.key] = randInt(0, upperBound);
+            });
+        })();
         const trackingCategories = trackingStatusOrder.map(item => item.label);
         const trackingValues = trackingStatusOrder.map(item => Number(trackingRawStatusData[item.key] ?? 0));
 
@@ -941,7 +953,26 @@
                     name: seriesName,
                     type: 'bar',
                     data: seriesData,
-                    barWidth: flags.isTablet ? '40%' : '45%',
+                    barGap: '10%',
+                    barWidth: flags.isTablet ? '30%' : '35%',
+                    itemStyle: {
+                        borderRadius: [6, 6, 0, 0],
+                        color: barColor
+                    },
+                    label: {
+                        show: true,
+                        position: 'top',
+                        color: '#334155',
+                        fontWeight: 600,
+                        fontSize: flags.isSmall ? 10 : 12,
+                        formatter: ({ value }) => value
+                    }
+                },
+            {
+                    name: seriesName,
+                    type: 'bar',
+                    data: seriesData,
+                    barWidth: flags.isTablet ? '30%' : '35%',
                     itemStyle: {
                         borderRadius: [6, 6, 0, 0],
                         color: barColor
