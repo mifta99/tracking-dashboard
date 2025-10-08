@@ -62,13 +62,13 @@ class DaftarRevisiController extends Controller
                 'kecamatan' => $puskesmas->district->name ?? '-',
                 'nama_puskesmas' => $puskesmas->name,
                 'document_types' => $documentTypes->toArray(),
-                'revision_count' => $revisionGroup->count(),
+                'revision_count' => $documentTypes->count(),
                 'latest_created_at' => $firstRevision->created_at->translatedFormat('d M Y'),
                 'created_at_raw' => $firstRevision->created_at,
                 'sort_date' => $firstRevision->created_at->timestamp // For sorting purposes
             ];
         })->values();
-
+        
         return response()->json([
             'success' => true,
             'data' => $groupedRevisions
