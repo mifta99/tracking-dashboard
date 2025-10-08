@@ -242,7 +242,7 @@
                                 </div>
                                 <div class="form-group">
                                     <label for="proceed_date">Tanggal Diproses</label>
-                                    <input type="date" class="form-control" id="proceed_date" name="proceed_date" value="{{ optional($issue->proceed_date)->format('Y-m-d') }}">
+                                    <input type="date" class="form-control" id="proceed_date" name="proceed_date" value="{{ optional($issue->proceed_date)->translatedFormat('Y-m-d') }}">
                                 </div>
                                 <div class="form-group">
                                     <label for="resolved_by">Diselesaikan Oleh</label>
@@ -250,7 +250,7 @@
                                 </div>
                                 <div class="form-group">
                                     <label for="resolved_date">Tanggal Selesai</label>
-                                    <input type="date" class="form-control" id="resolved_date" name="resolved_date" value="{{ optional($issue->resolved_date)->format('Y-m-d') }}">
+                                    <input type="date" class="form-control" id="resolved_date" name="resolved_date" value="{{ optional($issue->resolved_date)->translatedFormat('Y-m-d') }}">
                                 </div>
                             </div>
                         </div>

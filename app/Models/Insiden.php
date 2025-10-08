@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Insiden extends Model
 {
@@ -28,6 +29,8 @@ class Insiden extends Model
         'bagian',
         'insiden',
         'kronologis',
+        'tindakan',
+        'tgl_selesai',
         'rencana_tindakan_koreksi',
         'pelaksana_tindakan_koreksi',
         'tgl_selesai_koreksi',
@@ -55,6 +58,7 @@ class Insiden extends Model
         'status_id' => 'integer',
         'kategori_id' => 'integer',
         'tgl_kejadian' => 'date',
+        'tgl_selesai' => 'date',
         'tgl_selesai_koreksi' => 'date',
         'verifikasi_tgl_koreksi' => 'date',
         'tgl_selesai_korektif' => 'date',
@@ -110,6 +114,16 @@ class Insiden extends Model
     public function reporter(): BelongsTo
     {
         return $this->belongsTo(User::class, 'reported_by', 'id');
+    }
+
+    /**
+     * Get all of the dokumentasiInsiden for the Insiden
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function dokumentasiInsiden(): HasMany
+    {
+        return $this->hasMany(DokumentasiInsiden::class, 'insiden_id', 'id');
     }
 
 }

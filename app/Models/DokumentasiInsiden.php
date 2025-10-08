@@ -4,13 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class StatusInsiden extends Model
+class DokumentasiInsiden extends Model
 {
     use HasFactory;
     protected $primaryKey = 'id';
-    protected $table = 'status_insiden';
+    protected $table = 'dokumentasi_insidens';
 
     /**
      * The attributes that are mass assignable.
@@ -19,7 +19,8 @@ class StatusInsiden extends Model
      */
     protected $fillable = [
         'id',
-        'status',
+        'insiden_id',
+        'link_foto',
     ];
 
     /**
@@ -29,15 +30,16 @@ class StatusInsiden extends Model
      */
     protected $casts = [
         'id' => 'integer',
+        'insiden_id' => 'integer',
     ];
 
     /**
-     * Get all of the insiden for the StatusInsiden
+     * Get the insiden that owns the DokumentasiInsiden
      *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function insiden(): HasMany
+    public function insiden(): BelongsTo
     {
-        return $this->hasMany(Insiden::class, 'status_id', 'id');
+        return $this->belongsTo(Insiden::class, 'insiden_id', 'id');
     }
 }

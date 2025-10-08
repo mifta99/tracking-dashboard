@@ -76,7 +76,7 @@
                 <div class="col-12">
                     <div class="card card-collapsible tracking-summary-card">
                         <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
-                            <h3 class="card-title mb-0">Tracking Summary</h3>
+                            <h3 class="card-title mb-0">Ringkasan Tahapan Distribusi T-Piece</h3>
                             <div class="card-tools d-flex align-items-center ml-auto justify-content-between flex-wrap flex-md-nowrap">
                                 <div class="form-inline mr-2">
                                     <label for="trackingChartMode" class="mr-2 mb-0 text-white-50">Tampilan Chart:</label>
@@ -115,7 +115,7 @@
                 </div>
                 <div class="col-lg-6 mt-3 mt-lg-0">
                     <div class="card card-collapsible monthly-chart-card">
-                        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                        <div class="card-header bg-warning text-white d-flex justify-content-between align-items-center">
                             <h3 class="card-title mb-0">Insiden Yang Terjadi pada 5 Bulan Terakhir</h3>
                             <div class="card-tools ml-auto">
                                 <button type="button" class="btn btn-tool text-white" data-card-widget="collapse">
@@ -404,7 +404,7 @@
                     }
                 }
             ],
-            order: [[4, 'asc']]
+            order: [[1, 'asc']]
         });
 
         // Initial loads
@@ -531,33 +531,40 @@
         ];
         const trackingBarColors = ['#1d4ed8', '#0ea5e9', '#22c55e', '#eab308', '#ef4444', '#a855f7', '#f97316', '#64748b'];
         const trackingRawStatusData = @json($dataStatus);
-        console.log('trackingRawStatusData:', trackingRawStatusData);
-        // Randomize trackingRawStatusData values for demo purposes
-        (function () {
-            const currentValues = Object.values(trackingRawStatusData || {}).map(v => Number(v) || 0);
-            const maxExisting = currentValues.length ? Math.max(...currentValues) : 50;
-            const upperBound = Number.isFinite(maxExisting) && maxExisting > 0 ? maxExisting : 50;
-            const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
-
-            trackingStatusOrder.forEach(item => {
-                trackingRawStatusData[item.key] = randInt(0, upperBound);
-            });
-        })();
         const trackingCategories = trackingStatusOrder.map(item => item.label);
         const trackingValues = trackingStatusOrder.map(item => Number(trackingRawStatusData[item.key] ?? 0));
 
+        // Mock data toggle function
+        function generateMockData() {
+            return trackingCategories.map(() => Math.floor(Math.random() * 100) + 10);
+        }
+
+        function toggleMockData() {
+            // Replace trackingValues with mock data
+            const mockValues = generateMockData();
+            trackingValues.splice(0, trackingValues.length, ...mockValues);
+            renderTrackingChart(currentTrackingMode);
+        
+        }
+        $(document).ready(function() {
+            setTimeout(() => {
+                toggleMockData();
+            }, 100);
+        });
+
+        
         let trackingChartInstance = null;
         let currentTrackingMode = 'cascade';
 
         const monthLabels = getLastFiveMonths();
-        const issueData = [5, 9, 4, 11, 7];
-        const incidentData = [2, 3, 1, 4, 2];
+        const issueData = [[5, 9, 4, 11, 7], [6, 10, 5, 12, 8]];
+        const incidentData = [[2, 3, 1, 4, 2], [3, 4, 2, 5, 3]];
         let monthlyIssueChartInstance = null;
         let monthlyIncidentChartInstance = null;
 
         renderTrackingChart(currentTrackingMode);
-        monthlyIssueChartInstance = renderMonthlyBarChart('monthlyIssueChart', 'Keluhan', issueData, '#dc3545', monthlyIssueChartInstance);
-        monthlyIncidentChartInstance = renderMonthlyBarChart('monthlyIncidentChart', 'Insiden', incidentData, '#1d4ed8', monthlyIncidentChartInstance);
+        monthlyIssueChartInstance = renderMonthlyBarChart('monthlyIssueChart', ['Keluhan Dilaporkan', 'Keluhan Terselesaikan'], issueData, ['#E74C3C','#F1948A'], monthlyIssueChartInstance);
+        monthlyIncidentChartInstance = renderMonthlyBarChart('monthlyIncidentChart', ['Insiden Dilaporkan', 'Insiden Terselesaikan'], incidentData, ['#E67E22','#F5B041'], monthlyIncidentChartInstance);
 
         $('#trackingChartMode').on('change', function () {
             const selected = this.value || 'cascade';
@@ -570,16 +577,16 @@
             clearTimeout(resizeTimeout);
             resizeTimeout = setTimeout(function () {
                 renderTrackingChart(currentTrackingMode);
-                monthlyIssueChartInstance = renderMonthlyBarChart('monthlyIssueChart', 'Keluhan', issueData, '#dc3545', monthlyIssueChartInstance);
-                monthlyIncidentChartInstance = renderMonthlyBarChart('monthlyIncidentChart', 'Insiden', incidentData, '#1d4ed8', monthlyIncidentChartInstance);
+                monthlyIssueChartInstance = renderMonthlyBarChart('monthlyIssueChart', ['Keluhan Dilaporkan', 'Keluhan Terselesaikan'], issueData, ['#E74C3C','#F1948A'], monthlyIssueChartInstance);
+                monthlyIncidentChartInstance = renderMonthlyBarChart('monthlyIncidentChart', ['Insiden Dilaporkan', 'Insiden Terselesaikan'], incidentData, ['#E67E22','#F5B041'], monthlyIncidentChartInstance);
             }, 200);
         });
 
         $(document).on('expanded.lte.cardwidget collapsed.lte.cardwidget', function () {
             setTimeout(function () {
                 renderTrackingChart(currentTrackingMode);
-                monthlyIssueChartInstance = renderMonthlyBarChart('monthlyIssueChart', 'Keluhan', issueData, '#dc3545', monthlyIssueChartInstance);
-                monthlyIncidentChartInstance = renderMonthlyBarChart('monthlyIncidentChart', 'Insiden', incidentData, '#1d4ed8', monthlyIncidentChartInstance);
+                monthlyIssueChartInstance = renderMonthlyBarChart('monthlyIssueChart', ['Keluhan Dilaporkan', 'Keluhan Terselesaikan'], issueData, ['#E74C3C','#F1948A'], monthlyIssueChartInstance);
+                monthlyIncidentChartInstance = renderMonthlyBarChart('monthlyIncidentChart', ['Insiden Dilaporkan', 'Insiden Terselesaikan'], incidentData, ['#E67E22','#F5B041'], monthlyIncidentChartInstance);
             }, 220);
         });
 
@@ -949,15 +956,28 @@
                         fontSize: flags.isSmall ? 10 : 12
                     }
                 },
+                legend: {
+                    show: true,
+                    orient: 'horizontal',
+                    left: 'center',
+                    bottom: flags.isTablet ? 5 : 8,
+                    textStyle: {
+                        fontSize: flags.isSmall ? 10 : 12,
+                        color: '#475569'
+                    },
+                    itemWidth: flags.isSmall ? 12 : 14,
+                    itemHeight: flags.isSmall ? 8 : 10,
+                    itemGap: flags.isSmall ? 10 : 15
+                },
                 series: [{
-                    name: seriesName,
+                    name: seriesName[0],
                     type: 'bar',
-                    data: seriesData,
+                    data: seriesData[0],
                     barGap: '10%',
-                    barWidth: flags.isTablet ? '30%' : '35%',
+                    barWidth: '30%',
                     itemStyle: {
                         borderRadius: [6, 6, 0, 0],
-                        color: barColor
+                        color: barColor[0] || '#2563eb'
                     },
                     label: {
                         show: true,
@@ -969,13 +989,13 @@
                     }
                 },
             {
-                    name: seriesName,
+                    name: seriesName[1],
                     type: 'bar',
-                    data: seriesData,
-                    barWidth: flags.isTablet ? '30%' : '35%',
+                    data: seriesData[1],
+                    barWidth: '30%',
                     itemStyle: {
                         borderRadius: [6, 6, 0, 0],
-                        color: barColor
+                        color: barColor[1] || '#2563eb'
                     },
                     label: {
                         show: true,

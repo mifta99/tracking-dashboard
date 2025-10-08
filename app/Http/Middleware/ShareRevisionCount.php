@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\View;
 use App\Http\Controllers\DaftarRevisiController;
 use App\Http\Controllers\KeluhanController;
+use App\Http\Controllers\Incident\IncidentController;
 
 class ShareRevisionCount
 {
@@ -22,9 +23,11 @@ class ShareRevisionCount
         try {
             $revisionCount = DaftarRevisiController::getTotalRevisionCount();
             $complaintCount = KeluhanController::getTotalComplaintCount();
+            $incidentCount = IncidentController::getTotalIncidentCount();
             
             View::share('globalRevisionCount', $revisionCount);
             View::share('globalComplaintCount', $complaintCount);
+            View::share('globalIncidentCount', $incidentCount);
             
             // Also update the config for AdminLTE if possible
             if (config('adminlte.menu')) {
@@ -34,6 +37,8 @@ class ShareRevisionCount
                         $menuItem['label'] = $revisionCount;
                     } elseif (isset($menuItem['text']) && $menuItem['text'] === 'Pelaporan Keluhan') {
                         $menuItem['label'] = $complaintCount;
+                    } elseif (isset($menuItem['text']) && $menuItem['text'] === 'Pelaporan Insiden') {
+                        $menuItem['label'] = $incidentCount;
                     }
                 }
                 config(['adminlte.menu' => $menu]);
@@ -42,6 +47,7 @@ class ShareRevisionCount
             // Fail silently if database is not available
             View::share('globalRevisionCount', 0);
             View::share('globalComplaintCount', 0);
+            View::share('globalIncidentCount', 0);
         }
         
         return $next($request);

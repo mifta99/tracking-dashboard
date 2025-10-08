@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreatePuskesmasEmailVerificationsTable extends Migration
+class CreateDokumentasiInsidensTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,13 +13,11 @@ class CreatePuskesmasEmailVerificationsTable extends Migration
      */
     public function up()
     {
-        Schema::create('puskesmas_email_verifications', function (Blueprint $table) {
+        Schema::create('dokumentasi_insidens', function (Blueprint $table) {
             $table->id();
-            $table->string('token');
-            $table->string('user_id');
-            $table->string('email');
-            $table->string('kode_verifikasi');
-            $table->timestamp('confirmed_at')->nullable();
+            $table->integer('insiden_id')->unsigned();
+            $table->string('link_foto')->nullable(false);
+            $table->foreign('insiden_id')->references('id')->on('insiden');
             $table->timestamps();
         });
     }
@@ -31,6 +29,6 @@ class CreatePuskesmasEmailVerificationsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('puskesmas_email_verifications');
+        Schema::dropIfExists('dokumentasi_insidens');
     }
 }

@@ -342,6 +342,8 @@ return [
                 [
             'text' => 'Permintaan Verifikasi',
             'url'  => '/verification-request',
+            'label' => 0,
+            'label_color' => 'danger',
             'icon' => 'fas fa-fw fa-check-circle',
             'can'   => ['kemenkes']
         ],
@@ -352,6 +354,13 @@ return [
             'label' => 0, // Will be updated dynamically
             'label_color' => 'danger',
             'can'   => ['endo']
+        ],
+                [
+            'text' => 'Logistik',
+            'url'  => '/',
+            'icon' => "fas fa-shipping-fast",
+            'label_color' => 'danger',
+            'can'   => ['logistik']
         ],
                 [
             'text' => 'Pelaporan Keluhan',
@@ -365,6 +374,8 @@ return [
             'text' => 'Pelaporan Insiden',
             'url'  => '/reported-incidents',
             'icon' => 'fas fa-fw fa-heartbeat',
+            'label' => 0, // Will be updated dynamically
+            'label_color' => 'danger',
             'can'   => ['endo','kemenkes']
         ],
                 [
