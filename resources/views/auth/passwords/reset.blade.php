@@ -14,7 +14,8 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic">
     
     <!-- Google reCAPTCHA -->
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+     <script src="https://www.google.com/recaptcha/api.js"></script>
+
     
     <style>
         .recaptcha-container {
@@ -185,7 +186,7 @@
                     @if(config('app.env') !== 'local' || config('recaptcha.enabled', true))
                     <div class="recaptcha-container">
                         <div class="g-recaptcha" 
-                             data-sitekey="{{ env('RECAPTCHA_SITE_KEY', '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI') }}"
+                             data-sitekey="{{ env('RECAPTCHA_SITE_KEY', '6LdQjOIrAAAAAGTDUZk8ekpEKpvVV9gXd_-x3YdP') }}"
                              data-callback="onRecaptchaSuccess"
                              data-expired-callback="onRecaptchaExpired"></div>
                     </div>
