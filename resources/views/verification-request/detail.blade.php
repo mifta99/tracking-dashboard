@@ -560,12 +560,12 @@
                 </div>
                 <div class="card-body p-3">
                     <table class="table table-sm table-borderless table-kv mb-0">
-                        <tr><td>Tanggal Pengiriman</td><td>{{ optional($peng->tgl_pengiriman)->format('d F Y') ?? '-' }}</td></tr>
-                        <tr><td>ETA</td><td>{{ optional($peng->eta)->format('d F Y') ?? '-' }}</td></tr>
+                        <tr><td>Tanggal Pengiriman</td><td>{{ optional($peng->tgl_pengiriman)->translatedFormat('d F Y') ?? '-' }}</td></tr>
+                        <tr><td>ETA</td><td>{{ optional($peng->eta)->translatedFormat('d F Y') ?? '-' }}</td></tr>
                         <tr><td>RESI</td><td>{{ $peng->resi ?? '-' }}</td></tr>
                         <tr><td>Link Tracking</td><td>@if($peng && $peng->tracking_link)<a class="text-decoration-none" target="_blank" href="{{ $peng->tracking_link }}">View Here</a>@else - @endif</td></tr>
                         <tr><td>Serial Number</td><td>{{ $puskesmas->equipment->serial_number ?? '-' }}</td></tr>
-                        <tr><td>Tanggal Diterima</td><td>{{ optional($peng->tgl_diterima)->format('d F Y') ?? '-' }}</td></tr>
+                        <tr><td>Tanggal Diterima</td><td>{{ optional($peng->tgl_diterima)->translatedFormat('d F Y') ?? '-' }}</td></tr>
                         <tr><td>Nama Penerima</td><td>{{ $peng->nama_penerima ?? '-' }}</td></tr>
                         <tr><td>Jabatan Penerima</td><td>{{ $peng->jabatan_penerima ?? '-' }}</td></tr>
                         <tr><td>Instansi Penerima</td><td>{{ $peng->instansi_penerima ?? '-' }}</td></tr>
@@ -591,7 +591,7 @@
             <div class="row  border-bottom pb-2 mb-3">
                 <div class="col-md-6">
                     <table class="table table-sm table-borderless table-kv mb-0">
-                        <tr><td>Tanggal Instalasi</td><td>{{ optional($uji->tgl_instalasi)->format('d F Y') ?? '-' }}</td></tr>
+                        <tr><td>Tanggal Instalasi</td><td>{{ optional($uji->tgl_instalasi)->translatedFormat('d F Y') ?? '-' }}</td></tr>
                         <tr><td>Berita Acara Instalasi</td><td>@if($uji && $uji->doc_instalasi)<a class="text-decoration-none" target="_blank" href="{{ asset('storage/' . $uji->doc_instalasi) }}">View Here</a>@else - @endif</td></tr>
                     </table>
                 </div>
@@ -617,16 +617,16 @@
                             </td>
                         </tr>
                         @endif
-                        <tr {{ $uji->verified_at_instalasi ? '' : 'hidden' }}><td>Tanggal Verifikasi Instalasi</td><td>{{ $uji->verified_at_instalasi ? $uji->verified_at_instalasi->setTimezone('Asia/Jakarta')->format('d F Y H:i') . ' WIB' : '-' }}</td></tr>
+                        <tr {{ $uji->verified_at_instalasi ? '' : 'hidden' }}><td>Tanggal Verifikasi Instalasi</td><td>{{ $uji->verified_at_instalasi ? $uji->verified_at_instalasi->setTimezone('Asia/Jakarta')->translatedFormat('d F Y H:i') . ' WIB' : '-' }}</td></tr>
                         <tr {{ $uji->is_verified_instalasi ? 'hidden' : '' }}>
                             @if($revisions['instalasi'])
                             <td>{{ $revisions['instalasi']->is_resolved ? 'Revisi Terselesaikan' : 'Catatan Revisi' }}</td>
                             <td>
                                 <div class="{{ $revisions['instalasi']->is_resolved ? 'text-success' : 'text-danger' }}">
                                     {!! nl2br(e($revisions['instalasi']->catatan)) !!}<br>
-                                    <small class="text-muted">Direvisi pada {{ $revisions['instalasi']->created_at->setTimezone('Asia/Jakarta')->format('d F Y H:i') }} WIB</small>
+                                    <small class="text-muted">Direvisi pada {{ $revisions['instalasi']->created_at->setTimezone('Asia/Jakarta')->translatedFormat('d F Y H:i') }} WIB</small>
                                     @if($revisions['instalasi']->resolved_at)
-                                        <br><small class="text-muted">Dokumen revisi telah diunggah ulang pada {{ $revisions['instalasi']->resolved_at->setTimezone('Asia/Jakarta')->format('d F Y H:i') }} WIB</small>
+                                        <br><small class="text-muted">Dokumen revisi telah diunggah ulang pada {{ $revisions['instalasi']->resolved_at->setTimezone('Asia/Jakarta')->translatedFormat('d F Y H:i') }} WIB</small>
                                     @endif
                                 </div>
                                 @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes')
@@ -660,8 +660,8 @@
             <div class="row  border-bottom pb-2 mb-3">
                 <div class="col-md-6">
                     <table class="table table-sm table-borderless table-kv mb-0">
-                        <tr><td>Target Tanggal Uji Fungsi</td><td>{{ optional($uji->target_tgl_uji_fungsi)->format('d F Y') ?? '-' }}</td></tr>
-                        <tr><td>Tanggal Uji Fungsi</td><td>{{ optional($uji->tgl_uji_fungsi)->format('d F Y') ?? '-' }}</td></tr>
+                        <tr><td>Target Tanggal Uji Fungsi</td><td>{{ optional($uji->target_tgl_uji_fungsi)->translatedFormat('d F Y') ?? '-' }}</td></tr>
+                        <tr><td>Tanggal Uji Fungsi</td><td>{{ optional($uji->tgl_uji_fungsi)->translatedFormat('d F Y') ?? '-' }}</td></tr>
                         <tr><td>Berita Acara Uji Fungsi</td><td>@if($uji && $uji->doc_uji_fungsi)<a class="text-decoration-none" target="_blank" href="{{ asset('storage/' . $uji->doc_uji_fungsi) }}">View Here</a>@else - @endif</td></tr>
                     </table>
                 </div>
@@ -687,16 +687,16 @@
                             </td>
                         </tr>
                         @endif
-                        <tr {{ $uji->verified_at_uji_fungsi ? '' : 'hidden' }}><td>Tanggal Verifikasi Uji Fungsi</td><td>{{ $uji->verified_at_uji_fungsi ? $uji->verified_at_uji_fungsi->setTimezone('Asia/Jakarta')->format('d F Y H:i') . ' WIB' : '-' }}</td></tr>
+                        <tr {{ $uji->verified_at_uji_fungsi ? '' : 'hidden' }}><td>Tanggal Verifikasi Uji Fungsi</td><td>{{ $uji->verified_at_uji_fungsi ? $uji->verified_at_uji_fungsi->setTimezone('Asia/Jakarta')->translatedFormat('d F Y H:i') . ' WIB' : '-' }}</td></tr>
                         <tr {{ $uji->is_verified_uji_fungsi ? 'hidden' : '' }}>
                             @if($revisions['uji_fungsi'])
                             <td>{{ $revisions['uji_fungsi']->is_resolved ? 'Revisi Terselesaikan' : 'Catatan Revisi' }}</td>
                             <td>
                                 <div class="{{ $revisions['uji_fungsi']->is_resolved ? 'text-success' : 'text-danger' }}">
                                     {!! nl2br(e($revisions['uji_fungsi']->catatan)) !!}<br>
-                                    <small class="text-muted">Direvisi pada {{ $revisions['uji_fungsi']->created_at->setTimezone('Asia/Jakarta')->format('d F Y H:i') }} WIB</small>
+                                    <small class="text-muted">Direvisi pada {{ $revisions['uji_fungsi']->created_at->setTimezone('Asia/Jakarta')->translatedFormat('d F Y H:i') }} WIB</small>
                                     @if($revisions['uji_fungsi']->resolved_at)
-                                        <br><small class="text-muted">Dokumen revisi telah diunggah ulang pada {{ $revisions['uji_fungsi']->resolved_at->setTimezone('Asia/Jakarta')->format('d F Y H:i') }} WIB</small>
+                                        <br><small class="text-muted">Dokumen revisi telah diunggah ulang pada {{ $revisions['uji_fungsi']->resolved_at->setTimezone('Asia/Jakarta')->translatedFormat('d F Y H:i') }} WIB</small>
                                     @endif
                                 </div>
                                 @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes')
@@ -730,7 +730,7 @@
             <div class="row">
                 <div class="col-md-6">
                     <table class="table table-sm table-borderless table-kv mb-0">
-                        <tr><td>Tanggal Pelatihan Alat</td><td>{{ optional($uji->tgl_pelatihan)->format('d F Y') ?? '-' }}</td></tr>
+                        <tr><td>Tanggal Pelatihan Alat</td><td>{{ optional($uji->tgl_pelatihan)->translatedFormat('d F Y') ?? '-' }}</td></tr>
                         <tr><td>Berita Acara Pelatihan Alat</td><td>@if($uji && $uji->doc_pelatihan)<a class="text-decoration-none" target="_blank" href="{{ asset('storage/' . $uji->doc_pelatihan) }}">View Here</a>@else - @endif</td></tr>
                         <tr><td>Catatan</td><td>{{ $uji->catatan ?? '-' }}</td></tr>
                     </table>
@@ -757,16 +757,16 @@
                             </td>
                         </tr>
                         @endif
-                        <tr {{ $uji->verified_at_pelatihan ? '' : 'hidden' }}><td>Tanggal Verifikasi Pelatihan Alat</td><td>{{ $uji->verified_at_pelatihan ? $uji->verified_at_pelatihan->setTimezone('Asia/Jakarta')->format('d F Y H:i') . ' WIB' : '-' }}</td></tr>
+                        <tr {{ $uji->verified_at_pelatihan ? '' : 'hidden' }}><td>Tanggal Verifikasi Pelatihan Alat</td><td>{{ $uji->verified_at_pelatihan ? $uji->verified_at_pelatihan->setTimezone('Asia/Jakarta')->translatedFormat('d F Y H:i') . ' WIB' : '-' }}</td></tr>
                         <tr {{ $uji->is_verified_pelatihan ? 'hidden' : '' }}>
                             @if($revisions['pelatihan'])
                             <td>{{ $revisions['pelatihan']->is_resolved ? 'Revisi Terselesaikan' : 'Catatan Revisi' }}</td>
                             <td>
                                 <div class="{{ $revisions['pelatihan']->is_resolved ? 'text-success' : 'text-danger' }}">
                                     {!! nl2br(e($revisions['pelatihan']->catatan)) !!}<br>
-                                    <small class="text-muted">Direvisi pada {{ $revisions['pelatihan']->created_at->setTimezone('Asia/Jakarta')->format('d F Y H:i') }} WIB</small>
+                                    <small class="text-muted">Direvisi pada {{ $revisions['pelatihan']->created_at->setTimezone('Asia/Jakarta')->translatedFormat('d F Y H:i') }} WIB</small>
                                     @if($revisions['pelatihan']->resolved_at)
-                                        <br><small class="text-muted">Dokumen revisi telah diunggah ulang pada {{ $revisions['pelatihan']->resolved_at->setTimezone('Asia/Jakarta')->format('d F Y H:i') }} WIB</small>
+                                        <br><small class="text-muted">Dokumen revisi telah diunggah ulang pada {{ $revisions['pelatihan']->resolved_at->setTimezone('Asia/Jakarta')->translatedFormat('d F Y H:i') }} WIB</small>
                                     @endif
                                 </div>
                                 @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes')
@@ -837,16 +837,16 @@
                             </td>
                         </tr>
                         @endif
-                        <tr {{ ($doc && $doc->verified_at_kalibrasi) ? '' : 'hidden' }}><td>Tanggal Verifikasi Kalibrasi</td><td>{{ ($doc && $doc->verified_at_kalibrasi) ? $doc->verified_at_kalibrasi->setTimezone('Asia/Jakarta')->format('d F Y H:i') . ' WIB' : '-' }}</td></tr>
+                        <tr {{ ($doc && $doc->verified_at_kalibrasi) ? '' : 'hidden' }}><td>Tanggal Verifikasi Kalibrasi</td><td>{{ ($doc && $doc->verified_at_kalibrasi) ? $doc->verified_at_kalibrasi->setTimezone('Asia/Jakarta')->translatedFormat('d F Y H:i') . ' WIB' : '-' }}</td></tr>
                         <tr {{ ($doc && $doc->is_verified_kalibrasi) ? 'hidden' : '' }}>
                             @if($revisions['kalibrasi'])
                             <td>{{ $revisions['kalibrasi']->is_resolved ? 'Revisi Terselesaikan' : 'Catatan Revisi' }}</td>
                             <td>
                                 <div class="{{ $revisions['kalibrasi']->is_resolved ? 'text-success' : 'text-danger' }}">
                                     {!! nl2br(e($revisions['kalibrasi']->catatan)) !!}<br>
-                                    <small class="text-muted">Direvisi pada {{ $revisions['kalibrasi']->created_at->setTimezone('Asia/Jakarta')->format('d F Y H:i') }} WIB</small>
+                                    <small class="text-muted">Direvisi pada {{ $revisions['kalibrasi']->created_at->setTimezone('Asia/Jakarta')->translatedFormat('d F Y H:i') }} WIB</small>
                                     @if($revisions['kalibrasi']->resolved_at)
-                                        <br><small class="text-muted">Dokumen revisi telah diunggah ulang pada {{ $revisions['kalibrasi']->resolved_at->setTimezone('Asia/Jakarta')->format('d F Y H:i') }} WIB</small>
+                                        <br><small class="text-muted">Dokumen revisi telah diunggah ulang pada {{ $revisions['kalibrasi']->resolved_at->setTimezone('Asia/Jakarta')->translatedFormat('d F Y H:i') }} WIB</small>
                                     @endif
                                 </div>
                                 @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes')
@@ -905,16 +905,16 @@
                             </td>
                         </tr>
                         @endif
-                        <tr {{ ($doc && $doc->verified_at_bast) ? '' : 'hidden' }}><td>Tanggal Verifikasi BAST</td><td>{{ ($doc && $doc->verified_at_bast) ? $doc->verified_at_bast->setTimezone('Asia/Jakarta')->format('d F Y H:i') . ' WIB' : '-' }}</td></tr>
+                        <tr {{ ($doc && $doc->verified_at_bast) ? '' : 'hidden' }}><td>Tanggal Verifikasi BAST</td><td>{{ ($doc && $doc->verified_at_bast) ? $doc->verified_at_bast->setTimezone('Asia/Jakarta')->translatedFormat('d F Y H:i') . ' WIB' : '-' }}</td></tr>
                         <tr {{ ($doc && $doc->is_verified_bast) ? 'hidden' : '' }}>
                             @if($revisions['bast'])
                             <td>{{ $revisions['bast']->is_resolved ? 'Revisi Terselesaikan' : 'Catatan Revisi' }}</td>
                             <td>
                                 <div class="{{ $revisions['bast']->is_resolved ? 'text-success' : 'text-danger' }}">
                                     {!! nl2br(e($revisions['bast']->catatan)) !!}<br>
-                                    <small class="text-muted">Direvisi pada {{ $revisions['bast']->created_at->setTimezone('Asia/Jakarta')->format('d F Y H:i') }} WIB</small>
+                                    <small class="text-muted">Direvisi pada {{ $revisions['bast']->created_at->setTimezone('Asia/Jakarta')->translatedFormat('d F Y H:i') }} WIB</small>
                                     @if($revisions['bast']->resolved_at)
-                                        <br><small class="text-muted">Dokumen revisi telah diunggah ulang pada {{ $revisions['bast']->resolved_at->setTimezone('Asia/Jakarta')->format('d F Y H:i') }} WIB</small>
+                                        <br><small class="text-muted">Dokumen revisi telah diunggah ulang pada {{ $revisions['bast']->resolved_at->setTimezone('Asia/Jakarta')->translatedFormat('d F Y H:i') }} WIB</small>
                                     @endif
                                 </div>
                                 @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes')
@@ -973,16 +973,16 @@
                             </td>
                         </tr>
                         @endif
-                        <tr {{ ($doc && $doc->verified_at_basto) ? '' : 'hidden' }}><td>Tanggal Verifikasi BASTO</td><td>{{ ($doc && $doc->verified_at_basto) ? $doc->verified_at_basto->setTimezone('Asia/Jakarta')->format('d F Y H:i') . ' WIB' : '-' }}</td></tr>
+                        <tr {{ ($doc && $doc->verified_at_basto) ? '' : 'hidden' }}><td>Tanggal Verifikasi BASTO</td><td>{{ ($doc && $doc->verified_at_basto) ? $doc->verified_at_basto->setTimezone('Asia/Jakarta')->translatedFormat('d F Y H:i') . ' WIB' : '-' }}</td></tr>
                         <tr {{ ($doc && $doc->is_verified_basto) ? 'hidden' : '' }}>
                             @if($revisions['basto'])
                             <td>{{ $revisions['basto']->is_resolved ? 'Revisi Terselesaikan' : 'Catatan Revisi' }}</td>
                             <td>
                                 <div class="{{ $revisions['basto']->is_resolved ? 'text-success' : 'text-danger' }}">
                                     {!! nl2br(e($revisions['basto']->catatan)) !!}<br>
-                                    <small class="text-muted">Direvisi pada {{ $revisions['basto']->created_at->setTimezone('Asia/Jakarta')->format('d F Y H:i') }} WIB</small>
+                                    <small class="text-muted">Direvisi pada {{ $revisions['basto']->created_at->setTimezone('Asia/Jakarta')->translatedFormat('d F Y H:i') }} WIB</small>
                                     @if($revisions['basto']->resolved_at)
-                                        <br><small class="text-muted">Dokumen revisi telah diunggah ulang pada {{ $revisions['basto']->resolved_at->setTimezone('Asia/Jakarta')->format('d F Y H:i') }} WIB</small>
+                                        <br><small class="text-muted">Dokumen revisi telah diunggah ulang pada {{ $revisions['basto']->resolved_at->setTimezone('Asia/Jakarta')->translatedFormat('d F Y H:i') }} WIB</small>
                                     @endif
                                 </div>
                                 @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes')
@@ -1041,16 +1041,16 @@
                             </td>
                         </tr>
                         @endif
-                        <tr {{ ($doc && $doc->verified_at_aspak) ? '' : 'hidden' }}><td>Tanggal Verifikasi ASPAK</td><td>{{ ($doc && $doc->verified_at_aspak) ? $doc->verified_at_aspak->setTimezone('Asia/Jakarta')->format('d F Y H:i') . ' WIB' : '-' }}</td></tr>
+                        <tr {{ ($doc && $doc->verified_at_aspak) ? '' : 'hidden' }}><td>Tanggal Verifikasi ASPAK</td><td>{{ ($doc && $doc->verified_at_aspak) ? $doc->verified_at_aspak->setTimezone('Asia/Jakarta')->translatedFormat('d F Y H:i') . ' WIB' : '-' }}</td></tr>
                         <tr {{ ($doc && $doc->is_verified_aspak) ? 'hidden' : '' }}>
                             @if($revisions['aspak'])
                             <td>{{ $revisions['aspak']->is_resolved ? 'Revisi Terselesaikan' : 'Catatan Revisi' }}</td>
                             <td>
                                 <div class="{{ $revisions['aspak']->is_resolved ? 'text-success' : 'text-danger' }}">
                                     {!! nl2br(e($revisions['aspak']->catatan)) !!}<br>
-                                    <small class="text-muted">Direvisi pada {{ $revisions['aspak']->created_at->setTimezone('Asia/Jakarta')->format('d F Y H:i') }} WIB</small>
+                                    <small class="text-muted">Direvisi pada {{ $revisions['aspak']->created_at->setTimezone('Asia/Jakarta')->translatedFormat('d F Y H:i') }} WIB</small>
                                     @if($revisions['aspak']->resolved_at)
-                                        <br><small class="text-muted">Dokumen revisi telah diunggah ulang pada {{ $revisions['aspak']->resolved_at->setTimezone('Asia/Jakarta')->format('d F Y H:i') }} WIB</small>
+                                        <br><small class="text-muted">Dokumen revisi telah diunggah ulang pada {{ $revisions['aspak']->resolved_at->setTimezone('Asia/Jakarta')->translatedFormat('d F Y H:i') }} WIB</small>
                                     @endif
                                 </div>
                                 @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes')
@@ -1320,11 +1320,11 @@
                         <div class="form-row">
                             <div class="form-group col-md-3">
                                 <label class="small mb-1">Tanggal Pengiriman</label>
-                                <input type="date" class="form-control form-control-sm" name="tgl_pengiriman" value="{{ optional($peng->tgl_pengiriman)->format('Y-m-d') }}">
+                                <input type="date" class="form-control form-control-sm" name="tgl_pengiriman" value="{{ optional($peng->tgl_pengiriman)->translatedFormat('Y-m-d') }}">
                             </div>
                             <div class="form-group col-md-2">
                                 <label class="small mb-1">ETA</label>
-                                <input type="date" class="form-control form-control-sm" name="eta" value="{{ optional($peng->eta)->format('Y-m-d') }}">
+                                <input type="date" class="form-control form-control-sm" name="eta" value="{{ optional($peng->eta)->translatedFormat('Y-m-d') }}">
                             </div>
                             <div class="form-group col-md-3">
                                 <label class="small mb-1">RESI</label>
@@ -1344,7 +1344,7 @@
                         <div class="form-row">
                             <div class="form-group col-md-3">
                                 <label class="small mb-1">Tanggal Diterima</label>
-                                <input type="date" class="form-control form-control-sm" name="tgl_diterima" value="{{ optional($peng->tgl_diterima)->format('Y-m-d') }}">
+                                <input type="date" class="form-control form-control-sm" name="tgl_diterima" value="{{ optional($peng->tgl_diterima)->translatedFormat('Y-m-d') }}">
                             </div>
                             <div class="form-group col-md-3">
                                 <label class="small mb-1">Nama Penerima</label>
@@ -1403,19 +1403,19 @@
                         <div class="form-row">
                             <div class="form-group col-md-3">
                                 <label class="small mb-1">Tanggal Instalasi</label>
-                                <input type="date" name="tgl_instalasi" class="form-control form-control-sm" value="{{ optional($uji->tgl_instalasi)->format('Y-m-d') }}">
+                                <input type="date" name="tgl_instalasi" class="form-control form-control-sm" value="{{ optional($uji->tgl_instalasi)->translatedFormat('Y-m-d') }}">
                             </div>
                             <div class="form-group col-md-3">
                                 <label class="small mb-1">Target Tanggal Uji Fungsi</label>
-                                <input type="date" name="target_tgl_uji_fungsi" class="form-control form-control-sm" value="{{ optional($uji->target_tgl_uji_fungsi)->format('Y-m-d') }}">
+                                <input type="date" name="target_tgl_uji_fungsi" class="form-control form-control-sm" value="{{ optional($uji->target_tgl_uji_fungsi)->translatedFormat('Y-m-d') }}">
                             </div>
                             <div class="form-group col-md-3">
                                 <label class="small mb-1">Tanggal Uji Fungsi</label>
-                                <input type="date" name="tgl_uji_fungsi" class="form-control form-control-sm" value="{{ optional($uji->tgl_uji_fungsi)->format('Y-m-d') }}">
+                                <input type="date" name="tgl_uji_fungsi" class="form-control form-control-sm" value="{{ optional($uji->tgl_uji_fungsi)->translatedFormat('Y-m-d') }}">
                             </div>
                             <div class="form-group col-md-3">
                                 <label class="small mb-1">Tanggal Pelatihan Alat</label>
-                                <input type="date" name="tgl_pelatihan" class="form-control form-control-sm" value="{{ optional($uji->tgl_pelatihan)->format('Y-m-d') }}">
+                                <input type="date" name="tgl_pelatihan" class="form-control form-control-sm" value="{{ optional($uji->tgl_pelatihan)->translatedFormat('Y-m-d') }}">
                             </div>
                         </div>
                         <div class="mb-2 mt-3 pb-1 border-bottom"><strong class="text-muted small">Dokumen</strong></div>

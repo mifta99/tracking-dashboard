@@ -92,7 +92,7 @@
                             ][$status] ?? 'secondary';
                         @endphp
                         <tr>
-                            <td class="text-center">{{ $date ? \Illuminate\Support\Carbon::parse($date)->format('d-m-Y') : '-' }}</td>
+                            <td class="text-center">{{ $date ? \Illuminate\Support\Carbon::parse($date)->translatedFormat('d-m-Y') : '-' }}</td>
                             <td>{{ $category }}</td>
                             <td class="text-center">
                                 <span class="badge badge-{{ $badgeClass }}">
@@ -127,7 +127,7 @@
                 <div class="modal-body">
                     <form id="newIncidentForm" method="POST" action="{{ route('reported-incidents.store') }}" enctype="multipart/form-data">
                         @csrf
-                        
+
                         <div class="row">
                             <!-- Basic Information -->
                             <div class="col-md-12">
@@ -300,9 +300,9 @@
             // Handle form submission
             $('#newIncidentForm').on('submit', function(e) {
                 e.preventDefault();
-                
+
                 let formData = new FormData(this);
-                
+
                 // Show loading state
                 Swal.fire({
                     title: 'Menyimpan...',
@@ -313,7 +313,7 @@
                         Swal.showLoading();
                     }
                 });
-                
+
                 $.ajax({
                     url: $(this).attr('action'),
                     method: 'POST',
@@ -339,7 +339,7 @@
                     },
                     error: function(xhr) {
                         let errorMessage = 'Terjadi kesalahan saat menyimpan insiden';
-                        
+
                         if (xhr.status === 422) {
                             // Validation errors
                             let errors = xhr.responseJSON.errors;
@@ -351,7 +351,7 @@
                         } else if (xhr.responseJSON && xhr.responseJSON.message) {
                             errorMessage = xhr.responseJSON.message;
                         }
-                        
+
                         Swal.fire({
                             icon: 'error',
                             title: 'Gagal',

@@ -50,13 +50,13 @@ class KeluhanController extends Controller
 
                 return [
                     'id' => $item->id,
-                    'tanggal_dilaporkan' => $item->reported_date ? $item->reported_date->format('d M Y') : '-',
+                    'tanggal_dilaporkan' => $item->reported_date ? $item->reported_date->translatedFormat('d M Y') : '-',
                     'tanggal_dilaporkan_raw' => $item->reported_date,
                     'keluhan' => $item->reported_subject ?? '-',
                     'detail_keluhan' => $item->reported_issue ?? '-',
                     'kategori_keluhan' => $item->kategoriKeluhan->kategori ?? '-',
                     'jumlah_downtime' => $item->total_downtime ? $item->total_downtime . ' hari' : '-',
-                    'tanggal_selesai' => $item->resolved_date ? $item->resolved_date->format('d M Y') : '-',
+                    'tanggal_selesai' => $item->resolved_date ? $item->resolved_date->translatedFormat('d M Y') : '-',
                     'tanggal_selesai_raw' => $item->resolved_date,
                     'status' => $item->statusKeluhan->status ?? '-',
                     'status_id' => $item->status_id,
