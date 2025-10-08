@@ -342,6 +342,8 @@ return [
                 [
             'text' => 'Permintaan Verifikasi',
             'url'  => '/verification-request',
+            'label' => 0,
+            'label_color' => 'danger',
             'icon' => 'fas fa-fw fa-check-circle',
             'can'   => ['kemenkes']
         ],

@@ -59,6 +59,39 @@ class VerificationRequestController extends Controller
             });
         }
 
+        $query->where(function ($q) {
+            $q->whereHas('document', function ($docQuery) {
+                $docQuery->where(function ($subQuery) {
+                    $subQuery->where(function ($inner) {
+                        $inner->where('is_verified_kalibrasi', 0)
+                            ->whereNotNull('kalibrasi');
+                    })->orWhere(function ($inner) {
+                        $inner->where('is_verified_bast', 0)
+                            ->whereNotNull('bast');
+                    })->orWhere(function ($inner) {
+                        $inner->where('is_verified_aspak', 0)
+                            ->whereNotNull('aspak');
+                    })->orWhere(function ($inner) {
+                        $inner->where('is_verified_basto', 0)
+                            ->whereNotNull('basto');
+                    });
+                });
+            })->orWhereHas('ujiFungsi', function ($ujiQuery) {
+                $ujiQuery->where(function ($subQuery) {
+                    $subQuery->where(function ($inner) {
+                        $inner->where('is_verified_instalasi', 0)
+                            ->whereNotNull('doc_instalasi');
+                    })->orWhere(function ($inner) {
+                        $inner->where('is_verified_uji_fungsi', 0)
+                            ->whereNotNull('doc_uji_fungsi');
+                    })->orWhere(function ($inner) {
+                        $inner->where('is_verified_pelatihan', 0)
+                            ->whereNotNull('doc_pelatihan');
+                    });
+                });
+            });
+        });
+
         $recordsTotal = (clone $query)->count();
 
         $searchValue = $request->input('search.value');
@@ -289,5 +322,42 @@ class VerificationRequestController extends Controller
             'tahapan' => $tahapan,
             'revisions' => $revisions,
         ]);
+    }
+    public static function getVerificationRequestCount(){
+        return Puskesmas::query()
+            ->where(function ($q) {
+                $q->whereHas('document', function ($docQuery) {
+                    $docQuery->where(function ($subQuery) {
+                        $subQuery->where(function ($inner) {
+                            $inner->where('is_verified_kalibrasi', 0)
+                                ->whereNotNull('kalibrasi');
+                        })->orWhere(function ($inner) {
+                            $inner->where('is_verified_bast', 0)
+                                ->whereNotNull('bast');
+                        })->orWhere(function ($inner) {
+                            $inner->where('is_verified_aspak', 0)
+                                ->whereNotNull('aspak');
+                        })->orWhere(function ($inner) {
+                            $inner->where('is_verified_basto', 0)
+                                ->whereNotNull('basto');
+                        });
+                    });
+                })
+                ->orWhereHas('ujiFungsi', function ($ujiQuery) {
+                    $ujiQuery->where(function ($subQuery) {
+                        $subQuery->where(function ($inner) {
+                            $inner->where('is_verified_instalasi', 0)
+                                ->whereNotNull('doc_instalasi');
+                        })->orWhere(function ($inner) {
+                            $inner->where('is_verified_uji_fungsi', 0)
+                                ->whereNotNull('doc_uji_fungsi');
+                        })->orWhere(function ($inner) {
+                            $inner->where('is_verified_pelatihan', 0)
+                                ->whereNotNull('doc_pelatihan');
+                        });
+                    });
+                });
+            })
+            ->count();
     }
 }
