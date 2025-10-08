@@ -356,6 +356,13 @@ return [
             'can'   => ['endo']
         ],
                 [
+            'text' => 'Logistik',
+            'url'  => '/',
+            'icon' => "fas fa-shipping-fast",
+            'label_color' => 'danger',
+            'can'   => ['logistik']
+        ],
+                [
             'text' => 'Pelaporan Keluhan',
             'url'  => '/raised-issue',
             'icon' => 'fas fa-fw fa-exclamation-circle',

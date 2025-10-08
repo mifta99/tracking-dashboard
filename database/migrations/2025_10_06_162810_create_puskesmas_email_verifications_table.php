@@ -19,6 +19,7 @@ class CreatePuskesmasEmailVerificationsTable extends Migration
             $table->string('user_id');
             $table->string('email');
             $table->string('kode_verifikasi');
+            $table->timestamp('confirmed_at')->nullable();
             $table->timestamps();
         });
     }

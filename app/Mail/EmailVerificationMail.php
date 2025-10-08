@@ -46,6 +46,13 @@ class EmailVerificationMail extends Mailable
     public $appName;
 
     /**
+     * Flag to indicate if this is for password reset.
+     *
+     * @var bool
+     */
+    public $isResetPassword;
+
+    /**
      * Create a new message instance.
      *
      * @param  string  $verificationCode
@@ -58,15 +65,15 @@ class EmailVerificationMail extends Mailable
     public function __construct(
         string $verificationCode,
         string $verificationUrl,
-        $expiresAt = null,
         ?string $recipientName = null,
-        ?string $appName = null
+        ?string $appName = null,
+        ?bool $isResetPassword = false
     ) {
         $this->verificationCode = $verificationCode;
         $this->verificationUrl = $verificationUrl;
-        $this->expiresAt = $expiresAt;
         $this->recipientName = $recipientName;
         $this->appName = 'T-Piece Dashboard' ?: config('app.name', 'Laravel');
+        $this->isResetPassword = $isResetPassword;
     }
 
     /**
@@ -77,14 +84,14 @@ class EmailVerificationMail extends Mailable
     public function build()
     {
         return $this
-            ->subject($this->appName . ' - Verifikasi Email')
+            ->subject($this->appName . ($this->isResetPassword ? ' - Reset Password' : ' - Verifikasi Email'))
             ->view('layouts.emailverification')
             ->with([
                 'verificationCode' => $this->verificationCode,
                 'verificationUrl' => $this->verificationUrl,
-                'expiresAt' => $this->expiresAt,
                 'recipientName' => $this->recipientName,
                 'appName' => $this->appName,
+                'isResetPassword' => $this->isResetPassword,
             ]);
     }
 }

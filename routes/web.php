@@ -20,39 +20,75 @@ Route::middleware(['auth','profile.complete'])->get('/', function () {
     if (auth()->check() && auth()->user()->role_id == 1) {
         return app(App\Http\Controllers\DashboardPuskesmasController::class)->index();
     }
+    if (auth()->check() && auth()->user()->role_id == 4) {
+        return app(App\Http\Controllers\LogistikController::class)->index();
+    }
     return app(App\Http\Controllers\DashboardController::class)->index();
 })->name('home');
 
+/*
+|--------------------------------------------------------------------------
+| Authentication Routes
+|--------------------------------------------------------------------------
+*/
 Route::get('/login', [App\Http\Controllers\Auth\LoginController::class, 'login'])->name('login');
 Route::post('/login', [App\Http\Controllers\Auth\LoginController::class, 'loginProcess'])->name('login.process');
 Route::post('/logout', [App\Http\Controllers\Auth\LoginController::class, 'logout'])->name('logout');
-Route::get('/reset-password', [App\Http\Controllers\Auth\LoginController::class, 'resetPassword'])->name('reset-password');
 
-// Profile management routes for puskesmas users
+Route::get('/reset-password', [App\Http\Controllers\Auth\LoginController::class, 'resetPassword'])->name('reset-password');
+Route::post('/reset-password/send-email', [App\Http\Controllers\Auth\LoginController::class, 'sendEmail'])->name('api.send-reset-password-email');
+Route::post('/verify-otp', [App\Http\Controllers\Auth\LoginController::class, 'verifyOTP'])->name('api.verify-otp');
+Route::post('/reset-password/complete', [App\Http\Controllers\Auth\LoginController::class, 'completePasswordReset'])->name('api.reset-password');
+
+/*
+|--------------------------------------------------------------------------
+| Profile Management Routes (Puskesmas Users)
+|--------------------------------------------------------------------------
+*/
 Route::middleware(['auth', 'roles:1'])->prefix('puskesmas/profile')->name('puskesmas.profile.')->group(function () {
     Route::get('/', [App\Http\Controllers\PuskesmasProfileController::class, 'edit'])->name('edit');
     Route::post('/update', [App\Http\Controllers\PuskesmasProfileController::class, 'update'])->name('update');
 });
 
+/*
+|--------------------------------------------------------------------------
+| Verification Request Routes
+|--------------------------------------------------------------------------
+*/
 Route::middleware(['auth', 'roles:2,3'])->prefix('verification-request')->name('verification-request.')->group(function () {
     Route::get('/api/fetch/', [App\Http\Controllers\VerificationRequest\VerificationRequestController::class, 'fetch'])->name('fetch');
     Route::get('/{status?}', [App\Http\Controllers\VerificationRequest\VerificationRequestController::class, 'index'])->name('index');
     Route::get('/detail/{id}', [App\Http\Controllers\VerificationRequest\VerificationRequestController::class, 'detail'])->name('detail');
 });
 
+/*
+|--------------------------------------------------------------------------
+| Daftar Revisi Routes
+|--------------------------------------------------------------------------
+*/
 Route::middleware(['auth', 'roles:2,3'])->prefix('daftar-revisi')->name('daftar-revisi.')->group(function () {
     Route::get('/', [App\Http\Controllers\DaftarRevisiController::class, 'index'])->name('index');
     Route::get('/fetch-data', [App\Http\Controllers\DaftarRevisiController::class, 'fetchData'])->name('fetch-data');
 });
 
+/*
+|--------------------------------------------------------------------------
+| Keluhan Routes
+|--------------------------------------------------------------------------
+*/
 Route::middleware(['auth'])->prefix('keluhan')->name('keluhan.')->group(function () {
     Route::get('/fetch-data', [App\Http\Controllers\KeluhanController::class, 'fetchData'])->name('fetch-data');
     Route::get('/master-data', [App\Http\Controllers\KeluhanController::class, 'getMasterData'])->name('master-data');
-    Route::get('/status-counts', [App\Http\Controllers\KeluhanController::class, 'getStatusCounts'])->name('status-counts');
+     Route::get('/status-counts', [App\Http\Controllers\KeluhanController::class, 'getStatusCounts'])->name('status-counts');
 });
 
+/*
+|--------------------------------------------------------------------------
+| API Verification Request Routes
+|--------------------------------------------------------------------------
+*/
 Route::middleware(['auth', 'roles:2,3'])->prefix('api-verification-request')->name('api-verification-request.')->group(function () {
-    Route::POST('/basic-information/{id}', [App\Http\Controllers\VerificationRequest\API\APIVerificationRequestController::class, 'editBasicInformation'])->name('basic-information');
+   Route::POST('/basic-information/{id}', [App\Http\Controllers\VerificationRequest\API\APIVerificationRequestController::class, 'editBasicInformation'])->name('basic-information');
     Route::POST('/delivery-information/{id}', [App\Http\Controllers\VerificationRequest\API\APIVerificationRequestController::class, 'editDeliveryInformation'])->name('delivery-information');
     Route::POST('/uji-fungsi-information/{id}', [App\Http\Controllers\VerificationRequest\API\APIVerificationRequestController::class, 'editUjiFungsiInformation'])->name('uji-fungsi-information');
     Route::POST('/document-information/{id}', [App\Http\Controllers\VerificationRequest\API\APIVerificationRequestController::class, 'editDocumentInformation'])->name('document-information');
@@ -84,6 +120,11 @@ Route::middleware(['auth', 'roles:2,3'])->prefix('api-verification-request')->na
         ->name('add-revision');
 });
 
+/*
+|--------------------------------------------------------------------------
+| Raised Issue Routes
+|--------------------------------------------------------------------------
+*/
 Route::prefix('raised-issue')->name('raised-issue.')->group(function () {
     Route::middleware(['auth', 'roles:1,2,3'])->group(function () {
         Route::get('/detail/{id}', [App\Http\Controllers\RaisedIssue\RaisedIssueController::class, 'detail'])->name('detail');
@@ -94,13 +135,24 @@ Route::prefix('raised-issue')->name('raised-issue.')->group(function () {
         Route::put('/{id}/update-tindak-lanjut', [App\Http\Controllers\RaisedIssue\RaisedIssueController::class, 'updateTindakLanjut'])->name('update-tindak-lanjut');
     });
 });
+
+/*
+|--------------------------------------------------------------------------
+| Reported Incidents Routes
+|--------------------------------------------------------------------------
+*/
 Route::middleware(['auth', 'roles:1,2,3'])->prefix('reported-incidents')->name('reported-incidents.')->group(function () {
-   Route::get('/', [App\Http\Controllers\Incident\IncidentController::class, 'index'])->name('index');
-    Route::post('/{puskesmas_id}/store', [App\Http\Controllers\Incident\IncidentController::class, 'store'])->name('store');
+    Route::get('/', [App\Http\Controllers\Incident\IncidentController::class, 'index'])->name('index');
+     Route::post('/{puskesmas_id}/store', [App\Http\Controllers\Incident\IncidentController::class, 'store'])->name('store');
     Route::get('/detail/{id}', [App\Http\Controllers\Incident\IncidentController::class, 'detail'])->name('detail');
     Route::patch('/{id}/update', [App\Http\Controllers\Incident\IncidentController::class, 'update'])->name('update');
 });
 
+/*
+|--------------------------------------------------------------------------
+| API Dropdown Data Routes
+|--------------------------------------------------------------------------
+*/
 // Incident API routes for DataTable and operations
 Route::middleware(['auth'])->prefix('insiden')->name('insiden.')->group(function () {
     Route::get('/fetch-data', [App\Http\Controllers\Incident\IncidentController::class, 'fetchData'])->name('fetch-data');
@@ -115,34 +167,70 @@ Route::middleware(['auth'])->prefix('api')->name('api.')->group(function () {
     Route::get('/tahapan', [App\Http\Controllers\Incident\IncidentController::class, 'getTahapan'])->name('tahapan');
     Route::get('/status-insiden', [App\Http\Controllers\Incident\IncidentController::class, 'getStatusInsiden'])->name('status-insiden');
 });
+
+/*
+|--------------------------------------------------------------------------
+| Import Data Routes
+|--------------------------------------------------------------------------
+*/
 Route::middleware(['auth', 'roles:2,3'])->prefix('import-data')->name('import-data.')->group(function () {
     Route::get('/', [App\Http\Controllers\ImportData\ImportDataController::class, 'index'])->name('index');
     Route::post('/import-puskesmas', [App\Http\Controllers\ImportData\ImportDataController::class, 'importPuskesmas'])->name('import.puskesmas');
     Route::get('/download-template', [App\Http\Controllers\ImportData\ImportDataController::class, 'downloadExcel'])->name('download.template');
 });
+
+/*
+|--------------------------------------------------------------------------
+| Master Puskesmas Routes
+|--------------------------------------------------------------------------
+*/
 Route::middleware(['auth', 'roles:2'])->prefix('master-puskesmas')->name('master-puskesmas.')->group(function () {
     Route::get('/', [App\Http\Controllers\Puskesmas\MasterPuskesmasController::class, 'index'])->name('index');
 });
+
+/*
+|--------------------------------------------------------------------------
+| API Puskesmas Routes
+|--------------------------------------------------------------------------
+*/
 Route::middleware(['auth', 'roles:1,2,3'])->prefix('api-puskesmas')->name('api-puskesmas.')->group(function () {
     Route::get('/fetch', [App\Http\Controllers\Puskesmas\API\APIPuskesmasController::class, 'fetchData'])->name('fetch-data');
     Route::get('/provinces', [App\Http\Controllers\Puskesmas\API\APIPuskesmasController::class, 'fetchProvinces'])->name('provinces');
     Route::get('/regencies', [App\Http\Controllers\Puskesmas\API\APIPuskesmasController::class, 'fetchRegencies'])->name('regencies');
     Route::get('/districts', [App\Http\Controllers\Puskesmas\API\APIPuskesmasController::class, 'fetchDistricts'])->name('districts');
 });
+
 Route::middleware(['auth', 'roles:2'])->prefix('api-puskesmas')->name('api-puskesmas.')->group(function () {
     Route::post('/store', [App\Http\Controllers\Puskesmas\API\APIPuskesmasController::class, 'store'])->name('store');
     Route::put('/{id}/update-basic', [App\Http\Controllers\Puskesmas\API\APIPuskesmasController::class, 'updateBasic'])->name('update-basic');
     Route::get('/test', [App\Http\Controllers\Puskesmas\API\APIPuskesmasController::class, 'testConnection'])->name('test');
 });
+
+/*
+|--------------------------------------------------------------------------
+| Miscellaneous Routes
+|--------------------------------------------------------------------------
+*/
 Route::middleware(['auth', 'roles:2,3'])->get('/detail', function () {
-        return view('detail');
-    })->name('detail');
+    return view('detail');
+})->name('detail');
 
 Route::match(['get','post'], '/test-mail', [App\Http\Controllers\Puskesmas\API\APIPuskesmasController::class, 'testSmtp'])->name('testSmtp');
+
 Route::get('/test-view-email', function () {
-        return view('layouts.emailverification');
-    })->name('index');
+    return view('layouts.emailverification');
+})->name('index');
 
 Route::middleware(['auth', 'roles:1,2,3'])->post('/email/verification', [App\Http\Controllers\PuskesmasProfileController::class, 'sendVerificationMail'])->name('verification.send');
 Route::middleware(['auth', 'roles:1,2,3'])->post('/email/verification/confirm', [App\Http\Controllers\PuskesmasProfileController::class, 'verifyEmailCode'])->name('verification.verify');
 Route::middleware(['auth', 'roles:1,2,3'])->post('/api/check-email', [App\Http\Controllers\PuskesmasProfileController::class, 'checkEmail'])->name('api.check-email');
+
+/*
+|--------------------------------------------------------------------------
+| Logistik Routes
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'roles:4'])->prefix('logistik')->name('logistik.')->group(function () {
+    Route::get('/get-puskesmas-by-resi/{resi?}', [App\Http\Controllers\LogistikController::class, 'getDataPuskesmasByResi'])->name('get-puskesmas-by-resi');
+    Route::post('/upload-bast', [App\Http\Controllers\LogistikController::class, 'uploadBast'])->name('upload-bast');
+});
