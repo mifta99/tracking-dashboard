@@ -92,7 +92,7 @@
                             ][$status] ?? 'secondary';
                         @endphp
                         <tr>
-                            <td class="text-center">{{ $date ? \Illuminate\Support\Carbon::parse($date)->translatedFormat('d-m-Y') : '-' }}</td>
+                            <td class="text-center">{{ $date ? \Illuminate\Support\Carbon::parse($date)->translatedFormat('d M Y') : '-' }}</td>
                             <td>{{ $category }}</td>
                             <td class="text-center">
                                 <span class="badge badge-{{ $badgeClass }}">

@@ -147,7 +147,7 @@ class VerificationRequestController extends Controller
             $document = $puskesmas->document;
             $ujiFungsi = $puskesmas->ujiFungsi;
             $tglPengiriman = $pengiriman && $pengiriman->tgl_pengiriman
-                ? $pengiriman->tgl_pengiriman->translatedFormat('d-m-Y')
+                ? $pengiriman->tgl_pengiriman->translatedFormat('d M Y')
                 : null;
 
             // Collect documents that need verification
