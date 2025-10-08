@@ -89,8 +89,11 @@ class VerificationRequestController extends Controller
                             ->whereNotNull('doc_pelatihan');
                     });
                 });
+            })->orWhereHas('revisions', function ($revQuery) {
+                $revQuery->where('is_resolved', 0);
             });
         });
+
 
         $recordsTotal = (clone $query)->count();
 
@@ -151,28 +154,28 @@ class VerificationRequestController extends Controller
             $pendingDocs = [];
 
             if ($document) {
-                if (!(bool)$document->is_verified_kalibrasi && $document->kalibrasi != null) {
+                if (!(bool)$document->is_verified_kalibrasi && $document->kalibrasi != null && $puskesmas->revisions->where('jenis_dokumen_id',1)->where('is_resolved',false)->sortByDesc('created_at')->first() == null) {
                     $pendingDocs[] = 'Kalibrasi';
                 }
-                if (!(bool)$document->is_verified_bast && $document->bast != null) {
+                if (!(bool)$document->is_verified_bast && $document->bast != null && $puskesmas->revisions->where('jenis_dokumen_id',2)->where('is_resolved',false)->sortByDesc('created_at')->first() == null) {
                     $pendingDocs[] = 'BAST';
                 }
-                if (!(bool)$document->is_verified_aspak && $document->aspak != null) {
+                if (!(bool)$document->is_verified_aspak && $document->aspak != null && $puskesmas->revisions->where('jenis_dokumen_id',7)->where('is_resolved',false)->sortByDesc('created_at')->first() == null) {
                     $pendingDocs[] = 'ASPAK';
                 }
-                if (!(bool)$document->is_verified_basto && $document->basto != null) {
+                if (!(bool)$document->is_verified_basto && $document->basto != null && $puskesmas->revisions->where('jenis_dokumen_id',6)->where('is_resolved',false)->sortByDesc('created_at')->first() == null) {
                     $pendingDocs[] = 'BASTO';
                 }
             }
 
             if ($ujiFungsi) {
-                if (!(bool)$ujiFungsi->is_verified_instalasi && $ujiFungsi->doc_instalasi != null) {
+                if (!(bool)$ujiFungsi->is_verified_instalasi && $ujiFungsi->doc_instalasi != null && $puskesmas->revisions->where('jenis_dokumen_id',3)->where('is_resolved',false)->sortByDesc('created_at')->first() == null) {
                     $pendingDocs[] = 'Instalasi';
                 }
-                if (!(bool)$ujiFungsi->is_verified_uji_fungsi && $ujiFungsi->doc_uji_fungsi != null) {
+                if (!(bool)$ujiFungsi->is_verified_uji_fungsi && $ujiFungsi->doc_uji_fungsi != null && $puskesmas->revisions->where('jenis_dokumen_id',4)->where('is_resolved',false)->sortByDesc('created_at')->first() == null) {
                     $pendingDocs[] = 'Uji Fungsi';
                 }
-                if (!(bool)$ujiFungsi->is_verified_pelatihan && $ujiFungsi->doc_pelatihan != null) {
+                if (!(bool)$ujiFungsi->is_verified_pelatihan && $ujiFungsi->doc_pelatihan != null && $puskesmas->revisions->where('jenis_dokumen_id',5)->where('is_resolved',false)->sortByDesc('created_at')->first() == null) {
                     $pendingDocs[] = 'Pelatihan';
                 }
             }
@@ -184,13 +187,6 @@ class VerificationRequestController extends Controller
                 'regency' => optional(optional($puskesmas->district)->regency)->name ?? '-',
                 'district' => optional($puskesmas->district)->name ?? '-',
                 'tgl_pengiriman' => $tglPengiriman,
-                'verif_kalibrasi' => $document ? (!(bool)$document->is_verified_kalibrasi && $document->kalibrasi != null) : false,
-                'verif_bast' => $document ? (!(bool)$document->is_verified_bast && $document->bast != null) : false,
-                'verif_instalasi' => $ujiFungsi ? (!(bool)$ujiFungsi->is_verified_instalasi && $ujiFungsi->doc_instalasi != null) : false,
-                'verif_uji_fungsi' => $ujiFungsi ? (!(bool)$ujiFungsi->is_verified_uji_fungsi && $ujiFungsi->doc_uji_fungsi != null) : false,
-                'verif_pelatihan_alat' => $ujiFungsi ? (!(bool)$ujiFungsi->is_verified_pelatihan && $ujiFungsi->doc_pelatihan != null) : false,
-                'verif_aspak' => $document ? (!(bool)$document->is_verified_aspak && $document->aspak != null) : false,
-                'verif_basto' => $document ? (!(bool)$document->is_verified_basto && $document->basto != null) : false,
                 'pending_docs' => $pendingDocs,
                 'pending_count' => count($pendingDocs),
                 'has_pending_verification' => count($pendingDocs) > 0
