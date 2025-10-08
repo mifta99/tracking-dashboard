@@ -587,6 +587,7 @@
                 </div>
                 <div class="col-md-6">
                     <table class="table table-sm table-borderless table-kv mb-0">
+                        @if($uji && $uji->doc_instalasi)
                         <tr>
                             <td>Verifikasi Berita Acara Instalasi</td>
                             <td>
@@ -605,6 +606,7 @@
                                 </form>
                             </td>
                         </tr>
+                        @endif
                         <tr {{ $uji->verified_at_instalasi ? '' : 'hidden' }}><td>Tanggal Verifikasi Instalasi</td><td>{{ $uji->verified_at_instalasi ? $uji->verified_at_instalasi->setTimezone('Asia/Jakarta')->format('d F Y H:i') . ' WIB' : '-' }}</td></tr>
                         <tr {{ $uji->is_verified_instalasi ? 'hidden' : '' }}>
                             @if($revisions['instalasi'])
@@ -628,7 +630,7 @@
                                 @endif
                             </td>
                             @else
-                                @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes')
+                                @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes' && $uji && $uji->doc_instalasi)
                                 <td>Revisi Berita Acara Instalasi</td>
                                 <td>
                                     <button class="btn btn-sm ml-auto btn-danger revisi-btn"
@@ -655,6 +657,7 @@
                 </div>
                 <div class="col-md-6">
                     <table class="table table-sm table-borderless table-kv mb-0">
+                        @if($uji && $uji->doc_uji_fungsi)
                         <tr>
                             <td>Verifikasi Berita Acara Uji Fungsi</td>
                             <td>
@@ -673,6 +676,7 @@
                                 </form>
                             </td>
                         </tr>
+                        @endif
                         <tr {{ $uji->verified_at_uji_fungsi ? '' : 'hidden' }}><td>Tanggal Verifikasi Uji Fungsi</td><td>{{ $uji->verified_at_uji_fungsi ? $uji->verified_at_uji_fungsi->setTimezone('Asia/Jakarta')->format('d F Y H:i') . ' WIB' : '-' }}</td></tr>
                         <tr {{ $uji->is_verified_uji_fungsi ? 'hidden' : '' }}>
                             @if($revisions['uji_fungsi'])
@@ -696,7 +700,7 @@
                                 @endif
                             </td>
                             @else
-                                @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes')
+                                @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes' && $uji && $uji->doc_uji_fungsi)
                                 <td>Revisi Berita Acara Uji Fungsi</td>
                                 <td>
                                     <button class="btn btn-sm ml-auto btn-danger revisi-btn"
@@ -723,6 +727,7 @@
                 </div>
                 <div class="col-md-6">
                     <table class="table table-sm table-borderless table-kv mb-0">
+                        @if($uji && $uji->doc_pelatihan)
                         <tr>
                             <td>Verifikasi Berita Acara Pelatihan Alat</td>
                             <td>
@@ -741,6 +746,7 @@
                                 </form>
                             </td>
                         </tr>
+                        @endif
                         <tr {{ $uji->verified_at_pelatihan ? '' : 'hidden' }}><td>Tanggal Verifikasi Pelatihan Alat</td><td>{{ $uji->verified_at_pelatihan ? $uji->verified_at_pelatihan->setTimezone('Asia/Jakarta')->format('d F Y H:i') . ' WIB' : '-' }}</td></tr>
                         <tr {{ $uji->is_verified_pelatihan ? 'hidden' : '' }}>
                             @if($revisions['pelatihan'])
@@ -764,7 +770,7 @@
                                 @endif
                             </td>
                             @else
-                                @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes')
+                                @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes' && $uji && $uji->doc_pelatihan)
                                 <td>Revisi Berita Acara Pelatihan Alat</td>
                                 <td>
                                     <button class="btn btn-sm ml-auto btn-danger revisi-btn"
@@ -801,6 +807,7 @@
                 </div>
                 <div class="col-md-6">
                     <table class="table table-sm table-borderless table-kv mb-0">
+                        @if($doc && $doc->kalibrasi)
                         <tr>
                             <td>Verifikasi Berita Acara Kalibrasi</td>
                             <td>
@@ -819,6 +826,7 @@
                                 </form>
                             </td>
                         </tr>
+                        @endif
                         <tr {{ ($doc && $doc->verified_at_kalibrasi) ? '' : 'hidden' }}><td>Tanggal Verifikasi Kalibrasi</td><td>{{ ($doc && $doc->verified_at_kalibrasi) ? $doc->verified_at_kalibrasi->setTimezone('Asia/Jakarta')->format('d F Y H:i') . ' WIB' : '-' }}</td></tr>
                         <tr {{ ($doc && $doc->is_verified_kalibrasi) ? 'hidden' : '' }}>
                             @if($revisions['kalibrasi'])
@@ -842,7 +850,7 @@
                                 @endif
                             </td>
                             @else
-                                @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes')
+                                @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes' && $doc && $doc->kalibrasi)
                                 <td>Revisi Berita Acara Kalibrasi</td>
                                 <td>
                                     <button class="btn btn-sm ml-auto btn-danger revisi-btn"
@@ -867,6 +875,7 @@
                 </div>
                 <div class="col-md-6">
                     <table class="table table-sm table-borderless table-kv mb-0">
+                        @if($doc && $doc->bast)
                         <tr>
                             <td>Verifikasi Berita Acara BAST</td>
                             <td>
@@ -885,6 +894,7 @@
                                 </form>
                             </td>
                         </tr>
+                        @endif
                         <tr {{ ($doc && $doc->verified_at_bast) ? '' : 'hidden' }}><td>Tanggal Verifikasi BAST</td><td>{{ ($doc && $doc->verified_at_bast) ? $doc->verified_at_bast->setTimezone('Asia/Jakarta')->format('d F Y H:i') . ' WIB' : '-' }}</td></tr>
                         <tr {{ ($doc && $doc->is_verified_bast) ? 'hidden' : '' }}>
                             @if($revisions['bast'])
@@ -908,7 +918,7 @@
                                 @endif
                             </td>
                             @else
-                                @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes')
+                                @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes' && $doc && $doc->bast)
                                 <td>Revisi Berita Acara BAST</td>
                                 <td>
                                     <button class="btn btn-sm ml-auto btn-danger revisi-btn"
@@ -933,6 +943,7 @@
                 </div>
                 <div class="col-md-6">
                     <table class="table table-sm table-borderless table-kv mb-0">
+                        @if($doc && $doc->basto)
                         <tr>
                             <td>Verifikasi Berita Acara BASTO</td>
                             <td>
@@ -951,6 +962,7 @@
                                 </form>
                             </td>
                         </tr>
+                        @endif
                         <tr {{ ($doc && $doc->verified_at_basto) ? '' : 'hidden' }}><td>Tanggal Verifikasi BASTO</td><td>{{ ($doc && $doc->verified_at_basto) ? $doc->verified_at_basto->setTimezone('Asia/Jakarta')->format('d F Y H:i') . ' WIB' : '-' }}</td></tr>
                         <tr {{ ($doc && $doc->is_verified_basto) ? 'hidden' : '' }}>
                             @if($revisions['basto'])
@@ -974,7 +986,7 @@
                                 @endif
                             </td>
                             @else
-                                @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes')
+                                @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes' && $doc && $doc->basto)
                                 <td>Revisi Berita Acara BASTO</td>
                                 <td>
                                     <button class="btn btn-sm ml-auto btn-danger revisi-btn"
@@ -999,6 +1011,7 @@
                 </div>
                 <div class="col-md-6">
                     <table class="table table-sm table-borderless table-kv mb-0">
+                        @if($doc && $doc->aspak)
                         <tr>
                             <td>Verifikasi Berita Acara ASPAK</td>
                             <td>
@@ -1017,6 +1030,7 @@
                                 </form>
                             </td>
                         </tr>
+                        @endif
                         <tr {{ ($doc && $doc->verified_at_aspak) ? '' : 'hidden' }}><td>Tanggal Verifikasi ASPAK</td><td>{{ ($doc && $doc->verified_at_aspak) ? $doc->verified_at_aspak->setTimezone('Asia/Jakarta')->format('d F Y H:i') . ' WIB' : '-' }}</td></tr>
                         <tr {{ ($doc && $doc->is_verified_aspak) ? 'hidden' : '' }}>
                             @if($revisions['aspak'])
@@ -1040,7 +1054,7 @@
                                 @endif
                             </td>
                             @else
-                                @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes')
+                                @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes' && $doc && $doc->aspak)
                                 <td>Revisi Berita Acara ASPAK</td>
                                 <td>
                                     <button class="btn btn-sm ml-auto btn-danger revisi-btn"
