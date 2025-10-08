@@ -60,6 +60,8 @@ class IncidentController extends Controller
             'bagian' => 'required|string|max:255',
             'insiden' => 'required|string|max:500',
             'kronologis' => 'required|string',
+            'tindakan' => 'nullable|string',
+            'tgl_selesai' => 'nullable|date',
             'tahapan_id' => 'required|integer|exists:tahapan,id',
             'dokumentasi.*' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120', // 5MB max
         ], [
@@ -84,17 +86,22 @@ class IncidentController extends Controller
         try {
             $user = Auth::user();
 
+            // Auto-set status to "selesai" (2) if tgl_selesai is provided, otherwise default (1)
+            $status_id = $request->filled('tgl_selesai') ? 2 : 1;
+
             // Create incident
             $incident = Insiden::create([
                 'puskesmas_id' => $puskesmas_id,
                 'tahapan_id' => $request->tahapan_id,
-                'status_id' => 1, // Default status_id is 1
+                'status_id' => $status_id,
                 'kategori_id' => $request->kategori_id,
                 'tgl_kejadian' => $request->tgl_kejadian,
                 'nama_korban' => $request->nama_korban,
                 'bagian' => $request->bagian,
                 'insiden' => $request->insiden,
                 'kronologis' => $request->kronologis,
+                'tindakan' => $request->tindakan,
+                'tgl_selesai' => $request->tgl_selesai,
                 'reported_by' => $user->id,
             ]);
 
@@ -148,14 +155,16 @@ class IncidentController extends Controller
         $incident = Insiden::findOrFail($id);
 
         $validator = Validator::make($request->all(), [
-            'tgl_kejadian' => 'nullable|date',
-            'kategori_id' => 'nullable|integer|exists:kategori_insidens,id',
-            'tahapan_id' => 'nullable|integer|exists:tahapan,id',
+            'tgl_kejadian' => 'required|date',
+            'kategori_id' => 'required|integer|exists:kategori_insidens,id',
+            'tahapan_id' => 'required|integer|exists:tahapan,id',
             'status_id' => 'nullable|integer|exists:status_insiden,id',
-            'nama_korban' => 'nullable|string|max:255',
-            'bagian' => 'nullable|string|max:255',
-            'insiden' => 'nullable|string|max:500',
-            'kronologis' => 'nullable|string',
+            'nama_korban' => 'required|string|max:255',
+            'bagian' => 'required|string|max:255',
+            'insiden' => 'required|string|max:500',
+            'kronologis' => 'required|string',
+            'tindakan' => 'nullable|string',
+            'tgl_selesai' => 'nullable|date',
             'dokumentasi.*' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
         ]);
 
@@ -169,7 +178,7 @@ class IncidentController extends Controller
         try {
             $updateData = array_filter($request->only([
                 'tgl_kejadian', 'kategori_id', 'tahapan_id', 'status_id',
-                'nama_korban', 'bagian', 'insiden', 'kronologis',
+                'nama_korban', 'bagian', 'insiden', 'kronologis', 'tindakan', 'tgl_selesai',
                 'rencana_tindakan_koreksi', 'pelaksana_tindakan_koreksi',
                 'tgl_selesai_koreksi', 'verifikasi_hasil_koreksi',
                 'verifikasi_tgl_koreksi', 'verifikasi_pelaksana_koreksi',
@@ -179,6 +188,11 @@ class IncidentController extends Controller
             ]), function($value) {
                 return $value !== null && $value !== '';
             });
+
+            // Auto-update status to "selesai" (2) when tgl_selesai is provided
+            if ($request->filled('tgl_selesai')) {
+                $updateData['status_id'] = 2; // Status "Selesai"
+            }
 
             // Handle file uploads for dokumentasi
             if ($request->hasFile('dokumentasi')) {
@@ -212,7 +226,7 @@ class IncidentController extends Controller
     // API Methods for dropdown data
     public function getKategoriInsiden()
     {
-        $kategori = KategoriInsiden::select('id', 'kategori as name')->get();
+        $kategori = KategoriInsiden::select('id', 'kategori')->get();
         return response()->json($kategori);
     }
 
@@ -269,6 +283,20 @@ class IncidentController extends Controller
                 'success' => false,
                 'message' => 'Gagal memuat data insiden: ' . $e->getMessage()
             ], 500);
+        }
+    }
+
+    /**
+     * Get total incident count for menu badge
+     * Count incidents that are not completed (status_id != 2)
+     */
+    public static function getTotalIncidentCount()
+    {
+        try {
+            // Count incidents that are not resolved (status_id != 2, where 2 = selesai)
+            return Insiden::where('status_id', '!=', 2)->count();
+        } catch (\Exception $e) {
+            return 0;
         }
     }
 }

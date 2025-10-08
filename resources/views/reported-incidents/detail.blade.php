@@ -2,462 +2,325 @@
 
 @section('title', 'Detail Insiden')
 
+@section('adminlte_css_pre')
+    <!-- CSRF Token -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <!-- Toastr CSS for toast notifications -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+@endsection
+
 @section('content_header')
-    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <h1 class="mb-0">Detail Insiden</h1>
-        <a href="{{ route('reported-incidents.index') }}" class="btn btn-sm btn-outline-secondary">
-            <i class="fas fa-arrow-left"></i> Kembali ke Daftar
-        </a>
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center">
+        <div class="mb-2 mb-md-0">
+            <h1 class="mb-0" style="font-size: 24px;">Detail Insiden</h1>
+            <p class="text-muted mb-0">Puskesmas {{ optional($incident->puskesmas)->name ?? 'Puskesmas Tidak Diketahui' }}</p>
+        </div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Detail Insiden</li>
+            </ol>
+        </nav>
     </div>
 @stop
 
 @section('content')
     @php
-        $formatDate = function ($value, $fallback = 'NULL') {
-            if (empty($value)) {
-                return $fallback;
-            }
-
-            try {
-                return \Illuminate\Support\Carbon::parse($value)->translatedFormat('d F Y');
-            } catch (\Throwable $th) {
-                return $fallback;
-            }
-        };
-
-        $incident = $incident instanceof \Illuminate\Support\Collection ? $incident->first() : $incident;
-
-        if (is_null($incident)) {
-            $incident = new \Illuminate\Support\Fluent();
+        $puskesmas = $incident->puskesmas;
+        $district = optional($puskesmas)->district;
+        $regency = optional($district)->regency;
+        $province = optional($regency)->province;
+        $reporter = $incident->reporter->name ?? 'Pelapor Tidak Diketahui';
+        $documentation = $incident->dokumentasiInsiden ?? collect();
+        $reportedDate = optional($incident->tgl_kejadian)->translatedFormat('d F Y');
+        if (!$reportedDate && $incident->created_at) {
+            $reportedDate = $incident->created_at->translatedFormat('d F Y');
         }
-
-        $badgeClass = [
-            'open' => 'danger',
-            'opened' => 'danger',
-            'baru' => 'secondary',
-            'in_progress' => 'warning',
-            'proses' => 'warning',
-            'closed' => 'success',
-            'selesai' => 'success',
-        ];
-
-        $statusRelation = data_get($incident, 'status');
-        $statusSlug = data_get($statusRelation, 'slug');
-        $statusName = data_get($statusRelation, 'name');
-
-        $statusKey = $statusSlug
-            ?? ($statusName ? \Illuminate\Support\Str::slug($statusName, '_') : null)
-            ?? data_get($incident, 'status_id');
-
-        $statusLabel = $statusName
-            ?? ($statusKey ? \Illuminate\Support\Str::of($statusKey)->replace('_', ' ')->title() : 'NULL');
+        $tgl_selesai = optional($incident->tgl_selesai)->translatedFormat('d F Y');
+        $statusKey = \Illuminate\Support\Str::slug(optional($incident->status)->status ?? 'Open');
+        $kategoriKey = \Illuminate\Support\Str::slug(optional($incident->kategoriInsiden)->kategori ?? 'unknown');
     @endphp
 
     <div class="row">
-        <div class="col-lg-8">
-            <div class="card shadow-sm mb-3">
-                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                    <h3 class="card-title mb-0">
-                        <i class="fas fa-file-alt"></i> Ringkasan Insiden
-                    </h3>
-                    <button type="button" class="btn btn-sm btn-light" onclick="toggleEditMode('basic-info')">
-                        <i class="fas fa-edit"></i> Edit
+        <div class="col-12">
+            <div class="card shadow-sm border-0 raised-incident-detail">
+                <div class="card-header border-0 d-flex justify-content-between align-items-center" style="background-color: #6f42c1; color: #fff;">
+                    <h3 class="card-title mb-0">Rincian Insiden</h3>
+                    @if(auth()->user() && auth()->user()->role->role_name == 'endo')
+                    <button type="button" class="btn btn-sm btn-light ml-auto" style="background-color: #6f42c1; color: #fff;" data-toggle="modal" data-target="#editIncidentModal">
+                        <i class="fas fa-edit"></i> Edit Insiden
                     </button>
+                    @endif
                 </div>
                 <div class="card-body">
-                    <!-- Display Mode -->
-                    <div id="basic-info-display" class="row">
-                        <div class="col-md-6">
-                            <dl class="mb-0">
-                                <dt class="text-muted text-uppercase small">Tanggal Kejadian</dt>
-                                <dd class="h6">{{ $formatDate($incident->tgl_kejadian) }}</dd>
-
-                                <dt class="text-muted text-uppercase small">Nama Korban</dt>
-                                <dd>{{ $incident->nama_korban ?? 'NULL' }}</dd>
-
-                                <dt class="text-muted text-uppercase small">Bagian/Unit</dt>
-                                <dd>{{ $incident->bagian ?? 'NULL' }}</dd>
-
-                                <dt class="text-muted text-uppercase small">Dilaporkan Oleh</dt>
-                                <dd>{{ optional($incident->reporter)->name ?? 'NULL' }}</dd>
-                            </dl>
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <table class="table table-sm table-borderless table-kv mb-0">
+                                <tr><td>Nama Puskesmas</td><td>{{ optional($puskesmas)->name ?? '-' }}</td></tr>
+                                <tr><td>Kecamatan</td><td>{{ optional($district)->name ?? '-' }}</td></tr>
+                                <tr><td>Kabupaten / Kota</td><td>{{ optional($regency)->name ?? '-' }}</td></tr>
+                                <tr><td>Provinsi</td><td>{{ optional($province)->name ?? '-' }}</td></tr>
+                            </table>
                         </div>
-                        <div class="col-md-6">
-                            <dl class="mb-0">
-                                <dt class="text-muted text-uppercase small">Puskesmas</dt>
-                                <dd>{{ optional($incident->puskesmas)->name ?? 'NULL' }}</dd>
-
-                                <dt class="text-muted text-uppercase small">Tahapan</dt>
-                                <dd>{{ optional($incident->tahapan)->name ?? 'NULL' }}</dd>
-
-                                <dt class="text-muted text-uppercase small">Kategori Insiden</dt>
-                                <dd>{{ optional($incident->kategoriInsiden)->name ?? 'NULL' }}</dd>
-
-                                <dt class="text-muted text-uppercase small">Status</dt>
-                                <dd>
-                                    <span
-                                        class="badge badge-pill badge-{{ $badgeClass[strtolower($statusKey)] ?? 'secondary' }} px-3 py-2 text-sm">
-                                        {{ $statusLabel }}
-                                    </span>
-                                </dd>
-                            </dl>
-                        </div>
-                    </div>
-
-                    <!-- Edit Mode -->
-                    <div id="basic-info-edit" class="row" style="display: none;">
-                        <form id="basic-info-form" class="w-100">
-                            @csrf
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label class="text-muted text-uppercase small">Tanggal Kejadian</label>
-                                        <input type="date" class="form-control form-control-sm" name="tgl_kejadian" value="{{ $incident->tgl_kejadian ?? '' }}">
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="text-muted text-uppercase small">Nama Korban</label>
-                                        <input type="text" class="form-control form-control-sm" name="nama_korban" value="{{ $incident->nama_korban ?? '' }}">
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="text-muted text-uppercase small">Bagian/Unit</label>
-                                        <input type="text" class="form-control form-control-sm" name="bagian" value="{{ $incident->bagian ?? '' }}">
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label class="text-muted text-uppercase small">Tahapan</label>
-                                        <select class="form-control form-control-sm" name="tahapan_id">
-                                            <option value="">Pilih Tahapan</option>
-                                            <!-- Options will be populated via JavaScript -->
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="text-muted text-uppercase small">Kategori Insiden</label>
-                                        <select class="form-control form-control-sm" name="kategori_id">
-                                            <option value="">Pilih Kategori</option>
-                                            <!-- Options will be populated via JavaScript -->
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="text-muted text-uppercase small">Status</label>
-                                        <select class="form-control form-control-sm" name="status_id">
-                                            <option value="">Pilih Status</option>
-                                            <!-- Options will be populated via JavaScript -->
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-md-12">
-                                    <div class="btn-group">
-                                        <button type="button" class="btn btn-success btn-sm" onclick="saveSection('basic-info')">
-                                            <i class="fas fa-save"></i> Simpan
-                                        </button>
-                                        <button type="button" class="btn btn-secondary btn-sm" onclick="cancelEdit('basic-info')">
-                                            <i class="fas fa-times"></i> Batal
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card shadow-sm mb-3">
-                <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
-                    <h3 class="card-title mb-0">
-                        <i class="fas fa-exclamation-triangle"></i> Rincian Insiden
-                    </h3>
-                    <button type="button" class="btn btn-sm btn-light" onclick="toggleEditMode('incident-details')">
-                        <i class="fas fa-edit"></i> Edit
-                    </button>
-                </div>
-                <div class="card-body">
-                    <!-- Display Mode -->
-                    <div id="incident-details-display">
-                        <div class="mb-4">
-                            <h5 class="text-uppercase text-muted small mb-2">Judul Insiden</h5>
-                            <p class="lead mb-0">{{ $incident->insiden ?? 'NULL' }}</p>
-                        </div>
-
-                        <div>
-                            <h5 class="text-uppercase text-muted small mb-2">Kronologis</h5>
-                            <p class="mb-0 text-justify">{{ $incident->kronologis ?? 'Belum ada kronologis yang diinput.' }}</p>
-                        </div>
-                    </div>
-
-                    <!-- Edit Mode -->
-                    <div id="incident-details-edit" style="display: none;">
-                        <form id="incident-details-form">
-                            @csrf
-                            <div class="form-group">
-                                <label class="text-uppercase text-muted small">Judul Insiden</label>
-                                <input type="text" class="form-control" name="insiden" value="{{ $incident->insiden ?? '' }}" placeholder="Masukkan judul insiden">
-                            </div>
-                            <div class="form-group">
-                                <label class="text-uppercase text-muted small">Kronologis</label>
-                                <textarea class="form-control" name="kronologis" rows="5" placeholder="Deskripsikan kronologis kejadian secara detail...">{{ $incident->kronologis ?? '' }}</textarea>
-                            </div>
-                            <div class="form-group">
-                                <label class="text-uppercase text-muted small">Dokumentasi</label>
-                                <input type="file" class="form-control-file" name="dokumentasi[]" multiple accept="image/*,application/pdf">
-                                <small class="form-text text-muted">Upload foto atau dokumen pendukung (JPG, PNG, PDF)</small>
-                                @if (!empty($incident->dokumentasi))
-                                    <div class="mt-2">
-                                        <small class="text-muted">Dokumentasi saat ini:</small>
-                                        @php
-                                            $documents = is_array($incident->dokumentasi) ? $incident->dokumentasi : explode(',', (string) $incident->dokumentasi);
-                                        @endphp
-                                        @foreach ($documents as $index => $doc)
-                                            @php $cleanDoc = trim($doc); @endphp
-                                            @if (!empty($cleanDoc))
-                                                <br><small><i class="fas fa-paperclip"></i> <a href="{{ $cleanDoc }}" target="_blank">Lampiran {{ $index + 1 }}</a></small>
-                                            @endif
-                                        @endforeach
-                                    </div>
-                                @endif
-                            </div>
-                            <div class="btn-group">
-                                <button type="button" class="btn btn-success btn-sm" onclick="saveSection('incident-details')">
-                                    <i class="fas fa-save"></i> Simpan
-                                </button>
-                                <button type="button" class="btn btn-secondary btn-sm" onclick="cancelEdit('incident-details')">
-                                    <i class="fas fa-times"></i> Batal
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card shadow-sm mb-3">
-                <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                    <h3 class="card-title mb-0">
-                        <i class="fas fa-tools"></i> Tindakan Koreksi
-                    </h3>
-                    <button type="button" class="btn btn-sm btn-secondary" onclick="toggleEditMode('tindakan-koreksi')">
-                        <i class="fas fa-edit"></i> Edit
-                    </button>
-                </div>
-                <div class="card-body">
-                    <!-- Display Mode -->
-                    <div id="tindakan-koreksi-display" class="row">
-                        <div class="col-md-6">
-                            <dl class="mb-0">
-                                <dt class="text-muted text-uppercase small">Rencana Tindakan</dt>
-                                <dd>{{ $incident->rencana_tindakan_koreksi ?? 'NULL' }}</dd>
-
-                                <dt class="text-muted text-uppercase small">Pelaksana</dt>
-                                <dd>{{ $incident->pelaksana_tindakan_koreksi ?? 'NULL' }}</dd>
-
-                                <dt class="text-muted text-uppercase small">Tanggal Selesai</dt>
-                                <dd>{{ $formatDate($incident->tgl_selesai_koreksi) }}</dd>
-                            </dl>
-                        </div>
-                        <div class="col-md-6">
-                            <dl class="mb-0">
-                                <dt class="text-muted text-uppercase small">Hasil Verifikasi</dt>
-                                <dd>{{ $incident->verifikasi_hasil_koreksi ?? 'NULL' }}</dd>
-
-                                <dt class="text-muted text-uppercase small">Tanggal Verifikasi</dt>
-                                <dd>{{ $formatDate($incident->verifikasi_tgl_koreksi) }}</dd>
-
-                                <dt class="text-muted text-uppercase small">Diverifikasi Oleh</dt>
-                                <dd>{{ $incident->verifikasi_pelaksana_koreksi ?? 'NULL' }}</dd>
-                            </dl>
-                        </div>
-                    </div>
-
-                    <!-- Edit Mode -->
-                    <div id="tindakan-koreksi-edit" class="row" style="display: none;">
-                        <form id="tindakan-koreksi-form" class="w-100">
-                            @csrf
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label class="text-muted text-uppercase small">Rencana Tindakan</label>
-                                        <textarea class="form-control form-control-sm" name="rencana_tindakan_koreksi" rows="3" placeholder="Deskripsikan rencana tindakan koreksi">{{ $incident->rencana_tindakan_koreksi ?? '' }}</textarea>
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="text-muted text-uppercase small">Pelaksana</label>
-                                        <input type="text" class="form-control form-control-sm" name="pelaksana_tindakan_koreksi" value="{{ $incident->pelaksana_tindakan_koreksi ?? '' }}" placeholder="Nama pelaksana">
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="text-muted text-uppercase small">Tanggal Selesai</label>
-                                        <input type="date" class="form-control form-control-sm" name="tgl_selesai_koreksi" value="{{ $incident->tgl_selesai_koreksi ?? '' }}">
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label class="text-muted text-uppercase small">Hasil Verifikasi</label>
-                                        <textarea class="form-control form-control-sm" name="verifikasi_hasil_koreksi" rows="3" placeholder="Hasil verifikasi tindakan koreksi">{{ $incident->verifikasi_hasil_koreksi ?? '' }}</textarea>
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="text-muted text-uppercase small">Tanggal Verifikasi</label>
-                                        <input type="date" class="form-control form-control-sm" name="verifikasi_tgl_koreksi" value="{{ $incident->verifikasi_tgl_koreksi ?? '' }}">
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="text-muted text-uppercase small">Diverifikasi Oleh</label>
-                                        <input type="text" class="form-control form-control-sm" name="verifikasi_pelaksana_koreksi" value="{{ $incident->verifikasi_pelaksana_koreksi ?? '' }}" placeholder="Nama verifikator">
-                                    </div>
-                                </div>
-                                <div class="col-md-12">
-                                    <div class="btn-group">
-                                        <button type="button" class="btn btn-success btn-sm" onclick="saveSection('tindakan-koreksi')">
-                                            <i class="fas fa-save"></i> Simpan
-                                        </button>
-                                        <button type="button" class="btn btn-secondary btn-sm" onclick="cancelEdit('tindakan-koreksi')">
-                                            <i class="fas fa-times"></i> Batal
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card shadow-sm mb-3">
-                <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                    <h3 class="card-title mb-0">
-                        <i class="fas fa-clipboard-check"></i> Tindakan Korektif
-                    </h3>
-                    <button type="button" class="btn btn-sm btn-secondary" onclick="toggleEditMode('tindakan-korektif')">
-                        <i class="fas fa-edit"></i> Edit
-                    </button>
-                </div>
-                <div class="card-body">
-                    <!-- Display Mode -->
-                    <div id="tindakan-korektif-display" class="row">
-                        <div class="col-md-6">
-                            <dl class="mb-0">
-                                <dt class="text-muted text-uppercase small">Rencana Tindakan</dt>
-                                <dd>{{ $incident->rencana_tindakan_korektif ?? 'NULL' }}</dd>
-
-                                <dt class="text-muted text-uppercase small">Pelaksana</dt>
-                                <dd>{{ $incident->pelaksana_tindakan_korektif ?? 'NULL' }}</dd>
-
-                                <dt class="text-muted text-uppercase small">Tanggal Selesai</dt>
-                                <dd>{{ $formatDate($incident->tgl_selesai_korektif) }}</dd>
-                            </dl>
-                        </div>
-                        <div class="col-md-6">
-                            <dl class="mb-0">
-                                <dt class="text-muted text-uppercase small">Hasil Verifikasi</dt>
-                                <dd>{{ $incident->verifikasi_hasil_korektif ?? 'NULL' }}</dd>
-
-                                <dt class="text-muted text-uppercase small">Tanggal Verifikasi</dt>
-                                <dd>{{ $formatDate($incident->verifikasi_tgl_korektif) }}</dd>
-
-                                <dt class="text-muted text-uppercase small">Diverifikasi Oleh</dt>
-                                <dd>{{ $incident->verifikasi_pelaksana_korektif ?? 'NULL' }}</dd>
-                            </dl>
-                        </div>
-                    </div>
-
-                    <!-- Edit Mode -->
-                    <div id="tindakan-korektif-edit" class="row" style="display: none;">
-                        <form id="tindakan-korektif-form" class="w-100">
-                            @csrf
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label class="text-muted text-uppercase small">Rencana Tindakan</label>
-                                        <textarea class="form-control form-control-sm" name="rencana_tindakan_korektif" rows="3" placeholder="Deskripsikan rencana tindakan korektif">{{ $incident->rencana_tindakan_korektif ?? '' }}</textarea>
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="text-muted text-uppercase small">Pelaksana</label>
-                                        <input type="text" class="form-control form-control-sm" name="pelaksana_tindakan_korektif" value="{{ $incident->pelaksana_tindakan_korektif ?? '' }}" placeholder="Nama pelaksana">
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="text-muted text-uppercase small">Tanggal Selesai</label>
-                                        <input type="date" class="form-control form-control-sm" name="tgl_selesai_korektif" value="{{ $incident->tgl_selesai_korektif ?? '' }}">
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label class="text-muted text-uppercase small">Hasil Verifikasi</label>
-                                        <textarea class="form-control form-control-sm" name="verifikasi_hasil_korektif" rows="3" placeholder="Hasil verifikasi tindakan korektif">{{ $incident->verifikasi_hasil_korektif ?? '' }}</textarea>
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="text-muted text-uppercase small">Tanggal Verifikasi</label>
-                                        <input type="date" class="form-control form-control-sm" name="verifikasi_tgl_korektif" value="{{ $incident->verifikasi_tgl_korektif ?? '' }}">
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="text-muted text-uppercase small">Diverifikasi Oleh</label>
-                                        <input type="text" class="form-control form-control-sm" name="verifikasi_pelaksana_korektif" value="{{ $incident->verifikasi_pelaksana_korektif ?? '' }}" placeholder="Nama verifikator">
-                                    </div>
-                                </div>
-                                <div class="col-md-12">
-                                    <div class="btn-group">
-                                        <button type="button" class="btn btn-success btn-sm" onclick="saveSection('tindakan-korektif')">
-                                            <i class="fas fa-save"></i> Simpan
-                                        </button>
-                                        <button type="button" class="btn btn-secondary btn-sm" onclick="cancelEdit('tindakan-korektif')">
-                                            <i class="fas fa-times"></i> Batal
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-4">
-            <div class="card shadow-sm mb-3">
-                <div class="card-header bg-secondary text-white">
-                    <h3 class="card-title mb-0">
-                        <i class="fas fa-info-circle"></i> Informasi Tambahan
-                    </h3>
-                </div>
-                <div class="card-body">
-                    <dl class="mb-0">
-                        <dt class="text-muted text-uppercase small">Tanggal Dibuat</dt>
-                        <dd>{{ $formatDate($incident->created_at) }}</dd>
-
-                        <dt class="text-muted text-uppercase small">Terakhir Diperbarui</dt>
-                        <dd>{{ $formatDate($incident->updated_at) }}</dd>
-
-                        <dt class="text-muted text-uppercase small">Dokumentasi</dt>
-                        <dd>
-                            @if (!empty($incident->dokumentasi))
-                                <div class="d-flex flex-column gap-1">
+                        <div class="col-lg-6">
+                            <table class="table table-sm table-borderless table-kv mb-0 mt-4 mt-lg-0">
+                                <tr><td>Tanggal Kejadian</td><td>{{ $reportedDate ?? '-' }}</td></tr>
+                                <tr><td>Dilaporkan Oleh</td><td>{{ $reporter }}</td></tr>
+                                <tr><td>Tahapan</td><td>
                                     @php
-                                        $documents = is_array($incident->dokumentasi)
-                                            ? $incident->dokumentasi
-                                            : explode(',', (string) $incident->dokumentasi);
+                                        $tahapanKey = \Illuminate\Support\Str::slug(optional($incident->tahapan)->tahapan ?? 'unknown');
                                     @endphp
-                                    @foreach ($documents as $index => $doc)
+                                    <span class="badge badge-pill badge-tahapan badge-tahapan-{{ $tahapanKey }}">
+                                        {{ optional($incident->tahapan)->tahapan ?? '-' }}
+                                    </span>
+                                </td></tr>
+                                <tr><td>Status</td><td>
+                                    <span class="badge badge-pill badge-status badge-status-{{ $statusKey }}">
+                                        {{ optional($incident->status)->status ?? '-' }}
+                                    </span>
+                                </td></tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <hr class="detail-divider">
+
+                    <div class="row p-2">
+                        <div class="col-lg-6 mb-4 mb-lg-0">
+                            <h5 class="section-title">Deskripsi Insiden</h5>
+                            <p class="mb-3 font-weight-bold text-dark">{{ $incident->insiden ?? '-' }}</p>
+                            <p class="text-muted mb-0" style="white-space: pre-line;">{{ $incident->kronologis ?? '-' }}</p>
+
+                            <div class="mt-3 border-top">
+                                <h6 class="section-title mt-3">Detail Tambahan</h6>
+                                <div class="row">
+                                    <div class="col-12">
+                                        <table class="table table-sm table-borderless table-kv mb-0">
+                                            <tr><td>Nama Korban</td><td>{{ $incident->nama_korban ?? '-' }}</td></tr>
+                                            <tr><td>Bagian/Unit:</td><td>{{ $incident->bagian ?? '-' }}</td></tr>
+                                            <tr><td>Kategori Insiden</td><td>
+                                                <span class="badge badge-pill badge-kategori badge-kategori-{{ $kategoriKey }}">
+                                                    {{ optional($incident->kategoriInsiden)->kategori ?? '-' }}
+                                                </span>
+                                            </td></tr>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <h5 class="section-title">Bukti Dokumentasi</h5>
+                            @if($documentation->isNotEmpty())
+                                <div class="row">
+                                    @foreach($documentation as $index => $doc)
                                         @php
-                                            $cleanDoc = trim($doc);
+                                            $rawUrl = $doc->link_foto;
+                                            $isAbsolute = $rawUrl && \Illuminate\Support\Str::startsWith($rawUrl, ['http://', 'https://']);
+                                            $url = $isAbsolute ? $rawUrl : ($rawUrl ? asset('storage/' . $rawUrl) : null);
+                                            $fileName = basename($rawUrl ?? '');
                                         @endphp
-                                        @if (!empty($cleanDoc))
-                                            <a href="{{ $cleanDoc }}" target="_blank" class="text-primary">
-                                                <i class="fas fa-paperclip"></i> Lampiran {{ $index + 1 }}
-                                            </a>
-                                        @endif
+                                        <div class="col-md-6 col-sm-4 mb-3">
+                                            <div class="card doc-card">
+                                                <div class="doc-image-container" onclick="openImageModal('{{ $url ?? '' }}', '{{ $fileName }}')">
+                                                    @if($url)
+                                                        <img src="{{ $url }}" alt="Dokumentasi {{ $index + 1 }}" class="doc-image">
+                                                        <div class="doc-overlay">
+                                                            <i class="fas fa-search-plus"></i>
+                                                        </div>
+                                                    @else
+                                                        <div class="doc-placeholder">
+                                                            <i class="far fa-image fa-2x text-muted"></i>
+                                                            <p class="small text-muted mt-2">Gambar tidak tersedia</p>
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                                <div class="card-body p-2">
+                                                    <p class="small text-muted mb-0 text-truncate" title="{{ $fileName }}">
+                                                        {{ $fileName ?: 'Dokumen ' . ($index + 1) }}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
                                     @endforeach
                                 </div>
                             @else
-                                <span class="text-muted">Belum ada dokumentasi.</span>
+                                <div class="empty-doc align-items-center">
+                                    <i class="far fa-folder-open fa-2x text-muted mr-2"></i>
+                                    <span class="text-muted">Belum ada dokumentasi yang diunggah.</span>
+                                </div>
                             @endif
-                        </dd>
-                    </dl>
+                        </div>
+                    </div>
+
+                    <hr class="detail-divider">
+
+                    <div class="row p-2">
+                        <h5 class="section-title">Penyelesaian</h5>
+                        <table class="table table-sm table-borderless table-kv mb-0">
+                            <tr><td>Tanggal Selesai </td><td>{{ $tgl_selesai ?? '-' }}</td></tr>
+                            <tr><td>Tindakan</td><td>{{ $incident->tindakan ?? '-' }}</td></tr>
+                        </table>
+                    </div>
+
                 </div>
             </div>
+        </div>
+    </div>
 
-            <div class="card shadow-sm">
-                <div class="card-header bg-light">
-                    <h3 class="card-title mb-0">
-                        <i class="fas fa-history"></i> Riwayat Status
-                    </h3>
+    <!-- Edit Incident Modal -->
+    @if(auth()->user() && auth()->user()->role->role_name == 'endo')
+    <div class="modal fade" id="editIncidentModal" tabindex="-1" role="dialog" aria-labelledby="editIncidentModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header text-white" style="background:#6f42c1;">
+                    <h5 class="modal-title" id="editIncidentModalLabel">
+                        <i class="fas fa-edit mr-2"></i>
+                        Edit Insiden
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
                 </div>
-                <div class="card-body">
-                    <p class="text-muted mb-0">
-                        Riwayat status detail belum tersedia. Catat perubahan status melalui modul administrasi untuk
-                        menampilkan riwayat di sini.
-                    </p>
+                <form id="editIncidentForm" method="POST" action="{{ route('reported-incidents.update', $incident->id) }}" enctype="multipart/form-data">
+                    <div class="modal-body">
+                        @csrf
+                        @method('PATCH')
+
+                        <div class="alert alert-info mb-4">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            <strong>Petunjuk:</strong> Perbarui form di bawah untuk mengubah data insiden.
+                        </div>
+
+                        <div class="row">
+                            <!-- Tanggal Kejadian -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="edit_tgl_kejadian" class="required">Tanggal Kejadian <span class="text-danger">*</span></label>
+                                    <input type="date" class="form-control" id="edit_tgl_kejadian" name="tgl_kejadian" value="{{ $incident->tgl_kejadian ? $incident->tgl_kejadian->format('Y-m-d') : '' }}" required>
+                                </div>
+                            </div>
+
+                            <!-- Kategori Insiden -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="edit_kategori_id" class="required">Kategori Insiden <span class="text-danger">*</span></label>
+                                    <select class="form-control" id="edit_kategori_id" name="kategori_id" required>
+                                        <option value="">Pilih Kategori Insiden</option>
+                                        <!-- Options will be populated via AJAX -->
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Nama Korban -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="edit_nama_korban" class="required">Nama Korban <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="edit_nama_korban" name="nama_korban" value="{{ $incident->nama_korban }}" placeholder="Nama korban insiden" maxlength="255" required>
+                                </div>
+                            </div>
+
+                            <!-- Bagian/Unit -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="edit_bagian" class="required">Bagian/Unit <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="edit_bagian" name="bagian" value="{{ $incident->bagian }}" placeholder="Bagian atau unit kerja" maxlength="255" required>
+                                </div>
+                            </div>
+
+                            <!-- Tahapan -->
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="edit_tahapan_id" class="required">Tahapan <span class="text-danger">*</span></label>
+                                    <select class="form-control" id="edit_tahapan_id" name="tahapan_id" required>
+                                        <option value="">Pilih Tahapan</option>
+                                        <!-- Options will be populated via AJAX -->
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Judul Insiden -->
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="edit_insiden" class="required">Judul Insiden <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="edit_insiden" name="insiden" value="{{ $incident->insiden }}" placeholder="Masukkan judul / ringkasan insiden" maxlength="255" required>
+                                    <small class="form-text text-muted">Maksimal 255 karakter</small>
+                                </div>
+                            </div>
+
+                            <!-- Kronologis -->
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="edit_kronologis" class="required">Kronologis Kejadian <span class="text-danger">*</span></label>
+                                    <textarea class="form-control" id="edit_kronologis" name="kronologis" rows="4" required placeholder="Deskripsikan kronologis kejadian secara detail..." maxlength="1000">{{ $incident->kronologis }}</textarea>
+                                    <div class="d-flex justify-content-between">
+                                        <small class="form-text text-muted">Deskripsikan secara detail kronologis terjadinya insiden</small>
+                                        <small class="text-muted">
+                                            <span id="edit-kronologis-char-count">{{ strlen($incident->kronologis ?? '') }}</span>/1000 karakter
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Tindakan -->
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="edit_tindakan">Tindakan</label>
+                                    <textarea class="form-control" id="edit_tindakan" name="tindakan" rows="3" placeholder="Deskripsikan tindakan yang dilakukan untuk menyelesaikan insiden" maxlength="1000">{{ $incident->tindakan }}</textarea>
+                                    <small class="form-text text-muted">Opsional - Deskripsikan tindakan penyelesaian insiden</small>
+                                </div>
+                            </div>
+
+                            <!-- Tanggal Selesai -->
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="edit_tgl_selesai">Tanggal Selesai</label>
+                                    <input type="date" class="form-control" id="edit_tgl_selesai" name="tgl_selesai" value="{{ $incident->tgl_selesai ? $incident->tgl_selesai->format('Y-m-d') : '' }}">
+                                    <small class="form-text text-muted">Otomatis mengubah status menjadi "Selesai" jika diisi</small>
+                                </div>
+                            </div>
+
+                            <!-- Dokumentasi -->
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="edit_dokumentasi">Dokumentasi Tambahan</label>
+                                    <input type="file" class="form-control-file" id="edit_dokumentasi" name="dokumentasi[]" multiple accept="image/*,application/pdf">
+                                    <small class="form-text text-muted">Upload foto atau dokumen pendukung tambahan (JPG, PNG, PDF) - Maksimal 5MB per file</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                            <i class="fas fa-times"></i> Batal
+                        </button>
+                        <button type="submit" class="btn text-white" style="background:#6f42c1;">
+                            <i class="fas fa-save"></i> Perbarui Insiden
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    <!-- Image Modal -->
+    <div class="modal fade" id="imageModal" tabindex="-1" role="dialog" aria-labelledby="imageModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="imageModalLabel">Preview Dokumentasi</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body text-center">
+                    <img id="modalImage" src="" alt="Preview" class="img-fluid rounded">
+                </div>
+                <div class="modal-footer">
+                    <a id="downloadLink" href="" target="_blank" class="btn btn-primary">
+                        <i class="fas fa-download mr-1"></i> Download
+                    </a>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
@@ -465,174 +328,388 @@
 @stop
 
 @section('css')
-    <meta name="csrf-token" content="{{ csrf_token() }}">
     <style>
-        .text-sm {
-            font-size: 0.8125rem;
+        .table-kv td{padding:.35rem .25rem;vertical-align:top;font-size:.875rem;}
+        .table-kv td:first-child{font-weight:600;width:230px;color:#212529;}
+        .section-title-bar{font-size:.7rem;font-weight:600;letter-spacing:.5px;text-transform:uppercase;}
+        .badge-status{font-size:.55rem;}
+        .raised-incident-detail .detail-list dt {
+            font-weight: 600;
+            color: #4a5568;
+        }
+        .raised-incident-detail .detail-list dd {
+            color: #1f2937;
+        }
+        .raised-incident-detail .detail-divider {
+            border-top: 1px dotted #cbd5e0;
+            margin: 2rem 0 1.5rem;
+        }
+        .raised-incident-detail .section-title {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+        .raised-incident-detail .doc-card {
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .raised-incident-detail .doc-card:hover {
+            border-color: #6f42c1;
+            box-shadow: 0 4px 12px rgba(111, 66, 193, 0.15);
+            transform: translateY(-2px);
+        }
+        .raised-incident-detail .doc-image-container {
+            position: relative;
+            height: 150px;
+            overflow: hidden;
+            border-radius: 12px 12px 0 0;
+        }
+        .raised-incident-detail .doc-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.2s ease;
+        }
+        .raised-incident-detail .doc-card:hover .doc-image {
+            transform: scale(1.05);
+        }
+        .raised-incident-detail .doc-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            color: white;
+            font-size: 24px;
+        }
+        .raised-incident-detail .doc-card:hover .doc-overlay {
+            opacity: 1;
+        }
+        .raised-incident-detail .doc-placeholder {
+            height: 150px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #f8fafc;
+            border-radius: 12px 12px 0 0;
+        }
+        .raised-incident-detail .empty-doc {
+            display: inline-flex;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            background: #f8fafc;
+            border: 1px dashed #cbd5e0;
+            color: #6b7280;
+        }
+        .raised-incident-detail .badge-status-baru {
+            background: rgba(255, 193, 7, 0.15);
+            color: #b38301;
+        }
+        .raised-incident-detail .badge-status-proses {
+            background: rgba(23, 162, 184, 0.15);
+            color: #117a8b;
+        }
+        .raised-incident-detail .badge-status-selesai {
+            background: rgba(40, 167, 69, 0.15);
+            color: #1e7e34;
+        }
+        .raised-incident-detail .badge-status-open {
+            background: rgba(108, 117, 125, 0.15);
+            color: #495057;
+        }
+        /* Kematian */
+        /* Kategori Insiden Badge Styles */
+        .badge-kategori-kematian {
+            background: rgba(220, 53, 69, 0.15) !important;
+            color: #bd2130 !important;
+        }
+        .badge-kategori-tindakan-kekerasan {
+            background: rgba(255, 87, 34, 0.15) !important;
+            color: #e64a19 !important;
+        }
+        .badge-kategori-pemindahan-tanpa-prosedur-yang-semestinya {
+            background: rgba(255, 193, 7, 0.15) !important;
+            color: #b38301 !important;
+        }
+        .badge-kategori-cedera-dengan-waktu-kerja-hilang {
+            background: rgba(0, 123, 255, 0.15) !important;
+            color: #004085 !important;
+        }
+        .badge-kategori-eksploitasi-dan-kekerasan-seksual-pelecehan-seksual {
+            background: rgba(156, 39, 176, 0.15) !important;
+            color: #6a1b9a !important;
+        }
+        .badge-kategori-pekerja-anak {
+            background: rgba(255, 152, 0, 0.15) !important;
+            color: #b36b00 !important;
+        }
+        .badge-kategori-pekerja-paksa {
+            background: rgba(33, 150, 243, 0.15) !important;
+            color: #0d47a1 !important;
+        }
+        .badge-kategori-dampak-tak-terduga-terhadap-sumber-daya-warisan-budaya {
+            background: rgba(76, 175, 80, 0.15) !important;
+            color: #1e7e34 !important;
+        }
+        .badge-kategori-dampak-tak-terduga-terhadap-keanekaragaman-hayati {
+            background: rgba(0, 150, 136, 0.15) !important;
+            color: #00695c !important;
+        }
+        .badge-kategori-wabah-penyakit {
+            background: rgba(23, 162, 184, 0.15) !important;
+            color: #117a8b !important;
+        }
+        .badge-kategori-kecelakaan-pencemaran-lingkungan {
+            background: rgba(63, 81, 181, 0.15) !important;
+            color: #283593 !important;
+        }
+        .badge-kategori-lainnya {
+            background: rgba(108, 117, 125, 0.15) !important;
+            color: #6c757d !important;
+        }
+        /* Unknown */
+        .raised-incident-detail .badge-kategori-unknown {
+            background: rgba(108, 117, 125, 0.15);
+            color: #495057;
+        }
+        .raised-incident-detail .badge {
+            font-weight: 600;
+            padding: 0.35rem 0.75rem;
+        }
+        /* Tahapan badges */
+        .raised-incident-detail .badge-tahapan-pengemasan {
+            background: rgba(0, 136, 255, 0.15) !important; /* secondary tone */
+            color: #0088ff !important;
         }
 
-        .gap-1 > * + * {
-            margin-top: 0.25rem;
+        .raised-incident-detail .badge-tahapan-dalam-pengiriman {
+            background: rgba(23, 162, 184, 0.15); /* info tone */
+            color: #117a8b;
         }
 
-        .edit-mode {
-            background-color: #f8f9fa;
-            border: 1px dashed #007bff;
-            border-radius: 0.25rem;
-            padding: 1rem;
+        .raised-incident-detail .badge-tahapan-penerimaan {
+            background: rgba(0, 123, 255, 0.15); /* primary tone */
+            color: #004085;
         }
 
-        .btn-group .btn {
-            margin-right: 0.25rem;
+        .raised-incident-detail .badge-tahapan-instalasi {
+            background: rgba(255, 193, 7, 0.15); /* warning tone */
+            color: #b38301;
+        }
+
+        .raised-incident-detail .badge-tahapan-uji-fungsi {
+            background: rgba(128, 0, 128, 0.15); /* purple tone */
+            color: #800080;
+        }
+
+        .raised-incident-detail .badge-tahapan-pelatihan-alat {
+            background: rgba(52, 58, 64, 0.15); /* dark tone */
+            color: #343a40;
+        }
+
+        .raised-incident-detail .badge-tahapan-aspak {
+            background: rgba(40, 167, 69, 0.15); /* success tone */
+            color: #1e7e34;
+        }
+
+        .raised-incident-detail .badge-tahapan-basto {
+            background: rgba(220, 53, 69, 0.15); /* danger tone */
+            color: #bd2130;
+        }
+
+        .raised-incident-detail .badge-tahapan-unknown {
+            background: rgba(108, 117, 125, 0.15);
+            color: #495057;
+        }
+        @media (max-width: 576px) {
+            .raised-incident-detail .card-footer .btn {
+                width: 100%;
+            }
+            .raised-incident-detail .card-footer .btn + .btn {
+                margin-top: 0.5rem;
+            }
         }
     </style>
 @stop
 
 @section('js')
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script>
-        let currentIncidentId = {{ $incident->id ?? 'null' }};
+<!-- Toastr JS for toast notifications -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<script>
+function openImageModal(imageUrl, fileName) {
+    if (!imageUrl) return;
 
-        // Toggle edit mode for sections
-        function toggleEditMode(sectionId) {
-            const displaySection = document.getElementById(sectionId + '-display');
-            const editSection = document.getElementById(sectionId + '-edit');
-            
-            if (displaySection && editSection) {
-                if (editSection.style.display === 'none') {
-                    displaySection.style.display = 'none';
-                    editSection.style.display = 'block';
-                    editSection.classList.add('edit-mode');
-                    
-                    // Load dropdown data if needed
-                    if (sectionId === 'basic-info') {
-                        loadDropdownData();
-                    }
-                } else {
-                    cancelEdit(sectionId);
-                }
-            }
+    $('#modalImage').attr('src', imageUrl);
+    $('#imageModalLabel').text(fileName || 'Preview Dokumentasi');
+    $('#downloadLink').attr('href', imageUrl);
+    $('#imageModal').modal('show');
+}
+
+$(document).ready(function() {
+    // Handle image load errors
+    $('.doc-image').on('error', function() {
+        $(this).closest('.doc-image-container').html(`
+            <div class="doc-placeholder">
+                <i class="far fa-image fa-2x text-muted"></i>
+                <p class="small text-muted mt-2">Gambar tidak dapat dimuat</p>
+            </div>
+        `);
+    });
+
+    // Edit incident modal functionality
+    $('#editIncidentModal').on('show.bs.modal', function () {
+        loadEditDropdownData();
+    });
+
+    // Character counter for edit kronologis
+    $('#edit_kronologis').on('input', function() {
+        const current = $(this).val().length;
+        $('#edit-kronologis-char-count').text(current);
+
+        if (current > 1000) {
+            $('#edit-kronologis-char-count').addClass('text-danger');
+        } else {
+            $('#edit-kronologis-char-count').removeClass('text-danger');
         }
+    });
 
-        // Cancel edit mode
-        function cancelEdit(sectionId) {
-            const displaySection = document.getElementById(sectionId + '-display');
-            const editSection = document.getElementById(sectionId + '-edit');
-            
-            if (displaySection && editSection) {
-                displaySection.style.display = 'block';
-                editSection.style.display = 'none';
-                editSection.classList.remove('edit-mode');
-                
-                // Reset form
-                const form = document.getElementById(sectionId + '-form');
-                if (form) {
-                    form.reset();
-                }
-            }
+    // Auto-update status when tgl_selesai is filled
+    $('#edit_tgl_selesai').on('change', function() {
+        const tglSelesai = $(this).val();
+        if (tglSelesai) {
+            // Set status to "Selesai" (status_id = 2)
+            $('#edit_status_id').val('2');
+            toastr.info('Status otomatis diubah menjadi "Selesai" karena tanggal selesai diisi');
         }
+    });
 
-        // Save section changes
-        function saveSection(sectionId) {
-            const form = document.getElementById(sectionId + '-form');
-            if (!form) return;
-
-            const formData = new FormData(form);
-            
-            // Show loading
-            Swal.fire({
-                title: 'Menyimpan...',
-                text: 'Sedang memperbarui data insiden',
-                allowOutsideClick: false,
-                showConfirmButton: false,
-                willOpen: () => {
-                    Swal.showLoading();
-                }
-            });
-
-            fetch(`{{ route('reported-incidents.update', '') }}/${currentIncidentId}`, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                    'X-HTTP-Method-Override': 'PATCH'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Berhasil!',
-                        text: data.message || 'Data berhasil diperbarui',
-                        timer: 2000,
-                        showConfirmButton: false
-                    }).then(() => {
-                        // Reload page to show updated data
-                        window.location.reload();
-                    });
-                } else {
-                    throw new Error(data.message || 'Gagal memperbarui data');
-                }
-            })
-            .catch(error => {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Gagal',
-                    text: error.message || 'Terjadi kesalahan saat memperbarui data'
+    // Load dropdown data for edit form
+    function loadEditDropdownData() {
+        // Load Kategori Insiden
+        $.ajax({
+            url: '{{ route("api.kategori-insiden") }}',
+            type: 'GET',
+            success: function(data) {
+                let options = '<option value="">Pilih Kategori Insiden</option>';
+                data.forEach(function(item) {
+                    const selected = item.id == {{ $incident->kategori_id ?? 'null' }} ? 'selected' : '';
+                    options += `<option value="${item.id}" ${selected}>${item.kategori}</option>`;
                 });
-            });
-        }
+                $('#edit_kategori_id').html(options);
+            },
+            error: function() {
+                console.log('Failed to load kategori insiden');
+            }
+        });
 
-        // Load dropdown data for select fields
-        function loadDropdownData() {
-            // Load Kategori Insiden
-            fetch('{{ route("api.kategori-insiden") }}')
-                .then(response => response.json())
-                .then(data => {
-                    const select = document.querySelector('select[name="kategori_id"]');
-                    if (select) {
-                        let options = '<option value="">Pilih Kategori</option>';
-                        data.forEach(item => {
-                            const selected = item.id == {{ $incident->kategori_id ?? 'null' }} ? 'selected' : '';
-                            options += `<option value="${item.id}" ${selected}>${item.name}</option>`;
-                        });
-                        select.innerHTML = options;
-                    }
-                })
-                .catch(error => console.log('Failed to load kategori insiden'));
+        // Load Tahapan
+        $.ajax({
+            url: '{{ route("api.tahapan") }}',
+            type: 'GET',
+            success: function(data) {
+                let options = '<option value="">Pilih Tahapan</option>';
+                data.forEach(function(item) {
+                    const selected = item.id == {{ $incident->tahapan_id ?? 'null' }} ? 'selected' : '';
+                    options += `<option value="${item.id}" ${selected}>${item.tahapan}</option>`;
+                });
+                $('#edit_tahapan_id').html(options);
+            },
+            error: function() {
+                console.log('Failed to load tahapan');
+            }
+        });
 
-            // Load Tahapan
-            fetch('{{ route("api.tahapan") }}')
-                .then(response => response.json())
-                .then(data => {
-                    const select = document.querySelector('select[name="tahapan_id"]');
-                    if (select) {
-                        let options = '<option value="">Pilih Tahapan</option>';
-                        data.forEach(item => {
-                            const selected = item.id == {{ $incident->tahapan_id ?? 'null' }} ? 'selected' : '';
-                            options += `<option value="${item.id}" ${selected}>${item.tahapan}</option>`;
-                        });
-                        select.innerHTML = options;
-                    }
-                })
-                .catch(error => console.log('Failed to load tahapan'));
+        // Load Status Insiden
+        $.ajax({
+            url: '{{ route("api.status-insiden") }}',
+            type: 'GET',
+            success: function(data) {
+                let options = '<option value="">Pilih Status</option>';
+                data.forEach(function(item) {
+                    const selected = item.id == {{ $incident->status_id ?? 'null' }} ? 'selected' : '';
+                    options += `<option value="${item.id}" ${selected}>${item.status}</option>`;
+                });
+                $('#edit_status_id').html(options);
+            },
+            error: function() {
+                console.log('Failed to load status insiden');
+            }
+        });
+    }
 
-            // Load Status Insiden
-            fetch('{{ route("api.status-insiden") }}')
-                .then(response => response.json())
-                .then(data => {
-                    const select = document.querySelector('select[name="status_id"]');
-                    if (select) {
-                        let options = '<option value="">Pilih Status</option>';
-                        data.forEach(item => {
-                            const selected = item.id == {{ $incident->status_id ?? 'null' }} ? 'selected' : '';
-                            options += `<option value="${item.id}" ${selected}>${item.name}</option>`;
-                        });
-                        select.innerHTML = options;
-                    }
-                })
-                .catch(error => console.log('Failed to load status insiden'));
-        }
-    </script>
+    // Handle edit form submission
+    $('#editIncidentForm').on('submit', function(e) {
+        e.preventDefault();
+
+        const $submitBtn = $(this).find('button[type="submit"]');
+        const originalHtml = $submitBtn.html();
+
+        // Disable submit button and show loading
+        $submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Memperbarui...');
+
+        // Create FormData for file uploads
+        const formData = new FormData(this);
+
+        $.ajax({
+            url: $(this).attr('action'),
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            success: function(response) {
+                if (response.success) {
+                    toastr.success(response.message || 'Insiden berhasil diperbarui');
+                    $('#editIncidentModal').modal('hide');
+
+                    // Reload page to show updated data
+                    setTimeout(function() {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    toastr.error(response.message || 'Terjadi kesalahan');
+                }
+            },
+            error: function(xhr) {
+                let errorMessage = 'Terjadi kesalahan saat memperbarui insiden';
+
+                if (xhr.status === 422) {
+                    // Validation errors
+                    let errors = xhr.responseJSON.errors;
+                    let errorText = '';
+                    Object.keys(errors).forEach(function(key) {
+                        errorText += errors[key][0] + '\n';
+                    });
+                    errorMessage = errorText;
+                } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
+                }
+
+                toastr.error(errorMessage);
+            },
+            complete: function() {
+                // Re-enable submit button
+                $submitBtn.prop('disabled', false).html(originalHtml);
+            }
+        });
+    });
+
+    // Reset form when edit modal closes
+    $('#editIncidentModal').on('hidden.bs.modal', function() {
+        $('#editIncidentForm')[0].reset();
+        $('#edit-kronologis-char-count').text('0').removeClass('text-danger');
+    });
+});
+</script>
 @stop

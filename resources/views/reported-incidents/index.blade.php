@@ -1,16 +1,16 @@
 @extends('adminlte::page')
 
-@section('title', 'Reported Incidents')
+@section('title', 'Pelaporan Insiden')
 
 @section('content_header')
-    <h1>Reported Incidents</h1>
+    <h1>Pelaporan Insiden</h1>
     <meta name="csrf-token" content="{{ csrf_token() }}">
 @stop
 
 @section('content')
     <div class="card shadow-sm">
         <div class="card-header py-2 pr-1 d-flex align-items-center" style="background:#6f42c1;">
-            <span class="section-title-bar text-white" style="font-size:.7rem;font-weight:600;letter-spacing:.5px;text-transform:uppercase;">Pelaporan Insiden</span>
+            <span class="section-title-bar text-white" style="font-size:.7rem;font-weight:600;letter-spacing:.5px;text-transform:uppercase;">Data Insiden</span>
         </div>
         <div class="card-body p-3">
             @if(auth()->user() && auth()->user()->role->role_name != 'puskesmas')
@@ -106,6 +106,103 @@
             padding: 0.25rem 0.5rem;
             font-size: 0.75rem;
         }
+
+        /* Tahapan Badge Styles */
+        .badge-tahapan-pengemasan {
+            background: rgba(0, 136, 255, 0.15) !important; /* secondary tone */
+            color: #0088ff !important;
+        }
+
+        .badge-tahapan-dalam-pengiriman {
+            background: rgba(23, 162, 184, 0.15) !important; /* info tone */
+            color: #117a8b !important;
+        }
+
+        .badge-tahapan-penerimaan {
+            background: rgba(0, 123, 255, 0.15) !important; /* primary tone */
+            color: #004085 !important;
+        }
+
+        .badge-tahapan-instalasi {
+            background: rgba(255, 193, 7, 0.15) !important; /* warning tone */
+            color: #b38301 !important;
+        }
+
+        .badge-tahapan-uji-fungsi {
+            background: rgba(128, 0, 128, 0.15) !important; /* purple tone */
+            color: #800080 !important;
+        }
+
+        .badge-tahapan-pelatihan-alat {
+            background: rgba(52, 58, 64, 0.15) !important; /* dark tone */
+            color: #343a40 !important;
+        }
+
+        .badge-tahapan-aspak {
+            background: rgba(40, 167, 69, 0.15) !important; /* success tone */
+            color: #1e7e34 !important;
+        }
+
+        .badge-tahapan-basto {
+            background: rgba(220, 53, 69, 0.15) !important; /* danger tone */
+            color: #bd2130 !important;
+        }
+
+        .badge-tahapan-unknown {
+            background: rgba(108, 117, 125, 0.15) !important;
+            color: #495057 !important;
+        }
+
+        /* Kategori Insiden Badge Styles */
+        .badge-kategori-kematian {
+            background: rgba(220, 53, 69, 0.15) !important;
+            color: #bd2130 !important;
+        }
+        .badge-kategori-tindakan-kekerasan {
+            background: rgba(255, 87, 34, 0.15) !important;
+            color: #e64a19 !important;
+        }
+        .badge-kategori-pemindahan-tanpa-prosedur-yang-semestinya {
+            background: rgba(255, 193, 7, 0.15) !important;
+            color: #b38301 !important;
+        }
+        .badge-kategori-cedera-dengan-waktu-kerja-hilang {
+            background: rgba(0, 123, 255, 0.15) !important;
+            color: #004085 !important;
+        }
+        .badge-kategori-eksploitasi-dan-kekerasan-seksual-pelecehan-seksual {
+            background: rgba(156, 39, 176, 0.15) !important;
+            color: #6a1b9a !important;
+        }
+        .badge-kategori-pekerja-anak {
+            background: rgba(255, 152, 0, 0.15) !important;
+            color: #b36b00 !important;
+        }
+        .badge-kategori-pekerja-paksa {
+            background: rgba(33, 150, 243, 0.15) !important;
+            color: #0d47a1 !important;
+        }
+        .badge-kategori-dampak-tak-terduga-terhadap-sumber-daya-warisan-budaya {
+            background: rgba(76, 175, 80, 0.15) !important;
+            color: #1e7e34 !important;
+        }
+        .badge-kategori-dampak-tak-terduga-terhadap-keanekaragaman-hayati {
+            background: rgba(0, 150, 136, 0.15) !important;
+            color: #00695c !important;
+        }
+        .badge-kategori-wabah-penyakit {
+            background: rgba(23, 162, 184, 0.15) !important;
+            color: #117a8b !important;
+        }
+        .badge-kategori-kecelakaan-pencemaran-lingkungan {
+            background: rgba(63, 81, 181, 0.15) !important;
+            color: #283593 !important;
+        }
+        .badge-kategori-lainnya {
+            background: rgba(108, 117, 125, 0.15) !important;
+            color: #6c757d !important;
+        }
+
     </style>
 @stop
 
@@ -193,25 +290,94 @@
                         }
                     },
                     {
-                        targets: 8, // Kategori Insiden column
+                        targets: 7, // Tahapan column
                         render: function (data, type, row) {
                             let badgeClass = 'badge-secondary';
-                            const kategoriLower = (data || '').toLowerCase();
+                            const tahapanLower = (data || '').toLowerCase().replace(/[^a-z0-9]/g, '-');
 
-                            switch (kategoriLower) {
-                                case 'rendah':
-                                    badgeClass = 'badge-info';
+                            switch (tahapanLower) {
+                                case 'pengemasan':
+                                    badgeClass = 'badge-tahapan-pengemasan';
                                     break;
-                                case 'sedang':
-                                    badgeClass = 'badge-warning';
+                                case 'dalam-pengiriman':
+                                    badgeClass = 'badge-tahapan-dalam-pengiriman';
                                     break;
-                                case 'tinggi':
-                                case 'kritis':
-                                    badgeClass = 'badge-danger';
+                                case 'penerimaan':
+                                    badgeClass = 'badge-tahapan-penerimaan';
+                                    break;
+                                case 'instalasi':
+                                    badgeClass = 'badge-tahapan-instalasi';
+                                    break;
+                                case 'uji-fungsi':
+                                    badgeClass = 'badge-tahapan-uji-fungsi';
+                                    break;
+                                case 'pelatihan-alat':
+                                    badgeClass = 'badge-tahapan-pelatihan-alat';
+                                    break;
+                                case 'aspak':
+                                    badgeClass = 'badge-tahapan-aspak';
+                                    break;
+                                case 'basto':
+                                    badgeClass = 'badge-tahapan-basto';
+                                    break;
+                                default:
+                                    badgeClass = 'badge-secondary';
                                     break;
                             }
 
-                            return `<span class="badge ${badgeClass}">${data || '-'}</span>`;
+                            return `<span class="badge badge-pill ${badgeClass}">${data || '-'}</span>`;
+                        }
+                    },
+                    {
+                        targets: 8, // Kategori Insiden column
+                        render: function (data, type, row) {
+                            let badgeClass = 'badge-secondary';
+                            const kategoriLower = (data || '').toLowerCase().replace(/[^a-z0-9]/g, '-');
+
+                            switch (kategoriLower) {
+                                case 'kematian':
+                                    badgeClass = 'badge-kategori-kematian';
+                                    break;
+                                case 'tindakan-kekerasan':
+                                    badgeClass = 'badge-kategori-tindakan-kekerasan';
+                                    break;
+                                case 'pemindahan-tanpa-prosedur-yang-semestinya':
+                                    badgeClass = 'badge-kategori-pemindahan-tanpa-prosedur-yang-semestinya';
+                                    break;
+                                case 'cedera-dengan-waktu-kerja-hilang':
+                                    badgeClass = 'badge-kategori-cedera-dengan-waktu-kerja-hilang';
+                                    break;
+                                case 'eksploitasi-dan-kekerasan-seksual-pelecehan-seksual':
+                                    badgeClass = 'badge-kategori-eksploitasi-dan-kekerasan-seksual-pelecehan-seksual';
+                                    break;
+                                case 'pekerja-anak':
+                                    badgeClass = 'badge-kategori-pekerja-anak';
+                                    break;
+                                case 'pekerja-paksa':
+                                    badgeClass = 'badge-kategori-pekerja-paksa';
+                                    break;
+                                case 'dampak-tak-terduga-terhadap-sumber-daya-warisan-budaya':
+                                    badgeClass = 'badge-kategori-dampak-tak-terduga-terhadap-sumber-daya-warisan-budaya';
+                                    break;
+                                case 'dampak-tak-terduga-terhadap-keanekaragaman-hayati':
+                                    badgeClass = 'badge-kategori-dampak-tak-terduga-terhadap-keanekaragaman-hayati';
+                                    break;
+                                case 'wabah-penyakit':
+                                    badgeClass = 'badge-kategori-wabah-penyakit';
+                                    break;
+                                case 'kecelakaan-pencemaran-lingkungan':
+                                    badgeClass = 'badge-kategori-kecelakaan-pencemaran-lingkungan';
+                                    break;
+                                case 'lainnya':
+                                    badgeClass = 'badge-kategori-lainnya';
+                                    break;
+                                // Fallback for simple categories
+                                default:
+                                    badgeClass = 'badge-secondary';
+                                    break;
+                            }
+
+                            return `<span class="badge badge-pill ${badgeClass}">${data || '-'}</span>`;
                         }
                     },
                     {
@@ -329,7 +495,7 @@
                     success: function(data) {
                         const $kategori = $('#filter-kategori');
                         data.forEach(function(item) {
-                            $kategori.append(`<option value="${item.name}">${item.name}</option>`);
+                            $kategori.append(`<option value="${item.kategori}">${item.kategori}</option>`);
                         });
                     },
                     error: function() {

@@ -234,6 +234,90 @@
             border-color: #2196f3;
             color: #1565c0;
         }
+
+        /* Tahapan Badge Styles */
+        .badge-tahapan-pengemasan {
+            background: rgba(0, 136, 255, 0.15) !important; /* secondary tone */
+            color: #0088ff !important;
+        }
+        .badge-tahapan-dalam-pengiriman {
+            background: rgba(23, 162, 184, 0.15) !important; /* info tone */
+            color: #117a8b !important;
+        }
+        .badge-tahapan-penerimaan {
+            background: rgba(0, 123, 255, 0.15) !important; /* primary tone */
+            color: #004085 !important;
+        }
+        .badge-tahapan-instalasi {
+            background: rgba(255, 193, 7, 0.15) !important; /* warning tone */
+            color: #b38301 !important;
+        }
+        .badge-tahapan-uji-fungsi {
+            background: rgba(128, 0, 128, 0.15) !important; /* purple tone */
+            color: #800080 !important;
+        }
+        .badge-tahapan-pelatihan-alat {
+            background: rgba(52, 58, 64, 0.15) !important; /* dark tone */
+            color: #343a40 !important;
+        }
+        .badge-tahapan-aspak {
+            background: rgba(40, 167, 69, 0.15) !important; /* success tone */
+            color: #1e7e34 !important;
+        }
+        .badge-tahapan-basto {
+            background: rgba(220, 53, 69, 0.15) !important; /* danger tone */
+            color: #bd2130 !important;
+        }
+
+        /* Kategori Insiden Badge Styles */
+        .badge-kategori-kematian {
+            background: rgba(220, 53, 69, 0.15) !important;
+            color: #bd2130 !important;
+        }
+        .badge-kategori-tindakan-kekerasan {
+            background: rgba(255, 87, 34, 0.15) !important;
+            color: #e64a19 !important;
+        }
+        .badge-kategori-pemindahan-tanpa-prosedur-yang-semestinya {
+            background: rgba(255, 193, 7, 0.15) !important;
+            color: #b38301 !important;
+        }
+        .badge-kategori-cedera-dengan-waktu-kerja-hilang {
+            background: rgba(0, 123, 255, 0.15) !important;
+            color: #004085 !important;
+        }
+        .badge-kategori-eksploitasi-dan-kekerasan-seksual-pelecehan-seksual {
+            background: rgba(156, 39, 176, 0.15) !important;
+            color: #6a1b9a !important;
+        }
+        .badge-kategori-pekerja-anak {
+            background: rgba(255, 152, 0, 0.15) !important;
+            color: #b36b00 !important;
+        }
+        .badge-kategori-pekerja-paksa {
+            background: rgba(33, 150, 243, 0.15) !important;
+            color: #0d47a1 !important;
+        }
+        .badge-kategori-dampak-tak-terduga-terhadap-sumber-daya-warisan-budaya {
+            background: rgba(76, 175, 80, 0.15) !important;
+            color: #1e7e34 !important;
+        }
+        .badge-kategori-dampak-tak-terduga-terhadap-keanekaragaman-hayati {
+            background: rgba(0, 150, 136, 0.15) !important;
+            color: #00695c !important;
+        }
+        .badge-kategori-wabah-penyakit {
+            background: rgba(23, 162, 184, 0.15) !important;
+            color: #117a8b !important;
+        }
+        .badge-kategori-kecelakaan-pencemaran-lingkungan {
+            background: rgba(63, 81, 181, 0.15) !important;
+            color: #283593 !important;
+        }
+        .badge-kategori-lainnya {
+            background: rgba(108, 117, 125, 0.15) !important;
+            color: #6c757d !important;
+        }
     </style>
 @endsection
 
@@ -1341,10 +1425,10 @@
                             </div>
 
                             <!-- Tahapan -->
-                            <div class="col-md-6">
+                            <div class="col-md-12">
                                 <div class="form-group">
-                                    <label for="tahapan_id">Tahapan</label>
-                                    <select class="form-control" id="tahapan_id" name="tahapan_id">
+                                    <label for="tahapan_id" class="required">Tahapan <span class="text-danger">*</span></label>
+                                    <select class="form-control" id="tahapan_id" name="tahapan_id" required>
                                         <option value="">Pilih Tahapan</option>
                                         <!-- Options will be populated via AJAX -->
                                     </select>
@@ -1369,6 +1453,24 @@
                                         <small class="form-text text-muted">Maksimal 1000 karakter</small>
                                         <small class="text-muted"><span id="kronologis-char-count">0</span>/1000</small>
                                     </div>
+                                </div>
+                            </div>
+
+                            <!-- Tindakan -->
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="tindakan">Tindakan</label>
+                                    <textarea class="form-control" id="tindakan" name="tindakan" rows="3" placeholder="Deskripsikan tindakan yang dilakukan untuk menyelesaikan insiden" maxlength="1000"></textarea>
+                                    <small class="form-text text-muted">Opsional - Deskripsikan tindakan penyelesaian insiden</small>
+                                </div>
+                            </div>
+
+                            <!-- Tanggal Selesai -->
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="tgl_selesai">Tanggal Selesai</label>
+                                    <input type="date" class="form-control" id="tgl_selesai" name="tgl_selesai">
+                                    <small class="form-text text-muted">Otomatis mengubah status menjadi "Selesai" jika diisi</small>
                                 </div>
                             </div>
 
@@ -2843,6 +2945,107 @@ $(document).ready(function() {
                     }
                 },
                 {
+                    targets: 3, // Tahapan column
+                    render: function (data, type, row) {
+                        let badgeClass = 'badge-secondary';
+                        const tahapanLower = (data || '').toLowerCase().replace(/[^a-z0-9]/g, '-');
+
+                        switch (tahapanLower) {
+                            case 'pengemasan':
+                                badgeClass = 'badge-tahapan-pengemasan';
+                                break;
+                            case 'dalam-pengiriman':
+                                badgeClass = 'badge-tahapan-dalam-pengiriman';
+                                break;
+                            case 'penerimaan':
+                                badgeClass = 'badge-tahapan-penerimaan';
+                                break;
+                            case 'instalasi':
+                                badgeClass = 'badge-tahapan-instalasi';
+                                break;
+                            case 'uji-fungsi':
+                                badgeClass = 'badge-tahapan-uji-fungsi';
+                                break;
+                            case 'pelatihan-alat':
+                                badgeClass = 'badge-tahapan-pelatihan-alat';
+                                break;
+                            case 'aspak':
+                                badgeClass = 'badge-tahapan-aspak';
+                                break;
+                            case 'basto':
+                                badgeClass = 'badge-tahapan-basto';
+                                break;
+                            default:
+                                badgeClass = 'badge-secondary';
+                                break;
+                        }
+
+                        return `<span class="badge badge-pill ${badgeClass}">${data || '-'}</span>`;
+                    }
+                },
+                {
+                    targets: 4, // Kategori Insiden column
+                    render: function (data, type, row) {
+                        let badgeClass = 'badge-secondary';
+                        const kategoriLower = (data || '').toLowerCase().replace(/[^a-z0-9]/g, '-');
+
+                        switch (kategoriLower) {
+                            case 'kematian':
+                                badgeClass = 'badge-kategori-kematian';
+                                break;
+                            case 'tindakan-kekerasan':
+                                badgeClass = 'badge-kategori-tindakan-kekerasan';
+                                break;
+                            case 'pemindahan-tanpa-prosedur-yang-semestinya':
+                                badgeClass = 'badge-kategori-pemindahan-tanpa-prosedur-yang-semestinya';
+                                break;
+                            case 'cedera-dengan-waktu-kerja-hilang':
+                                badgeClass = 'badge-kategori-cedera-dengan-waktu-kerja-hilang';
+                                break;
+                            case 'eksploitasi-dan-kekerasan-seksual-pelecehan-seksual':
+                                badgeClass = 'badge-kategori-eksploitasi-dan-kekerasan-seksual-pelecehan-seksual';
+                                break;
+                            case 'pekerja-anak':
+                                badgeClass = 'badge-kategori-pekerja-anak';
+                                break;
+                            case 'pekerja-paksa':
+                                badgeClass = 'badge-kategori-pekerja-paksa';
+                                break;
+                            case 'dampak-tak-terduga-terhadap-sumber-daya-warisan-budaya':
+                                badgeClass = 'badge-kategori-dampak-tak-terduga-terhadap-sumber-daya-warisan-budaya';
+                                break;
+                            case 'dampak-tak-terduga-terhadap-keanekaragaman-hayati':
+                                badgeClass = 'badge-kategori-dampak-tak-terduga-terhadap-keanekaragaman-hayati';
+                                break;
+                            case 'wabah-penyakit':
+                                badgeClass = 'badge-kategori-wabah-penyakit';
+                                break;
+                            case 'kecelakaan-pencemaran-lingkungan':
+                                badgeClass = 'badge-kategori-kecelakaan-pencemaran-lingkungan';
+                                break;
+                            case 'lainnya':
+                                badgeClass = 'badge-kategori-lainnya';
+                                break;
+                            // Fallback for simple categories
+                            case 'rendah':
+                                badgeClass = 'badge-info';
+                                break;
+                            case 'sedang':
+                                badgeClass = 'badge-warning';
+                                break;
+                            case 'tinggi':
+                            case 'kritis':
+                                badgeClass = 'badge-danger';
+                                break;
+                            default:
+                                badgeClass = 'badge-secondary';
+                                break;
+                        }
+
+                        return `<span class="badge badge-pill ${badgeClass}">${data || '-'}</span>`;
+                    }
+                },
+                {
                     targets: 5, // Status column
                     render: function (data, type, row) {
                         let badgeClass = 'badge-secondary';
@@ -2863,7 +3066,7 @@ $(document).ready(function() {
                                 break;
                         }
 
-                        return `<span class="badge ${badgeClass}">${data || '-'}</span>`;
+                        return `<span class="badge badge-pill ${badgeClass}">${data || '-'}</span>`;
                     }
                 },
                 {
@@ -3216,6 +3419,15 @@ $(document).ready(function() {
         }
     });
 
+    // Auto-update status when tgl_selesai is filled in create form
+    $('#tgl_selesai').on('change', function() {
+        const tglSelesai = $(this).val();
+        if (tglSelesai) {
+            // Note: Status will be set to "Selesai" automatically in the backend
+            toastr.info('Status akan otomatis diubah menjadi "Selesai" karena tanggal selesai diisi');
+        }
+    });
+
     // Load dropdown data for incident form
     function loadIncidentDropdownData() {
         // Load Kategori Insiden
@@ -3348,12 +3560,12 @@ $(document).ready(function() {
 
         selectedIncidentFiles.forEach((file, index) => {
             const $hiddenInput = $(`<input type="file" name="dokumentasi[]" style="display: none;">`);
-            
+
             // Create a new FileList containing just this file
             const dt = new DataTransfer();
             dt.items.add(file);
             $hiddenInput[0].files = dt.files;
-            
+
             $hiddenContainer.append($hiddenInput);
         });
     }
@@ -3377,7 +3589,7 @@ $(document).ready(function() {
 
         // Create FormData manually to include selected files
         const formData = new FormData();
-        
+
         // Add form fields
         formData.append('_token', $('input[name="_token"]').val());
         formData.append('puskesmas_id', $('#puskesmas_id').val());
@@ -3388,6 +3600,8 @@ $(document).ready(function() {
         formData.append('tahapan_id', $('#tahapan_id').val());
         formData.append('insiden', $('#insiden').val());
         formData.append('kronologis', $('#kronologis').val());
+        formData.append('tindakan', $('#tindakan').val());
+        formData.append('tgl_selesai', $('#tgl_selesai').val());
 
         // Add selected files
         selectedIncidentFiles.forEach((file, index) => {
@@ -3453,7 +3667,7 @@ $(document).ready(function() {
     $('#addIncidentModal').on('hidden.bs.modal', function() {
         $('#addIncidentForm')[0].reset();
         $('#kronologis-char-count').text('0').removeClass('text-danger');
-        
+
         // Clear selected incident files
         selectedIncidentFiles = [];
         $('#incident-selected-files-container').hide();
