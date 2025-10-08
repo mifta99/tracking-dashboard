@@ -213,7 +213,7 @@ class LoginController extends Controller
         }
 
         // Use test keys for development, replace with real keys for production
-        $secretKey = env('RECAPTCHA_SECRET_KEY', '6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe');
+        $secretKey = env('RECAPTCHA_SECRET_KEY', '6LdQjOIrAAAAAG2ppySge5SGhSl-BCDcx56Vqj5R');
         $verifyUrl = 'https://www.google.com/recaptcha/api/siteverify';
         
         $data = [
