@@ -10,6 +10,7 @@ class StatusInsiden extends Model
 {
     use HasFactory;
     protected $primaryKey = 'id';
+    protected $table = 'status_insiden';
 
     /**
      * The attributes that are mass assignable.

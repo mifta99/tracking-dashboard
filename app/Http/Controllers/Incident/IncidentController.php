@@ -7,10 +7,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 use App\Models\Revision;
 use App\Models\Puskesmas;
 use App\Models\JenisDokumen;
 use App\Models\Insiden;
+use App\Models\DokumentasiInsiden;
 use App\Models\KategoriInsiden;
 use App\Models\Tahapan;
 use App\Models\StatusInsiden;
@@ -21,7 +23,7 @@ class IncidentController extends Controller
     {
         $user = Auth::user();
         $incidents = collect();
-        
+
         // Load incidents based on user role
         if ($user->role_id === 1) { // Puskesmas user
             $incidents = Insiden::where('puskesmas_id', $user->puskesmas_id)
@@ -33,21 +35,32 @@ class IncidentController extends Controller
                 ->latest()
                 ->get();
         }
-        
+
         return view('reported-incidents.index', compact('incidents'));
     }
 
-    public function store(Request $request)
+    public function store(Request $request, $puskesmas_id)
     {
+        // Validate that puskesmas_id from route exists
+        $puskesmasValidator = Validator::make(['puskesmas_id' => $puskesmas_id], [
+            'puskesmas_id' => 'required|exists:puskesmas,id',
+        ]);
+
+        if ($puskesmasValidator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Puskesmas tidak valid.'
+            ], 422);
+        }
+
         $validator = Validator::make($request->all(), [
             'tgl_kejadian' => 'required|date',
-            'kategori_id' => 'required|integer|exists:kategori_insiden,id',
+            'kategori_id' => 'required|integer|exists:kategori_insidens,id',
             'nama_korban' => 'required|string|max:255',
             'bagian' => 'required|string|max:255',
             'insiden' => 'required|string|max:500',
             'kronologis' => 'required|string',
-            'tahapan_id' => 'nullable|integer|exists:tahapan,id',
-            'status_id' => 'nullable|integer|exists:status_insiden,id',
+            'tahapan_id' => 'required|integer|exists:tahapan,id',
             'dokumentasi.*' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120', // 5MB max
         ], [
             'tgl_kejadian.required' => 'Tanggal kejadian harus diisi.',
@@ -56,6 +69,7 @@ class IncidentController extends Controller
             'bagian.required' => 'Bagian/unit harus diisi.',
             'insiden.required' => 'Judul insiden harus diisi.',
             'kronologis.required' => 'Kronologis kejadian harus diisi.',
+            'tahapan_id.required' => 'Tahapan harus dipilih.',
             'dokumentasi.*.mimes' => 'File dokumentasi harus berformat JPG, JPEG, PNG, atau PDF.',
             'dokumentasi.*.max' => 'Ukuran file dokumentasi maksimal 5MB.',
         ]);
@@ -69,21 +83,12 @@ class IncidentController extends Controller
 
         try {
             $user = Auth::user();
-            $dokumentasiPaths = [];
-
-            // Handle file uploads
-            if ($request->hasFile('dokumentasi')) {
-                foreach ($request->file('dokumentasi') as $file) {
-                    $path = $file->store('incidents/dokumentasi', 'public');
-                    $dokumentasiPaths[] = Storage::url($path);
-                }
-            }
 
             // Create incident
             $incident = Insiden::create([
-                'puskesmas_id' => $user->puskesmas_id ?? null,
+                'puskesmas_id' => $puskesmas_id,
                 'tahapan_id' => $request->tahapan_id,
-                'status_id' => $request->status_id,
+                'status_id' => 1, // Default status_id is 1
                 'kategori_id' => $request->kategori_id,
                 'tgl_kejadian' => $request->tgl_kejadian,
                 'nama_korban' => $request->nama_korban,
@@ -91,8 +96,20 @@ class IncidentController extends Controller
                 'insiden' => $request->insiden,
                 'kronologis' => $request->kronologis,
                 'reported_by' => $user->id,
-                'dokumentasi' => !empty($dokumentasiPaths) ? implode(',', $dokumentasiPaths) : null,
             ]);
+
+            // Handle file uploads if present
+            if ($request->hasFile('dokumentasi')) {
+                foreach ($request->file('dokumentasi') as $index => $file) {
+                    $filename = time() . '_' . $index . '_' . $file->getClientOriginalName();
+                    $path = $file->storeAs('insiden-documentation', $filename, 'public');
+
+                    // Create documentation record
+                    $incident->dokumentasiInsiden()->create([
+                        'link_foto' => $path,
+                    ]);
+                }
+            }
 
             return response()->json([
                 'success' => true,
@@ -112,11 +129,11 @@ class IncidentController extends Controller
     {
         $incident = Insiden::with(['puskesmas', 'tahapan', 'status', 'kategoriInsiden', 'reporter'])
             ->find($id);
-            
+
         if (!$incident) {
             $incident = new \Illuminate\Support\Fluent();
         }
-        
+
         return view('reported-incidents.detail', [
             'incident' => $incident,
             'status' => collect(),
@@ -129,10 +146,10 @@ class IncidentController extends Controller
     public function update(Request $request, $id)
     {
         $incident = Insiden::findOrFail($id);
-        
+
         $validator = Validator::make($request->all(), [
             'tgl_kejadian' => 'nullable|date',
-            'kategori_id' => 'nullable|integer|exists:kategori_insiden,id',
+            'kategori_id' => 'nullable|integer|exists:kategori_insidens,id',
             'tahapan_id' => 'nullable|integer|exists:tahapan,id',
             'status_id' => 'nullable|integer|exists:status_insiden,id',
             'nama_korban' => 'nullable|string|max:255',
@@ -153,7 +170,7 @@ class IncidentController extends Controller
             $updateData = array_filter($request->only([
                 'tgl_kejadian', 'kategori_id', 'tahapan_id', 'status_id',
                 'nama_korban', 'bagian', 'insiden', 'kronologis',
-                'rencana_tindakan_koreksi', 'pelaksana_tindakan_koreksi', 
+                'rencana_tindakan_koreksi', 'pelaksana_tindakan_koreksi',
                 'tgl_selesai_koreksi', 'verifikasi_hasil_koreksi',
                 'verifikasi_tgl_koreksi', 'verifikasi_pelaksana_koreksi',
                 'rencana_tindakan_korektif', 'pelaksana_tindakan_korektif',
@@ -170,7 +187,7 @@ class IncidentController extends Controller
                     $path = $file->store('incidents/dokumentasi', 'public');
                     $dokumentasiPaths[] = Storage::url($path);
                 }
-                
+
                 // Append to existing dokumentasi
                 $existingDocs = $incident->dokumentasi ? explode(',', $incident->dokumentasi) : [];
                 $allDocs = array_merge($existingDocs, $dokumentasiPaths);
@@ -195,7 +212,7 @@ class IncidentController extends Controller
     // API Methods for dropdown data
     public function getKategoriInsiden()
     {
-        $kategori = KategoriInsiden::select('id', 'name')->get();
+        $kategori = KategoriInsiden::select('id', 'kategori as name')->get();
         return response()->json($kategori);
     }
 
@@ -209,5 +226,46 @@ class IncidentController extends Controller
     {
         $status = StatusInsiden::select('id', 'name')->get();
         return response()->json($status);
+    }
+
+    public function fetchData(Request $request)
+    {
+        try {
+            $user = Auth::user();
+            $query = Insiden::with(['puskesmas', 'tahapan', 'status', 'kategoriInsiden', 'reporter']);
+
+            // Filter by puskesmas if provided or by user role
+            if ($request->has('puskesmas_id') && $request->puskesmas_id) {
+                $query->where('puskesmas_id', $request->puskesmas_id);
+            } elseif ($user->role_id === 1) { // Puskesmas user
+                $query->where('puskesmas_id', $user->puskesmas_id);
+            }
+
+            $incidents = $query->latest('tgl_kejadian')->get();
+
+            $formattedData = $incidents->map(function ($incident) {
+                return [
+                    'id' => $incident->id,
+                    'tgl_kejadian' => $incident->tgl_kejadian ? \Carbon\Carbon::parse($incident->tgl_kejadian)->translatedFormat('d M Y') : '-',
+                    'insiden' => $incident->insiden ?? '-',
+                    'tahapan' => $incident->tahapan->tahapan ?? '-',
+                    'kategori_insiden' => $incident->kategoriInsiden->kategori ?? '-',
+                    'status' => $incident->status->status ?? '-',
+                    'puskesmas' => $incident->puskesmas->name ?? '-',
+                    'reporter' => $incident->reporter->name ?? '-',
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'data' => $formattedData
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memuat data insiden: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

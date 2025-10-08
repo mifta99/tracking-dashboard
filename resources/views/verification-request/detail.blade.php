@@ -1253,56 +1253,164 @@
 
     <!-- Incident Management -->
     <div class="card shadow-sm mb-4">
-        <div class="card-header py-2 pr-1 d-flex align-items-center" style="background:#e226d2;">
+        <div class="card-header py-2 pr-1 d-flex align-items-center" style="background:#6f42c1;">
             <span class="section-title-bar text-white">Pelaporan Insiden</span>
+            @if(auth()->user() && auth()->user()->role->role_name == 'endo')
+            <button class="btn btn-sm ml-auto text-white" style="background:#6f42c1;" data-toggle="modal" data-target="#addIncidentModal"><i class="fas fa-plus"></i> Laporkan Insiden Baru</button>
+            @endif
         </div>
         <div class="card-body p-3">
             <div class="table-responsive">
-                <table class="table table-sm table-striped table-bordered mb-0">
-                    <thead class="thead-light">
+                <table class="table table-bordered table-striped table-sm" id="insidenTable">
+                    <thead>
                         <tr>
-                            <th rowspan="3" class="align-middle text-center" style="width:40px">NO</th>
-                            <th rowspan="3" class="align-middle text-center" style="width:120px">TANGGAL KEJADIAN</th>
-                            <th rowspan="3" class="align-middle text-center" style="width:150px">NAMA</th>
-                            <th rowspan="3" class="align-middle text-center" style="width:120px">BAGIAN</th>
-                            <th rowspan="3" class="align-middle text-center" style="width:150px">KRONOLOGIS KEJADIAN</th>
-                            <th colspan="6" class="text-center">TINDAKAN KOREKSI</th>
-                            <th colspan="6" class="text-center">TINDAKAN KOREKTIF</th>
-                        </tr>
-                        <tr>
-                            <!-- Tindakan Koreksi columns -->
-                            <th rowspan="2" class="align-middle text-center" style="width:120px">RENCANA TINDAKAN KOREKSI</th>
-                            <th rowspan="2" class="align-middle text-center" style="width:100px">PELAKSANA TINDAKAN</th>
-                            <th rowspan="2" class="align-middle text-center" style="width:100px">TANGGAL SELESAI</th>
-                            <th colspan="3" class="text-center">VERIFIKASI</th>
-                            <!-- Tindakan Korektif columns -->
-                            <th rowspan="2" class="align-middle text-center" style="width:120px">RENCANA TINDAKAN KOREKTIF</th>
-                            <th rowspan="2" class="align-middle text-center" style="width:100px">PELAKSANA TINDAKAN</th>
-                            <th rowspan="2" class="align-middle text-center" style="width:100px">TANGGAL SELESAI</th>
-                            <th colspan="3" class="text-center">VERIFIKASI</th>
-                        </tr>
-                        <tr>
-                            <!-- Verifikasi sub-columns for Tindakan Koreksi -->
-                            <th class="text-center" style="width:80px">HASIL</th>
-                            <th class="text-center" style="width:100px">TANGGAL</th>
-                            <th class="text-center" style="width:100px">PELAKSANA</th>
-                            <!-- Verifikasi sub-columns for Tindakan Korektif -->
-                            <th class="text-center" style="width:80px">HASIL</th>
-                            <th class="text-center" style="width:100px">TANGGAL</th>
-                            <th class="text-center" style="width:100px">PELAKSANA</th>
+                            <th style="font-size: 11pt;">No.</th>
+                            <th style="font-size: 11pt;">Tanggal Kejadian</th>
+                            <th style="font-size: 11pt;">Insiden</th>
+                            <th style="font-size: 11pt;">Tahapan</th>
+                            <th style="font-size: 11pt;">Kategori Insiden</th>
+                            <th style="font-size: 11pt;">Status</th>
+                            <th class="text-center" style="font-size: 11pt;">Actions</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr>
-                            <td colspan="17" class="text-center text-muted py-4">
-                                <i class="fas fa-info-circle"></i> No incidents reported yet
-                            </td>
-                        </tr>
+                    <tbody style="font-size: 10pt;">
+                        <!-- Data will be populated here via AJAX -->
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
+
+    <!-- Modal Tambah Insiden -->
+    @if(auth()->user() && auth()->user()->role->role_name == 'endo')
+    <div class="modal fade" id="addIncidentModal" tabindex="-1" role="dialog" aria-labelledby="addIncidentModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header text-white" style="background:#6f42c1;">
+                    <h5 class="modal-title" id="addIncidentModalLabel">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                        Tambah Insiden Baru
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form id="addIncidentForm" method="POST" action="{{ route('insiden.store', $puskesmas->id) }}" enctype="multipart/form-data">
+                    <div class="modal-body">
+                        @csrf
+
+                        <div class="alert alert-info mb-4">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            <strong>Petunjuk:</strong> Lengkapi form di bawah untuk melaporkan insiden terkait alat kesehatan T-Piece.
+                        </div>
+
+                        <div class="row">
+                            <!-- Tanggal Kejadian -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="tgl_kejadian" class="required">Tanggal Kejadian <span class="text-danger">*</span></label>
+                                    <input type="date" class="form-control" id="tgl_kejadian" name="tgl_kejadian" required>
+                                </div>
+                            </div>
+
+                            <!-- Kategori Insiden -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="kategori_id" class="required">Kategori Insiden <span class="text-danger">*</span></label>
+                                    <select class="form-control" id="kategori_id" name="kategori_id" required>
+                                        <option value="">Pilih Kategori Insiden</option>
+                                        <!-- Options will be populated via AJAX -->
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Nama Korban -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="nama_korban" class="required">Nama Korban <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="nama_korban" name="nama_korban" required>
+                                </div>
+                            </div>
+
+                            <!-- Bagian -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="bagian" class="required">Bagian/Unit <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="bagian" name="bagian" required>
+                                </div>
+                            </div>
+
+                            <!-- Tahapan -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="tahapan_id">Tahapan</label>
+                                    <select class="form-control" id="tahapan_id" name="tahapan_id">
+                                        <option value="">Pilih Tahapan</option>
+                                        <!-- Options will be populated via AJAX -->
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Judul Insiden -->
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="insiden" class="required">Judul Insiden <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="insiden" name="insiden" placeholder="Masukkan judul / ringkasan insiden" maxlength="255" required>
+                                    <small class="form-text text-muted">Maksimal 255 karakter</small>
+                                </div>
+                            </div>
+
+                            <!-- Kronologis -->
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="kronologis" class="required">Kronologis Kejadian <span class="text-danger">*</span></label>
+                                    <textarea class="form-control" id="kronologis" name="kronologis" rows="4" required placeholder="Deskripsikan kronologis kejadian secara detail..." maxlength="1000"></textarea>
+                                    <div class="d-flex justify-content-between">
+                                        <small class="form-text text-muted">Maksimal 1000 karakter</small>
+                                        <small class="text-muted"><span id="kronologis-char-count">0</span>/1000</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Dokumentasi -->
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label><i class="fas fa-paperclip"></i> Bukti Dokumentasi</label>
+
+                                    <!-- File input for multiple selection -->
+                                    <input type="file" id="incident-file-input-multiple" class="form-control-file mb-2"
+                                           accept="image/jpeg,image/jpg,image/png" multiple>
+                                    <small class="form-text text-muted">
+                                        Maksimal 5 file, masing-masing 5MB (JPG, PNG)
+                                    </small>
+
+                                    <!-- Selected files list with previews -->
+                                    <div id="incident-selected-files-container" style="display: none;">
+                                        <h6 class="mb-2">File Terpilih:</h6>
+                                        <div id="incident-selected-files-list" class="row">
+                                            <!-- Files will be displayed here with previews -->
+                                        </div>
+                                    </div>
+
+                                    <!-- Hidden inputs to store file data for form submission -->
+                                    <div id="incident-hidden-file-inputs"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                            <i class="fas fa-times"></i> Batal
+                        </button>
+                        <button type="submit" class="btn text-white" style="background:#6f42c1;">
+                            <i class="fas fa-save"></i> Simpan Insiden
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    @endif
 
     <!-- Modal Delivery Information -->
     @if(auth()->user() && auth()->user()->role->role_name == 'endo')
@@ -2683,6 +2791,114 @@ $(document).ready(function() {
             }
         });
     }
+
+    // Initialize Insiden DataTable
+    if ($('#insidenTable').length > 0) {
+        $('#insidenTable').DataTable({
+            processing: true,
+            serverSide: false,
+            responsive: true,
+            pageLength: 10,
+            lengthMenu: [[5, 10, 25, 50], [5, 10, 25, 50]],
+            order: [[1, 'desc']], // Sort by date descending
+            language: {
+                processing: "Memuat data...",
+                search: "Cari:",
+                lengthMenu: "Tampilkan _MENU_ data per halaman",
+                info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+                infoEmpty: "Menampilkan 0 sampai 0 dari 0 data",
+                infoFiltered: "(difilter dari _MAX_ total data)",
+                paginate: {
+                    first: "Pertama",
+                    last: "Terakhir",
+                    next: "Selanjutnya",
+                    previous: "Sebelumnya"
+                },
+                emptyTable: "Tidak ada data insiden yang tersedia",
+                zeroRecords: "Tidak ada data yang cocok"
+            },
+            columns: [
+                { data: null, orderable: false, searchable: false, width: '5%' },
+                { data: 'tgl_kejadian', name: 'tgl_kejadian', width: '12%' },
+                { data: 'insiden', name: 'insiden', width: '25%' },
+                { data: 'tahapan', name: 'tahapan', width: '15%' },
+                { data: 'kategori_insiden', name: 'kategori_insiden', width: '15%' },
+                { data: 'status', name: 'status', width: '12%' },
+                { data: 'actions', name: 'actions', orderable: false, searchable: false, width: '8%' }
+            ],
+            columnDefs: [
+                {
+                    targets: 0,
+                    render: function (data, type, row, meta) {
+                        return meta.row + meta.settings._iDisplayStart + 1;
+                    }
+                },
+                {
+                    targets: 2, // Insiden column
+                    render: function (data, type, row) {
+                        if (data && data.length > 80) {
+                            return `<div style="max-width:250px; white-space:normal;">${data.substring(0, 80)}...</div>`;
+                        }
+                        return `<div style="max-width:250px; white-space:normal;">${data || '-'}</div>`;
+                    }
+                },
+                {
+                    targets: 5, // Status column
+                    render: function (data, type, row) {
+                        let badgeClass = 'badge-secondary';
+                        const statusLower = (data || '').toLowerCase();
+
+                        switch (statusLower) {
+                            case 'open':
+                            case 'buka':
+                                badgeClass = 'badge-danger';
+                                break;
+                            case 'in_progress':
+                            case 'proses':
+                                badgeClass = 'badge-warning';
+                                break;
+                            case 'closed':
+                            case 'selesai':
+                                badgeClass = 'badge-success';
+                                break;
+                        }
+
+                        return `<span class="badge ${badgeClass}">${data || '-'}</span>`;
+                    }
+                },
+                {
+                    targets: 6, // Actions
+                    render: function (data, type, row) {
+                        const detailUrl = '{{ route("insiden.detail", ":id") }}'.replace(':id', row.id);
+                        return `<div class="d-flex justify-content-center align-items-center">
+                                    <a href="${detailUrl}" class="text-secondary" title="Lihat Detail">
+                                        <i class="fas fa-search"></i>
+                                    </a>
+                                </div>`;
+                    }
+                }
+            ],
+            ajax: {
+                url: '{{ route('insiden.fetch-data') }}',
+                type: 'GET',
+                data: {
+                    puskesmas_id: '{{ $puskesmas->id }}'
+                },
+                dataSrc: function(json) {
+                    if (json.success) {
+                        return json.data;
+                    } else {
+                        console.error('Error loading insiden data:', json.message);
+                        return [];
+                    }
+                },
+                error: function(xhr, error, code) {
+                    console.error('AJAX Error:', error);
+                    toastr.error('Gagal memuat data insiden');
+                }
+            }
+        });
+    }
 });
 
 
@@ -2980,5 +3196,274 @@ function resetKeluhanForm() {
     $('#documentation-preview').hide();
     $('#preview-container').empty();
 }
+
+// Incident Form Management
+$(document).ready(function() {
+    // Load dropdown data when modal is opened
+    $('#addIncidentModal').on('show.bs.modal', function () {
+        loadIncidentDropdownData();
+    });
+
+    // Character counter for kronologis
+    $('#kronologis').on('input', function() {
+        const current = $(this).val().length;
+        $('#kronologis-char-count').text(current);
+
+        if (current > 1000) {
+            $('#kronologis-char-count').addClass('text-danger');
+        } else {
+            $('#kronologis-char-count').removeClass('text-danger');
+        }
+    });
+
+    // Load dropdown data for incident form
+    function loadIncidentDropdownData() {
+        // Load Kategori Insiden
+        $.ajax({
+            url: '{{ route("api.kategori-insiden") }}',
+            method: 'GET',
+            success: function(data) {
+                let options = '<option value="">Pilih Kategori Insiden</option>';
+                data.forEach(function(item) {
+                    options += `<option value="${item.id}">${item.name}</option>`;
+                });
+                $('#kategori_id').html(options);
+            },
+            error: function() {
+                console.log('Failed to load kategori insiden');
+                toastr.warning('Gagal memuat kategori insiden');
+            }
+        });
+
+        // Load Tahapan
+        $.ajax({
+            url: '{{ route("api.tahapan") }}',
+            method: 'GET',
+            success: function(data) {
+                let options = '<option value="">Pilih Tahapan</option>';
+                data.forEach(function(item) {
+                    options += `<option value="${item.id}">${item.tahapan}</option>`;
+                });
+                $('#tahapan_id').html(options);
+            },
+            error: function() {
+                console.log('Failed to load tahapan');
+                toastr.warning('Gagal memuat data tahapan');
+            }
+        });
+    }
+
+    // Global variables for incident file management
+    let selectedIncidentFiles = [];
+
+    // File input change handler for incidents
+    $('#incident-file-input-multiple').on('change', function() {
+        const files = Array.from(this.files);
+
+        files.forEach(file => {
+            // Check if file already exists
+            if (selectedIncidentFiles.some(f => f.name === file.name && f.size === file.size)) {
+                toastr.warning(`File ${file.name} sudah dipilih`);
+                return;
+            }
+
+            // Check file size (5MB limit)
+            if (file.size > 5 * 1024 * 1024) {
+                toastr.warning(`File ${file.name} terlalu besar (maksimal 5MB)`);
+                return;
+            }
+
+            // Check file count (max 5 files)
+            if (selectedIncidentFiles.length >= 5) {
+                toastr.warning('Maksimal 5 file dapat dipilih');
+                return;
+            }
+
+            selectedIncidentFiles.push(file);
+        });
+
+        // Update display
+        updateIncidentFileDisplay();
+
+        // Clear the input so user can select the same file again if needed
+        $(this).val('');
+    });
+
+    // Function to update incident file display with image previews
+    function updateIncidentFileDisplay() {
+        const $container = $('#incident-selected-files-list');
+        $container.empty();
+
+        if (selectedIncidentFiles.length === 0) {
+            $('#incident-selected-files-container').hide();
+            return;
+        }
+
+        $('#incident-selected-files-container').show();
+
+        selectedIncidentFiles.forEach((file, index) => {
+            const $fileItem = $(`
+                <div class="col-md-3 mb-2">
+                    <div class="card">
+                        <div class="card-body p-2">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <small class="text-muted">${file.name}</small>
+                                <button type="button" class="btn btn-sm btn-danger remove-incident-file-btn" data-index="${index}">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <div class="incident-file-preview" data-index="${index}">
+                                ${createIncidentImagePreview(file, index)}
+                            </div>
+                            <small class="text-muted">${formatFileSize(file.size)}</small>
+                        </div>
+                    </div>
+                </div>
+            `);
+            $container.append($fileItem);
+        });
+
+        // Update hidden inputs for form submission
+        updateIncidentHiddenInputs();
+    }
+
+    // Function to create incident image preview
+    function createIncidentImagePreview(file, index) {
+        if (file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                $(`[data-index="${index}"]`).html(`<img src="${e.target.result}" class="img-thumbnail" style="max-width: 100%; height: 80px; object-fit: cover;">`);
+            };
+            reader.readAsDataURL(file);
+            return '<div class="text-center"><i class="fas fa-image fa-2x text-muted"></i></div>';
+        } else {
+            return '<div class="text-center"><i class="fas fa-file fa-2x text-muted"></i></div>';
+        }
+    }
+
+    // Function to update incident hidden inputs for form submission
+    function updateIncidentHiddenInputs() {
+        const $hiddenContainer = $('#incident-hidden-file-inputs');
+        $hiddenContainer.empty();
+
+        selectedIncidentFiles.forEach((file, index) => {
+            const $hiddenInput = $(`<input type="file" name="dokumentasi[]" style="display: none;">`);
+            
+            // Create a new FileList containing just this file
+            const dt = new DataTransfer();
+            dt.items.add(file);
+            $hiddenInput[0].files = dt.files;
+            
+            $hiddenContainer.append($hiddenInput);
+        });
+    }
+
+    // Remove incident file event handler
+    $(document).on('click', '.remove-incident-file-btn', function() {
+        const index = parseInt($(this).data('index'));
+        selectedIncidentFiles.splice(index, 1);
+        updateIncidentFileDisplay();
+    });
+
+    // Handle incident form submission
+    $('#addIncidentForm').on('submit', function(e) {
+        e.preventDefault();
+
+        const $submitBtn = $(this).find('button[type="submit"]');
+        const originalHtml = $submitBtn.html();
+
+        // Disable submit button and show loading
+        $submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Menyimpan...');
+
+        // Create FormData manually to include selected files
+        const formData = new FormData();
+        
+        // Add form fields
+        formData.append('_token', $('input[name="_token"]').val());
+        formData.append('puskesmas_id', $('#puskesmas_id').val());
+        formData.append('tgl_kejadian', $('#tgl_kejadian').val());
+        formData.append('kategori_id', $('#kategori_id').val());
+        formData.append('nama_korban', $('#nama_korban').val());
+        formData.append('bagian', $('#bagian').val());
+        formData.append('tahapan_id', $('#tahapan_id').val());
+        formData.append('insiden', $('#insiden').val());
+        formData.append('kronologis', $('#kronologis').val());
+
+        // Add selected files
+        selectedIncidentFiles.forEach((file, index) => {
+            formData.append('dokumentasi[]', file);
+        });
+
+        $.ajax({
+            url: $(this).attr('action'),
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            success: function(response) {
+                if (response.success) {
+                    toastr.success(response.message || 'Insiden berhasil dilaporkan');
+                    $('#addIncidentModal').modal('hide');
+                    $('#addIncidentForm')[0].reset();
+                    $('#kronologis-char-count').text('0').removeClass('text-danger');
+
+                    // Clear selected incident files
+                    selectedIncidentFiles = [];
+                    $('#incident-selected-files-container').hide();
+                    $('#incident-selected-files-list').empty();
+                    $('#incident-hidden-file-inputs').empty();
+                    $('#incident-file-input-multiple').val('');
+
+                    // Refresh the insiden table if it exists
+                    if ($('#insidenTable').length && $.fn.DataTable.isDataTable('#insidenTable')) {
+                        $('#insidenTable').DataTable().ajax.reload();
+                    }
+                } else {
+                    toastr.error(response.message || 'Terjadi kesalahan');
+                }
+            },
+            error: function(xhr) {
+                let errorMessage = 'Terjadi kesalahan saat menyimpan insiden';
+
+                if (xhr.status === 422) {
+                    // Validation errors
+                    let errors = xhr.responseJSON.errors;
+                    let errorText = '';
+                    Object.keys(errors).forEach(function(key) {
+                        errorText += errors[key][0] + '\n';
+                    });
+                    errorMessage = errorText;
+                } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
+                }
+
+                toastr.error(errorMessage);
+            },
+            complete: function() {
+                // Re-enable submit button
+                $submitBtn.prop('disabled', false).html(originalHtml);
+            }
+        });
+    });
+
+    // Reset form when modal closes
+    $('#addIncidentModal').on('hidden.bs.modal', function() {
+        $('#addIncidentForm')[0].reset();
+        $('#kronologis-char-count').text('0').removeClass('text-danger');
+        
+        // Clear selected incident files
+        selectedIncidentFiles = [];
+        $('#incident-selected-files-container').hide();
+        $('#incident-selected-files-list').empty();
+        $('#incident-hidden-file-inputs').empty();
+        $('#incident-file-input-multiple').val('');
+    });
+
+    // Set default date to today
+    $('#tgl_kejadian').val(new Date().toISOString().split('T')[0]);
+});
 </script>
 @endsection
