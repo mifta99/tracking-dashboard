@@ -224,7 +224,7 @@ class IncidentController extends Controller
 
     public function getStatusInsiden()
     {
-        $status = StatusInsiden::select('id', 'name')->get();
+        $status = StatusInsiden::select('id', 'status')->get();
         return response()->json($status);
     }
 
@@ -232,7 +232,7 @@ class IncidentController extends Controller
     {
         try {
             $user = Auth::user();
-            $query = Insiden::with(['puskesmas', 'tahapan', 'status', 'kategoriInsiden', 'reporter']);
+            $query = Insiden::with(['puskesmas.district.regency.province', 'tahapan', 'status', 'kategoriInsiden', 'reporter']);
 
             // Filter by puskesmas if provided or by user role
             if ($request->has('puskesmas_id') && $request->puskesmas_id) {
@@ -246,12 +246,15 @@ class IncidentController extends Controller
             $formattedData = $incidents->map(function ($incident) {
                 return [
                     'id' => $incident->id,
+                    'province_name' => $incident->puskesmas->district->regency->province->name ?? '-',
+                    'regency_name' => $incident->puskesmas->district->regency->name ?? '-',
+                    'district_name' => $incident->puskesmas->district->name ?? '-',
+                    'puskesmas_name' => $incident->puskesmas->name ?? '-',
                     'tgl_kejadian' => $incident->tgl_kejadian ? \Carbon\Carbon::parse($incident->tgl_kejadian)->translatedFormat('d M Y') : '-',
                     'insiden' => $incident->insiden ?? '-',
                     'tahapan' => $incident->tahapan->tahapan ?? '-',
                     'kategori_insiden' => $incident->kategoriInsiden->kategori ?? '-',
                     'status' => $incident->status->status ?? '-',
-                    'puskesmas' => $incident->puskesmas->name ?? '-',
                     'reporter' => $incident->reporter->name ?? '-',
                 ];
             });

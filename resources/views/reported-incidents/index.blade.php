@@ -13,11 +13,55 @@
             <span class="section-title-bar text-white" style="font-size:.7rem;font-weight:600;letter-spacing:.5px;text-transform:uppercase;">Pelaporan Insiden</span>
         </div>
         <div class="card-body p-3">
+            @if(auth()->user() && auth()->user()->role->role_name != 'puskesmas')
+            <!-- Filter Section -->
+            <div class="mb-3 p-3 border rounded" style="background:#f8f9fc;">
+                <div class="form-row">
+                    <div class="form-group col-md-2 mb-2">
+                        <label class="small font-weight-bold mb-1">Provinsi</label>
+                        <select id="filter-province" class="form-control form-control-sm">
+                            <option value="">Semua</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-md-2 mb-2">
+                        <label class="small font-weight-bold mb-1">Kabupaten</label>
+                        <select id="filter-regency" class="form-control form-control-sm" disabled>
+                            <option value="">Semua</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-md-2 mb-2">
+                        <label class="small font-weight-bold mb-1">Kecamatan</label>
+                        <select id="filter-district" class="form-control form-control-sm" disabled>
+                            <option value="">Semua</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-md-2 mb-2">
+                        <label class="small font-weight-bold mb-1">Status</label>
+                        <select id="filter-status" class="form-control form-control-sm">
+                            <option value="">Semua</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-md-2 mb-2">
+                        <label class="small font-weight-bold mb-1">Kategori Insiden</label>
+                        <select id="filter-kategori" class="form-control form-control-sm">
+                            <option value="">Semua</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-md-2 mb-2 d-flex align-items-end">
+                        <button id="btn-reset-filter" class="btn btn-secondary btn-sm btn-block"><i class="fas fa-undo mr-1"></i>Reset</button>
+                    </div>
+                </div>
+            </div>
+            @endif
             <div class="table-responsive">
                 <table class="table table-bordered table-striped table-sm" id="reported-incidents-table">
                     <thead>
                         <tr>
                             <th style="font-size: 11pt;">No.</th>
+                            <th style="font-size: 11pt;">Provinsi</th>
+                            <th style="font-size: 11pt;">Kabupaten</th>
+                            <th style="font-size: 11pt;">Kecamatan</th>
+                            <th style="font-size: 11pt;">Nama Puskesmas</th>
                             <th style="font-size: 11pt;">Tanggal Kejadian</th>
                             <th style="font-size: 11pt;">Insiden</th>
                             <th style="font-size: 11pt;">Tahapan</th>
@@ -96,13 +140,13 @@
 
         $(document).ready(function() {
             // Initialize DataTable
-            $('#reported-incidents-table').DataTable({
+            const table = $('#reported-incidents-table').DataTable({
                 processing: true,
                 serverSide: false,
                 responsive: true,
                 pageLength: 10,
                 lengthMenu: [[5, 10, 25, 50], [5, 10, 25, 50]],
-                order: [[1, 'desc']], // Sort by date descending
+                order: [[5, 'desc']], // Sort by date descending
                 language: {
                     processing: "Memuat data...",
                     search: "Cari:",
@@ -121,12 +165,16 @@
                 },
                 columns: [
                     { data: null, orderable: false, searchable: false, width: '5%' },
-                    { data: 'tgl_kejadian', name: 'tgl_kejadian', width: '12%' },
-                    { data: 'insiden', name: 'insiden', width: '25%' },
-                    { data: 'tahapan', name: 'tahapan', width: '15%' },
-                    { data: 'kategori_insiden', name: 'kategori_insiden', width: '15%' },
-                    { data: 'status', name: 'status', width: '12%' },
-                    { data: 'actions', name: 'actions', orderable: false, searchable: false, width: '8%' }
+                    { data: 'province_name', name: 'province_name', width: '10%' },
+                    { data: 'regency_name', name: 'regency_name', width: '10%' },
+                    { data: 'district_name', name: 'district_name', width: '10%' },
+                    { data: 'puskesmas_name', name: 'puskesmas_name', width: '15%' },
+                    { data: 'tgl_kejadian', name: 'tgl_kejadian', width: '10%' },
+                    { data: 'insiden', name: 'insiden', width: '20%' },
+                    { data: 'tahapan', name: 'tahapan', width: '10%' },
+                    { data: 'kategori_insiden', name: 'kategori_insiden', width: '12%' },
+                    { data: 'status', name: 'status', width: '8%' },
+                    { data: 'actions', name: 'actions', orderable: false, searchable: false, width: '6%' }
                 ],
                 columnDefs: [
                     {
@@ -136,7 +184,7 @@
                         }
                     },
                     {
-                        targets: 2, // Insiden column
+                        targets: 6, // Insiden column
                         render: function (data, type, row) {
                             if (data && data.length > 80) {
                                 return `<div style="max-width:250px; white-space:normal;">${data.substring(0, 80)}...</div>`;
@@ -145,7 +193,29 @@
                         }
                     },
                     {
-                        targets: 5, // Status column
+                        targets: 8, // Kategori Insiden column
+                        render: function (data, type, row) {
+                            let badgeClass = 'badge-secondary';
+                            const kategoriLower = (data || '').toLowerCase();
+
+                            switch (kategoriLower) {
+                                case 'rendah':
+                                    badgeClass = 'badge-info';
+                                    break;
+                                case 'sedang':
+                                    badgeClass = 'badge-warning';
+                                    break;
+                                case 'tinggi':
+                                case 'kritis':
+                                    badgeClass = 'badge-danger';
+                                    break;
+                            }
+
+                            return `<span class="badge ${badgeClass}">${data || '-'}</span>`;
+                        }
+                    },
+                    {
+                        targets: 9, // Status column
                         render: function (data, type, row) {
                             let badgeClass = 'badge-secondary';
                             const statusLower = (data || '').toLowerCase();
@@ -169,7 +239,7 @@
                         }
                     },
                     {
-                        targets: 6, // Actions
+                        targets: 10, // Actions
                         render: function (data, type, row) {
                             const detailUrl = '{{ route("insiden.detail", ":id") }}'.replace(':id', row.id);
                             return `<div class="d-flex justify-content-center align-items-center">
@@ -197,6 +267,129 @@
                     }
                 }
             });
+
+            // Province -> Regency -> District cascading using existing API endpoints
+            const provincesUrl = '{{ route('api-puskesmas.provinces') }}';
+            const regenciesUrl = '{{ route('api-puskesmas.regencies') }}';
+            const districtsUrl = '{{ route('api-puskesmas.districts') }}';
+
+            function loadProvinces(){
+                $.get(provincesUrl).done(r=>{
+                    if(r.success){
+                        const $p = $('#filter-province');
+                        r.data.forEach(p=> $p.append(`<option value="${p.name}" data-id="${p.id}">${p.name}</option>`));
+                    }
+                });
+            }
+            function loadRegencies(provinceId){
+                $('#filter-regency').prop('disabled', true).html('<option value="">Semua</option>');
+                $('#filter-district').prop('disabled', true).html('<option value="">Semua</option>');
+                if(!provinceId) return;
+                $.get(regenciesUrl,{ province_id: provinceId }).done(r=>{
+                    if(r.success){
+                        const $r = $('#filter-regency');
+                        r.data.forEach(it=> $r.append(`<option value="${it.name}" data-id="${it.id}">${it.name}</option>`));
+                        $r.prop('disabled', false);
+                    }
+                });
+            }
+            function loadDistricts(regencyId){
+                $('#filter-district').prop('disabled', true).html('<option value="">Semua</option>');
+                if(!regencyId) return;
+                $.get(districtsUrl,{ regency_id: regencyId }).done(r=>{
+                    if(r.success){
+                        const $d = $('#filter-district');
+                        r.data.forEach(it=> $d.append(`<option value="${it.name}" data-id="${it.id}">${it.name}</option>`));
+                        $d.prop('disabled', false);
+                    }
+                });
+            }
+
+            // Load master data for kategori and status filters
+            function loadMasterData(){
+                // Load status options
+                $.ajax({
+                    url: '{{ route("api.status-insiden") }}',
+                    method: 'GET',
+                    success: function(data) {
+                        const $status = $('#filter-status');
+                        data.forEach(function(item) {
+                            $status.append(`<option value="${item.status}">${item.status}</option>`);
+                        });
+                    },
+                    error: function() {
+                        console.log('Failed to load status insiden');
+                    }
+                });
+
+                // Load kategori options
+                $.ajax({
+                    url: '{{ route("api.kategori-insiden") }}',
+                    method: 'GET',
+                    success: function(data) {
+                        const $kategori = $('#filter-kategori');
+                        data.forEach(function(item) {
+                            $kategori.append(`<option value="${item.name}">${item.name}</option>`);
+                        });
+                    },
+                    error: function() {
+                        console.log('Failed to load kategori insiden');
+                    }
+                });
+            }
+
+            // Initialize filters
+            loadProvinces();
+            loadMasterData();
+
+            // Filter handlers
+            $('#filter-province').on('change', function(){
+                const selected = $(this).find(':selected').data('id');
+                loadRegencies(selected);
+                table.draw();
+            });
+            $('#filter-regency').on('change', function(){
+                const selected = $(this).find(':selected').data('id');
+                loadDistricts(selected);
+                table.draw();
+            });
+            $('#filter-district, #filter-status, #filter-kategori').on('change keyup', function(){
+                table.draw();
+            });
+            $('#btn-reset-filter').on('click', function(e){
+                e.preventDefault();
+                $('#filter-province').val('');
+                $('#filter-regency').html('<option value="">Semua</option>').prop('disabled', true);
+                $('#filter-district').html('<option value="">Semua</option>').prop('disabled', true);
+                $('#filter-status').val('');
+                $('#filter-kategori').val('');
+                table.draw();
+            });
+
+            // Custom filtering plug-in
+            $.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
+                if(settings.nTable.id !== 'reported-incidents-table') return true;
+                const province = $('#filter-province').val();
+                const regency = $('#filter-regency').val();
+                const district = $('#filter-district').val();
+                const status = $('#filter-status').val();
+                const kategori = $('#filter-kategori').val();
+
+                // Data columns mapping
+                const rowProvince = data[1];
+                const rowRegency = data[2];
+                const rowDistrict = data[3];
+                const rowStatus = data[9]; // Status column
+                const rowKategori = data[8]; // Kategori column
+
+                if(province && rowProvince !== province) return false;
+                if(regency && rowRegency !== regency) return false;
+                if(district && rowDistrict !== district) return false;
+                if(status && rowStatus.toLowerCase() !== status.toLowerCase()) return false;
+                if(kategori && rowKategori.toLowerCase() !== kategori.toLowerCase()) return false;
+                return true;
+            });
+
 
 
         });
