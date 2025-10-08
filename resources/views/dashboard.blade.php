@@ -404,7 +404,7 @@
                     }
                 }
             ],
-            order: [[4, 'asc']]
+            order: [[1, 'asc']]
         });
 
         // Initial loads
@@ -531,33 +531,21 @@
         ];
         const trackingBarColors = ['#1d4ed8', '#0ea5e9', '#22c55e', '#eab308', '#ef4444', '#a855f7', '#f97316', '#64748b'];
         const trackingRawStatusData = @json($dataStatus);
-        console.log('trackingRawStatusData:', trackingRawStatusData);
-        // Randomize trackingRawStatusData values for demo purposes
-        (function () {
-            const currentValues = Object.values(trackingRawStatusData || {}).map(v => Number(v) || 0);
-            const maxExisting = currentValues.length ? Math.max(...currentValues) : 50;
-            const upperBound = Number.isFinite(maxExisting) && maxExisting > 0 ? maxExisting : 50;
-            const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
-
-            trackingStatusOrder.forEach(item => {
-                trackingRawStatusData[item.key] = randInt(0, upperBound);
-            });
-        })();
         const trackingCategories = trackingStatusOrder.map(item => item.label);
         const trackingValues = trackingStatusOrder.map(item => Number(trackingRawStatusData[item.key] ?? 0));
-
+        console.log('Tracking Data:', trackingCategories, trackingValues);
         let trackingChartInstance = null;
         let currentTrackingMode = 'cascade';
 
         const monthLabels = getLastFiveMonths();
-        const issueData = [5, 9, 4, 11, 7];
-        const incidentData = [2, 3, 1, 4, 2];
+        const issueData = [[5, 9, 4, 11, 7], [6, 10, 5, 12, 8]];
+        const incidentData = [[2, 3, 1, 4, 2], [3, 4, 2, 5, 3]];
         let monthlyIssueChartInstance = null;
         let monthlyIncidentChartInstance = null;
 
         renderTrackingChart(currentTrackingMode);
-        monthlyIssueChartInstance = renderMonthlyBarChart('monthlyIssueChart', 'Keluhan', issueData, '#dc3545', monthlyIssueChartInstance);
-        monthlyIncidentChartInstance = renderMonthlyBarChart('monthlyIncidentChart', 'Insiden', incidentData, '#1d4ed8', monthlyIncidentChartInstance);
+        monthlyIssueChartInstance = renderMonthlyBarChart('monthlyIssueChart', ['Keluhan Dilaporkan', 'Keluhan Terselesaikan'], issueData, ['#dc3545','#6cc070'], monthlyIssueChartInstance);
+        monthlyIncidentChartInstance = renderMonthlyBarChart('monthlyIncidentChart', ['Insiden Dilaporkan', 'Insiden Terselesaikan'], incidentData, ['#1d4ed8','#4f46e5'], monthlyIncidentChartInstance);
 
         $('#trackingChartMode').on('change', function () {
             const selected = this.value || 'cascade';
@@ -570,16 +558,16 @@
             clearTimeout(resizeTimeout);
             resizeTimeout = setTimeout(function () {
                 renderTrackingChart(currentTrackingMode);
-                monthlyIssueChartInstance = renderMonthlyBarChart('monthlyIssueChart', 'Keluhan', issueData, '#dc3545', monthlyIssueChartInstance);
-                monthlyIncidentChartInstance = renderMonthlyBarChart('monthlyIncidentChart', 'Insiden', incidentData, '#1d4ed8', monthlyIncidentChartInstance);
+                monthlyIssueChartInstance = renderMonthlyBarChart('monthlyIssueChart', ['Keluhan Dilaporkan', 'Keluhan Terselesaikan'], issueData, ['#dc3545','#6cc070'], monthlyIssueChartInstance);
+                monthlyIncidentChartInstance = renderMonthlyBarChart('monthlyIncidentChart', ['Insiden Dilaporkan', 'Insiden Terselesaikan'], incidentData, ['#1d4ed8','#4f46e5'], monthlyIncidentChartInstance);
             }, 200);
         });
 
         $(document).on('expanded.lte.cardwidget collapsed.lte.cardwidget', function () {
             setTimeout(function () {
                 renderTrackingChart(currentTrackingMode);
-                monthlyIssueChartInstance = renderMonthlyBarChart('monthlyIssueChart', 'Keluhan', issueData, '#dc3545', monthlyIssueChartInstance);
-                monthlyIncidentChartInstance = renderMonthlyBarChart('monthlyIncidentChart', 'Insiden', incidentData, '#1d4ed8', monthlyIncidentChartInstance);
+                monthlyIssueChartInstance = renderMonthlyBarChart('monthlyIssueChart', ['Keluhan Dilaporkan', 'Keluhan Terselesaikan'], issueData, ['#dc3545','#6cc070'], monthlyIssueChartInstance);
+                monthlyIncidentChartInstance = renderMonthlyBarChart('monthlyIncidentChart', ['Insiden Dilaporkan', 'Insiden Terselesaikan'], incidentData, ['#1d4ed8','#4f46e5'], monthlyIncidentChartInstance);
             }, 220);
         });
 
@@ -949,15 +937,28 @@
                         fontSize: flags.isSmall ? 10 : 12
                     }
                 },
+                legend: {
+                    show: true,
+                    orient: 'horizontal',
+                    left: 'center',
+                    bottom: flags.isTablet ? 5 : 8,
+                    textStyle: {
+                        fontSize: flags.isSmall ? 10 : 12,
+                        color: '#475569'
+                    },
+                    itemWidth: flags.isSmall ? 12 : 14,
+                    itemHeight: flags.isSmall ? 8 : 10,
+                    itemGap: flags.isSmall ? 10 : 15
+                },
                 series: [{
-                    name: seriesName,
+                    name: seriesName[0],
                     type: 'bar',
-                    data: seriesData,
+                    data: seriesData[0],
                     barGap: '10%',
-                    barWidth: flags.isTablet ? '30%' : '35%',
+                    barWidth: '30%',
                     itemStyle: {
                         borderRadius: [6, 6, 0, 0],
-                        color: barColor
+                        color: barColor[0] || '#2563eb'
                     },
                     label: {
                         show: true,
@@ -969,13 +970,13 @@
                     }
                 },
             {
-                    name: seriesName,
+                    name: seriesName[1],
                     type: 'bar',
-                    data: seriesData,
-                    barWidth: flags.isTablet ? '30%' : '35%',
+                    data: seriesData[1],
+                    barWidth: '30%',
                     itemStyle: {
                         borderRadius: [6, 6, 0, 0],
-                        color: barColor
+                        color: barColor[1] || '#2563eb'
                     },
                     label: {
                         show: true,

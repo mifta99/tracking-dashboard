@@ -134,6 +134,7 @@ class ImportDataController extends Controller
                         'no_hp_alternatif' => $item['no_hp_alternatif'] ?? null,
                         'created_by' => $user_id,
                     ]);
+                    if(Pengiriman::where('puskesmas_id', $puskesmasId->id)->first()) continue;
                     Pengiriman::create([
                         'puskesmas_id' => $puskesmasId->id,
                         'tahapan_id' => 1,
