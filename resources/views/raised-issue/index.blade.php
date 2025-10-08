@@ -7,9 +7,57 @@
 @stop
 
 @section('content')
+    <!-- Status Count Cards -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-6">
+            <div class="small-box bg-warning">
+                <div class="inner">
+                    <h3 id="count-baru">-</h3>
+                    <p>Keluhan Baru</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-exclamation-circle"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-6">
+            <div class="small-box bg-info">
+                <div class="inner">
+                    <h3 id="count-proses">-</h3>
+                    <p>Keluhan Proses</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-cogs"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-6">
+            <div class="small-box bg-success">
+                <div class="inner">
+                    <h3 id="count-selesai">-</h3>
+                    <p>Keluhan Selesai</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-6">
+            <div class="small-box bg-secondary">
+                <div class="inner">
+                    <h3 id="count-total">-</h3>
+                    <p>Total Keluhan</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-list"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="card">
         <div class="card-header text-md font-weight-bold d-flex justify-content-between align-items-center" style="background-color: #ce8220; color: white;">
-            <h3 class="card-title mb-0">Data Keluhan</h3>
+            <h3 class="card-title mb-0">Data Keluhan Dalam Proses</h3>
         </div>
 
         <div class="card-body">
@@ -78,6 +126,73 @@
         </div>
     </div>
 
+    <!-- Data Keluhan Selesai Card -->
+    <div class="card mt-4">
+        <div class="card-header text-md font-weight-bold d-flex justify-content-between align-items-center" style="background-color: #28a745; color: white;">
+            <h3 class="card-title mb-0">Data Keluhan Selesai</h3>
+
+        </div>
+
+        <div class="card-body">
+            @if(auth()->user() && auth()->user()->role->role_name != 'puskesmas')
+            <!-- Filter Section for Completed Issues -->
+            <div class="mb-3 p-3 border rounded" style="background:#f8f9fc;">
+                <div class="form-row">
+                    <div class="form-group col-md-2 mb-2">
+                        <label class="small font-weight-bold mb-1">Provinsi</label>
+                        <select id="filter-completed-province" class="form-control form-control-sm">
+                            <option value="">Semua</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-md-2 mb-2">
+                        <label class="small font-weight-bold mb-1">Kabupaten</label>
+                        <select id="filter-completed-regency" class="form-control form-control-sm" disabled>
+                            <option value="">Semua</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-md-2 mb-2">
+                        <label class="small font-weight-bold mb-1">Kecamatan</label>
+                        <select id="filter-completed-district" class="form-control form-control-sm" disabled>
+                            <option value="">Semua</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-md-2 mb-2">
+                        <label class="small font-weight-bold mb-1">Kategori Keluhan</label>
+                        <select id="filter-completed-kategori" class="form-control form-control-sm">
+                            <option value="">Semua</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-md-2 mb-2 d-flex align-items-end">
+                        <button id="btn-reset-completed-filter" class="btn btn-secondary btn-sm btn-block"><i class="fas fa-undo mr-1"></i>Reset</button>
+                    </div>
+                </div>
+            </div>
+            @endif
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped table-sm" id="completed-issues-table" style="width:100%;">
+                    <thead>
+                        <tr>
+                            <th style="font-size: 11pt;">No.</th>
+                            <th style="font-size: 11pt;">Provinsi</th>
+                            <th style="font-size: 11pt;">Kabupaten</th>
+                            <th style="font-size: 11pt;">Kecamatan</th>
+                            <th style="font-size: 11pt;">Nama Puskesmas</th>
+                            <th style="font-size: 11pt;">Tanggal Dilaporkan</th>
+                            <th style="font-size: 11pt;">Keluhan</th>
+                            <th style="font-size: 11pt;">Kategori Keluhan</th>
+                            <th style="font-size: 11pt;">Tanggal Selesai</th>
+                            <th style="font-size: 11pt;">Jumlah Downtime</th>
+                            <th class="text-center" style="font-size: 11pt;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody style="font-size: 10pt;">
+                        <!-- Data will be populated here via AJAX -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
 
 @stop
 
@@ -88,18 +203,18 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css">
     <style>
         /* DataTable styling to match detail page */
-        #issues-table {
+        #issues-table, #completed-issues-table {
             font-size: 0.875rem;
         }
 
-        #issues-table thead th {
+        #issues-table thead th, #completed-issues-table thead th {
             font-size: 11pt;
             font-weight: 600;
             background-color: #f8f9fa;
             white-space: nowrap;
         }
 
-        #issues-table tbody td {
+        #issues-table tbody td, #completed-issues-table tbody td {
             vertical-align: middle;
             font-size: 10pt;
         }
@@ -138,6 +253,32 @@
         .btn-submit:hover {
             background: linear-gradient(135deg, #b8741c, #e8925a);
             color: white;
+        }
+
+        /* Status count cards styling */
+        .small-box {
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease;
+        }
+
+        .small-box:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .small-box .inner h3 {
+            font-size: 2.2rem;
+            font-weight: bold;
+        }
+
+        .small-box .inner p {
+            font-size: 0.9rem;
+            margin-bottom: 0;
+        }
+
+        .small-box .icon {
+            opacity: 0.3;
         }
     </style>
 @stop
@@ -314,7 +455,7 @@
 
             // Load master data for kategori and status filters
             const masterDataUrl = '{{ route('keluhan.master-data') }}';
-            
+
             function loadMasterData(){
                 $.get(masterDataUrl).done(r=>{
                     if(r.success){
@@ -323,7 +464,7 @@
                         r.data.statuses.forEach(status => {
                             $status.append(`<option value="${status.status}">${status.status}</option>`);
                         });
-                        
+
                         // Load kategori options
                         const $kategori = $('#filter-kategori');
                         r.data.kategoris.forEach(kategori => {
@@ -335,8 +476,35 @@
                 });
             }
 
+            // Load status counts for dashboard cards
+            const statusCountsUrl = '{{ route('keluhan.status-counts') }}';
+
+            function loadStatusCounts(){
+                $.get(statusCountsUrl).done(function(r){
+                    if(r.success){
+                        $('#count-baru').text(r.data.baru);
+                        $('#count-proses').text(r.data.proses);
+                        $('#count-selesai').text(r.data.selesai);
+                        $('#count-total').text(r.data.total);
+                    } else {
+                        console.error('Failed to load status counts:', r.message);
+                        $('#count-baru, #count-proses, #count-selesai, #count-total').text('0');
+                    }
+                }).fail(function(){
+                    console.error('Failed to load status counts');
+                    $('#count-baru, #count-proses, #count-selesai, #count-total').text('0');
+                });
+            }
+
+            // Global function to refresh both counts and table
+            window.refreshData = function() {
+                loadStatusCounts();
+                table.ajax.reload();
+            };
+
             loadProvinces();
             loadMasterData();
+            loadStatusCounts();
 
             // Filter handlers
             $('#filter-province').on('change', function(){
@@ -389,6 +557,220 @@
             // Redraw after adding custom search
             table.draw();
 
+            // Initialize Completed Issues DataTable
+            const completedTable = $('#completed-issues-table').DataTable({
+                processing: true,
+                serverSide: false,
+                responsive: true,
+                pageLength: 10,
+                lengthMenu: [[5, 10, 25, 50], [5, 10, 25, 50]],
+                order: [[8, 'desc']], // Sort by completed date descending
+                language: {
+                    processing: "Memuat data...",
+                    search: "Cari:",
+                    lengthMenu: "Tampilkan _MENU_ data per halaman",
+                    info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+                    infoEmpty: "Menampilkan 0 sampai 0 dari 0 data",
+                    infoFiltered: "(difilter dari _MAX_ total data)",
+                    paginate: {
+                        first: "Pertama",
+                        last: "Terakhir",
+                        next: "Selanjutnya",
+                        previous: "Sebelumnya"
+                    },
+                    emptyTable: "Tidak ada data keluhan selesai yang tersedia",
+                    zeroRecords: "Tidak ada data yang cocok"
+                },
+                columns: [
+                    { data: null, orderable: false, searchable: false, width: '5%' },
+                    { data: 'province_name', name: 'province_name', width: '10%' },
+                    { data: 'regency_name', name: 'regency_name', width: '10%' },
+                    { data: 'district_name', name: 'district_name', width: '10%' },
+                    { data: 'puskesmas_name', name: 'puskesmas_name', width: '15%' },
+                    { data: 'tanggal_dilaporkan', name: 'tanggal_dilaporkan', width: '10%' },
+                    { data: 'keluhan', name: 'keluhan', width: '18%' },
+                    { data: 'kategori_keluhan', name: 'kategori_keluhan', width: '10%' },
+                    { data: 'tanggal_selesai', name: 'tanggal_selesai', width: '10%' },
+                    { data: 'jumlah_downtime', name: 'jumlah_downtime', width: '8%' },
+                    { data: 'actions', name: 'actions', orderable: false, searchable: false, width: '6%' }
+                ],
+                columnDefs: [
+                    {
+                        targets: 0,
+                        render: function (data, type, row, meta) {
+                            return meta.row + meta.settings._iDisplayStart + 1;
+                        }
+                    },
+                    {
+                        targets: 6, // Keluhan column
+                        render: function (data, type, row) {
+                            if (data && data.length > 100) {
+                                return `<div style="max-width:300px; white-space:normal;">${data.substring(0, 100)}...</div>`;
+                            }
+                            return `<div style="max-width:300px; white-space:normal;">${data || '-'}</div>`;
+                        }
+                    },
+                    {
+                        targets: 7, // Kategori column
+                        render: function (data, type, row) {
+                            let badgeClass = 'badge-secondary';
+                            const kategoriLower = (data || '').toLowerCase();
+
+                            switch (kategoriLower) {
+                                case 'rendah':
+                                    badgeClass = 'badge-warning';
+                                    break;
+                                case 'sedang':
+                                    badgeClass = 'badge-info';
+                                    break;
+                                case 'kritis':
+                                    badgeClass = 'badge-danger';
+                                    break;
+                            }
+
+                            return `<span class="badge ${badgeClass}">${data || '-'}</span>`;
+                        }
+                    },
+                    {
+                        targets: 10, // Actions
+                        render: function (data, type, row) {
+                            const detailUrl = '{{ route("raised-issue.detail", ":id") }}'.replace(':id', row.id);
+                            return `<div class="d-flex justify-content-center align-items-center">
+                                        <a href="${detailUrl}" class="text-secondary" title="Lihat Detail">
+                                            <i class="fas fa-search"></i>
+                                        </a>
+                                    </div>`;
+                        }
+                    }
+                ],
+                ajax: {
+                    url: '{{ route('keluhan.fetch-data') }}',
+                    type: 'GET',
+                    data: {
+                        show_completed: 'true'
+                    },
+                    dataSrc: function(json) {
+                        if (json.success) {
+                            return json.data;
+                        } else {
+                            console.error('Error loading completed keluhan data:', json.message);
+                            return [];
+                        }
+                    },
+                    error: function(xhr, error, code) {
+                        console.error('AJAX Error:', error);
+                        toastr.error('Gagal memuat data keluhan selesai');
+                    }
+                }
+            });
+
+            // Completed complaints filter functions
+            function loadCompletedProvinces(){
+                $.get(provincesUrl).done(r=>{
+                    if(r.success){
+                        const $p = $('#filter-completed-province');
+                        r.data.forEach(p=> $p.append(`<option value="${p.name}" data-id="${p.id}">${p.name}</option>`));
+                    }
+                });
+            }
+            function loadCompletedRegencies(provinceId){
+                $('#filter-completed-regency').prop('disabled', true).html('<option value="">Semua</option>');
+                $('#filter-completed-district').prop('disabled', true).html('<option value="">Semua</option>');
+                if(!provinceId) return;
+                $.get(regenciesUrl,{ province_id: provinceId }).done(r=>{
+                    if(r.success){
+                        const $r = $('#filter-completed-regency');
+                        r.data.forEach(it=> $r.append(`<option value="${it.name}" data-id="${it.id}">${it.name}</option>`));
+                        $r.prop('disabled', false);
+                    }
+                });
+            }
+            function loadCompletedDistricts(regencyId){
+                $('#filter-completed-district').prop('disabled', true).html('<option value="">Semua</option>');
+                if(!regencyId) return;
+                $.get(districtsUrl,{ regency_id: regencyId }).done(r=>{
+                    if(r.success){
+                        const $d = $('#filter-completed-district');
+                        r.data.forEach(it=> $d.append(`<option value="${it.name}" data-id="${it.id}">${it.name}</option>`));
+                        $d.prop('disabled', false);
+                    }
+                });
+            }
+
+            function loadCompletedMasterData(){
+                $.get(masterDataUrl).done(r=>{
+                    if(r.success){
+                        // Load kategori options for completed filter
+                        const $kategori = $('#filter-completed-kategori');
+                        r.data.kategoris.forEach(kategori => {
+                            $kategori.append(`<option value="${kategori.kategori}">${kategori.kategori}</option>`);
+                        });
+                    }
+                }).fail(function() {
+                    console.log('Failed to load master data for completed filters');
+                });
+            }
+
+            // Initialize completed table data loading
+            loadCompletedProvinces();
+            loadCompletedMasterData();
+
+            // Completed table filter handlers
+            $('#filter-completed-province').on('change', function(){
+                const selected = $(this).find(':selected').data('id');
+                loadCompletedRegencies(selected);
+                completedTable.draw();
+            });
+            $('#filter-completed-regency').on('change', function(){
+                const selected = $(this).find(':selected').data('id');
+                loadCompletedDistricts(selected);
+                completedTable.draw();
+            });
+            $('#filter-completed-district, #filter-completed-kategori').on('change keyup', function(){
+                completedTable.draw();
+            });
+            $('#btn-reset-completed-filter').on('click', function(e){
+                e.preventDefault();
+                $('#filter-completed-province').val('');
+                $('#filter-completed-regency').html('<option value="">Semua</option>').prop('disabled', true);
+                $('#filter-completed-district').html('<option value="">Semua</option>').prop('disabled', true);
+                $('#filter-completed-kategori').val('');
+                completedTable.draw();
+            });
+
+            // Custom filtering for completed table
+            $.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
+                if(settings.nTable.id !== 'completed-issues-table') return true;
+                const province = $('#filter-completed-province').val();
+                const regency = $('#filter-completed-regency').val();
+                const district = $('#filter-completed-district').val();
+                const kategori = $('#filter-completed-kategori').val();
+
+                // Data columns mapping for completed table
+                const rowProvince = data[1];
+                const rowRegency = data[2];
+                const rowDistrict = data[3];
+                const rowKategori = data[7]; // Kategori column
+
+                if(province && rowProvince !== province) return false;
+                if(regency && rowRegency !== regency) return false;
+                if(district && rowDistrict !== district) return false;
+                if(kategori && rowKategori.toLowerCase() !== kategori.toLowerCase()) return false;
+                return true;
+            });
+
+            // Global refresh function for completed data
+            window.refreshCompletedData = function() {
+                loadStatusCounts();
+                completedTable.ajax.reload();
+            };
+
+            // Update the global refresh function to include both tables
+            window.refreshData = function() {
+                loadStatusCounts();
+                table.ajax.reload();
+                completedTable.ajax.reload();
+            };
 
         });
     </script>

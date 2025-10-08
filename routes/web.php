@@ -48,6 +48,7 @@ Route::middleware(['auth', 'roles:2,3'])->prefix('daftar-revisi')->name('daftar-
 Route::middleware(['auth'])->prefix('keluhan')->name('keluhan.')->group(function () {
     Route::get('/fetch-data', [App\Http\Controllers\KeluhanController::class, 'fetchData'])->name('fetch-data');
     Route::get('/master-data', [App\Http\Controllers\KeluhanController::class, 'getMasterData'])->name('master-data');
+    Route::get('/status-counts', [App\Http\Controllers\KeluhanController::class, 'getStatusCounts'])->name('status-counts');
 });
 
 Route::middleware(['auth', 'roles:2,3'])->prefix('api-verification-request')->name('api-verification-request.')->group(function () {
