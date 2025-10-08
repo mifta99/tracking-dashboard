@@ -71,7 +71,7 @@ class LoginController extends Controller
                 ->join('districts', 'districts.id', '=', 'puskesmas.district_id')
                 ->where(function($query) use ($request) {
                     $query->where('puskesmas.id', $request->email)
-                        ->whereRaw('LOWER(puskesmas.name) = ?', [strtolower($request->password)]);
+                        ->whereRaw('LOWER(puskesmas.id) = ?', [strtolower($request->password)]);
                 })
                 ->orWhere(function($query) use ($request) {
                     $query->where('puskesmas.id', $request->email)
@@ -85,13 +85,13 @@ class LoginController extends Controller
                     $newUser->name = 'Admin ' . $loginCheck->name;
                     $newUser->instansi = 'Puskesmas ' . $loginCheck->name;
                     $newUser->email = $loginCheck->id; 
-                    $newUser->password = bcrypt(strtolower($loginCheck->name)); 
+                    $newUser->password = bcrypt(strtolower($loginCheck->id)); 
                     $newUser->role_id = 1; 
                     $newUser->puskesmas_id = $loginCheck->id;
                     $newUser->must_change_password = 1;
                     $newUser->save();
                 }
-                if(Auth::attempt(['email' => $request->email, 'password' => strtolower($loginCheck->name)])){
+                if(Auth::attempt(['email' => $request->email, 'password' => strtolower($loginCheck->id)])){
                     return redirect()->intended('/')->with('success','Successfully Login');
                 }
                 
