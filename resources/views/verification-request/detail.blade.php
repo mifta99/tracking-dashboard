@@ -619,13 +619,13 @@
                                         <br><small class="text-muted">Dokumen revisi telah diunggah ulang pada {{ $revisions['instalasi']->resolved_at->setTimezone('Asia/Jakarta')->format('d F Y H:i') }} WIB</small>
                                     @endif
                                 </div>
-                                @if(!$revisions['instalasi']->is_resolved && auth()->user() && auth()->user()->role->role_name == 'kemenkes')
+                                @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes')
                                     <button class="btn btn-sm mt-2 btn-danger revisi-btn"
                                                 data-toggle="modal" data-target="#revisiModal"
                                                 data-doc-type="doc_instalasi"
                                                 data-doc-name="Berita Acara Instalasi"
                                                 data-jenis-dokumen-id="3">
-                                            <i class="fas fa-edit"></i> Edit Catatan Revisi
+                                            <i class="fas fa-edit"></i> {{ $revisions['instalasi']->is_resolved ? 'Revisi Ulang' : 'Edit Catatan Revisi' }}
                                     </button>
                                 @endif
                             </td>
@@ -689,13 +689,13 @@
                                         <br><small class="text-muted">Dokumen revisi telah diunggah ulang pada {{ $revisions['uji_fungsi']->resolved_at->setTimezone('Asia/Jakarta')->format('d F Y H:i') }} WIB</small>
                                     @endif
                                 </div>
-                                @if(!$revisions['uji_fungsi']->is_resolved && auth()->user() && auth()->user()->role->role_name == 'kemenkes')
+                                @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes')
                                     <button class="btn btn-sm mt-2 btn-danger revisi-btn"
                                                 data-toggle="modal" data-target="#revisiModal"
                                                 data-doc-type="doc_uji_fungsi"
                                                 data-doc-name="Berita Acara Uji Fungsi"
                                                 data-jenis-dokumen-id="4">
-                                            <i class="fas fa-edit"></i> Edit Catatan Revisi
+                                            <i class="fas fa-edit"></i> {{ $revisions['uji_fungsi']->is_resolved ? 'Revisi Ulang' : 'Edit Catatan Revisi' }}
                                     </button>
                                 @endif
                             </td>
@@ -759,13 +759,13 @@
                                         <br><small class="text-muted">Dokumen revisi telah diunggah ulang pada {{ $revisions['pelatihan']->resolved_at->setTimezone('Asia/Jakarta')->format('d F Y H:i') }} WIB</small>
                                     @endif
                                 </div>
-                                @if(!$revisions['pelatihan']->is_resolved && auth()->user() && auth()->user()->role->role_name == 'kemenkes')
+                                @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes')
                                     <button class="btn btn-sm mt-2 btn-danger revisi-btn"
                                                 data-toggle="modal" data-target="#revisiModal"
                                                 data-doc-type="doc_pelatihan"
                                                 data-doc-name="Berita Acara Pelatihan Alat"
                                                 data-jenis-dokumen-id="5">
-                                            <i class="fas fa-edit"></i> Edit Catatan Revisi
+                                            <i class="fas fa-edit"></i> {{ $revisions['pelatihan']->is_resolved ? 'Revisi Ulang' : 'Edit Catatan Revisi' }}
                                     </button>
                                 @endif
                             </td>
@@ -839,13 +839,13 @@
                                         <br><small class="text-muted">Dokumen revisi telah diunggah ulang pada {{ $revisions['kalibrasi']->resolved_at->setTimezone('Asia/Jakarta')->format('d F Y H:i') }} WIB</small>
                                     @endif
                                 </div>
-                                @if(!$revisions['kalibrasi']->is_resolved && auth()->user() && auth()->user()->role->role_name == 'kemenkes')
+                                @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes')
                                     <button class="btn btn-sm mt-2 btn-danger revisi-btn"
                                                 data-toggle="modal" data-target="#revisiModal"
                                                 data-doc-type="kalibrasi"
                                                 data-doc-name="Berita Acara Kalibrasi"
                                                 data-jenis-dokumen-id="1">
-                                            <i class="fas fa-edit"></i> Edit Catatan Revisi
+                                            <i class="fas fa-edit"></i> {{ $revisions['kalibrasi']->is_resolved ? 'Revisi Ulang' : 'Edit Catatan Revisi' }}
                                     </button>
                                 @endif
                             </td>
@@ -907,13 +907,13 @@
                                         <br><small class="text-muted">Dokumen revisi telah diunggah ulang pada {{ $revisions['bast']->resolved_at->setTimezone('Asia/Jakarta')->format('d F Y H:i') }} WIB</small>
                                     @endif
                                 </div>
-                                @if(!$revisions['bast']->is_resolved && auth()->user() && auth()->user()->role->role_name == 'kemenkes')
+                                @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes')
                                     <button class="btn btn-sm mt-2 btn-danger revisi-btn"
                                                 data-toggle="modal" data-target="#revisiModal"
                                                 data-doc-type="bast"
                                                 data-doc-name="Berita Acara BAST"
                                                 data-jenis-dokumen-id="2">
-                                            <i class="fas fa-edit"></i> Edit Catatan Revisi
+                                            <i class="fas fa-edit"></i> {{ $revisions['bast']->is_resolved ? 'Revisi Ulang' : 'Edit Catatan Revisi' }}
                                     </button>
                                 @endif
                             </td>
@@ -975,13 +975,13 @@
                                         <br><small class="text-muted">Dokumen revisi telah diunggah ulang pada {{ $revisions['basto']->resolved_at->setTimezone('Asia/Jakarta')->format('d F Y H:i') }} WIB</small>
                                     @endif
                                 </div>
-                                @if(!$revisions['basto']->is_resolved && auth()->user() && auth()->user()->role->role_name == 'kemenkes')
+                                @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes')
                                     <button class="btn btn-sm mt-2 btn-danger revisi-btn"
                                                 data-toggle="modal" data-target="#revisiModal"
                                                 data-doc-type="basto"
                                                 data-doc-name="Berita Acara BASTO"
                                                 data-jenis-dokumen-id="6">
-                                            <i class="fas fa-edit"></i> Edit Catatan Revisi
+                                            <i class="fas fa-edit"></i> {{ $revisions['basto']->is_resolved ? 'Revisi Ulang' : 'Edit Catatan Revisi' }}
                                     </button>
                                 @endif
                             </td>
@@ -1043,13 +1043,13 @@
                                         <br><small class="text-muted">Dokumen revisi telah diunggah ulang pada {{ $revisions['aspak']->resolved_at->setTimezone('Asia/Jakarta')->format('d F Y H:i') }} WIB</small>
                                     @endif
                                 </div>
-                                @if(!$revisions['aspak']->is_resolved && auth()->user() && auth()->user()->role->role_name == 'kemenkes')
+                                @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes')
                                     <button class="btn btn-sm mt-2 btn-danger revisi-btn"
                                                 data-toggle="modal" data-target="#revisiModal"
                                                 data-doc-type="aspak"
                                                 data-doc-name="Berita Acara ASPAK"
                                                 data-jenis-dokumen-id="7">
-                                            <i class="fas fa-edit"></i> Edit Catatan Revisi
+                                            <i class="fas fa-edit"></i> {{ $revisions['aspak']->is_resolved ? 'Revisi Ulang' : 'Edit Catatan Revisi' }}
                                     </button>
                                 @endif
                             </td>
