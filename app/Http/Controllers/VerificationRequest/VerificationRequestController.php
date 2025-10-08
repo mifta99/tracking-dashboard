@@ -98,10 +98,10 @@ class VerificationRequestController extends Controller
         $recordsTotal = (clone $query)->count();
 
         $searchValue = $request->input('search.value');
-        if ($searchValue && strlen(trim($searchValue)) >= 2) { 
+        if ($searchValue && strlen(trim($searchValue)) >= 2) {
             $searchValue = trim($searchValue);
             $like = '%' . $searchValue . '%';
-            
+
             $query->where(function ($searchQuery) use ($like) {
                 $searchQuery->where('name', 'like', $like)
                     ->orWhereHas('district', function ($districtQuery) use ($like) {
@@ -147,12 +147,12 @@ class VerificationRequestController extends Controller
             $document = $puskesmas->document;
             $ujiFungsi = $puskesmas->ujiFungsi;
             $tglPengiriman = $pengiriman && $pengiriman->tgl_pengiriman
-                ? $pengiriman->tgl_pengiriman->format('d-m-Y')
+                ? $pengiriman->tgl_pengiriman->translatedFormat('d M Y')
                 : null;
 
             // Collect documents that need verification
             $pendingDocs = [];
-            
+
             if ($document) {
                 if (!(bool)$document->is_verified_kalibrasi && $document->kalibrasi != null && $puskesmas->revisions->where('jenis_dokumen_id',1)->where('is_resolved',false)->sortByDesc('created_at')->first() == null) {
                     $pendingDocs[] = 'Kalibrasi';
@@ -167,7 +167,7 @@ class VerificationRequestController extends Controller
                     $pendingDocs[] = 'BASTO';
                 }
             }
-            
+
             if ($ujiFungsi) {
                 if (!(bool)$ujiFungsi->is_verified_instalasi && $ujiFungsi->doc_instalasi != null && $puskesmas->revisions->where('jenis_dokumen_id',3)->where('is_resolved',false)->sortByDesc('created_at')->first() == null) {
                     $pendingDocs[] = 'Instalasi';
@@ -196,12 +196,12 @@ class VerificationRequestController extends Controller
             if (!$item['has_pending_verification']) {
                 return false;
             }
-            
+
             // Apply status filter if specified
             if ($statusVerificationFilter) {
                 $filters = explode(',', $statusVerificationFilter);
                 $matchesFilter = false;
-                
+
                 foreach ($filters as $filter) {
                     $filter = trim($filter);
                     switch ($filter) {
@@ -237,10 +237,10 @@ class VerificationRequestController extends Controller
                             break;
                     }
                 }
-                
+
                 return $matchesFilter;
             }
-            
+
             return true;
         })->values();
 

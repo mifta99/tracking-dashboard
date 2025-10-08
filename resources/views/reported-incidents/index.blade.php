@@ -8,226 +8,72 @@
 @stop
 
 @section('content')
-    {{-- <div class="card">
-        <div class="card-header">
-            <h3 class="card-title">Reported Incidents List</h3>
-
+    <div class="card shadow-sm">
+        <div class="card-header py-2 pr-1 d-flex align-items-center" style="background:#6f42c1;">
+            <span class="section-title-bar text-white" style="font-size:.7rem;font-weight:600;letter-spacing:.5px;text-transform:uppercase;">Pelaporan Insiden</span>
         </div>
-        <div class="card-body">
-            <table class="table table-bordered table-striped" id="reported-incidents-table">
-                <thead class="thead-light">
-                    <tr>
-                        <th rowspan="3" class="align-middle text-center" style="width:40px">NO</th>
-                        <th rowspan="3" class="align-middle text-center" style="width:120px">TANGGAL KEJADIAN</th>
-                        <th rowspan="3" class="align-middle text-center" style="width:150px">NAMA</th>
-                        <th rowspan="3" class="align-middle text-center" style="width:120px">BAGIAN</th>
-                        <th rowspan="3" class="align-middle text-center" style="width:150px">KRONOLOGIS KEJADIAN</th>
-                        <th colspan="6" class="text-center">TINDAKAN KOREKSI</th>
-                        <th colspan="6" class="text-center">TINDAKAN KOREKTIF</th>
-                    </tr>
-                    <tr>
-                        <!-- Tindakan Koreksi columns -->
-                        <th rowspan="2" class="align-middle text-center" style="width:120px">RENCANA TINDAKAN KOREKSI
-                        </th>
-                        <th rowspan="2" class="align-middle text-center" style="width:100px">PELAKSANA TINDAKAN</th>
-                        <th rowspan="2" class="align-middle text-center" style="width:100px">TANGGAL SELESAI</th>
-                        <th colspan="3" class="text-center">VERIFIKASI</th>
-                        <!-- Tindakan Korektif columns -->
-                        <th rowspan="2" class="align-middle text-center" style="width:120px">RENCANA TINDAKAN KOREKTIF
-                        </th>
-                        <th rowspan="2" class="align-middle text-center" style="width:100px">PELAKSANA TINDAKAN</th>
-                        <th rowspan="2" class="align-middle text-center" style="width:100px">TANGGAL SELESAI</th>
-                        <th colspan="3" class="text-center">VERIFIKASI</th>
-                    </tr>
-                    <tr>
-                        <!-- Verifikasi sub-columns for Tindakan Koreksi -->
-                        <th class="text-center" style="width:80px">HASIL</th>
-                        <th class="text-center" style="width:100px">TANGGAL</th>
-                        <th class="text-center" style="width:100px">PELAKSANA</th>
-                        <!-- Verifikasi sub-columns for Tindakan Korektif -->
-                        <th class="text-center" style="width:80px">HASIL</th>
-                        <th class="text-center" style="width:100px">TANGGAL</th>
-                        <th class="text-center" style="width:100px">PELAKSANA</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td colspan="17" class="text-center text-muted py-4">
-                            <i class="fas fa-info-circle"></i> No incidents reported yet
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div> --}}
-    <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <span class="h5 mb-0">Start of Incident</span>
-            <button type="button" class="btn btn-sm btn-primary ml-auto" data-toggle="modal" data-target="#newIncidentModal">
-                <i class="fas fa-plus"></i> New Incident
-            </button>
-        </div>
-        <div class="card-body p-0">
-            <table class="table table-bordered table-striped mb-0" id="reported-incidents-table">
-                <thead>
-                    <tr>
-                        <th class="text-center" style="width:160px">Tanggal</th>
-                        <th class="text-center">Kategori Insiden</th>
-                        <th class="text-center" style="width:140px">Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @php
-                        $items = isset($reportedIncidents) ? $reportedIncidents : (isset($incidents) ? $incidents : collect());
-                    @endphp
-                    @forelse($items as $incident)
-                        @php
-                            $date = $incident->tanggal_kejadian ?? $incident->date ?? null;
-                            $category = $incident->kategori_insiden ?? $incident->category ?? '-';
-                            $status = $incident->status ?? 'unknown';
-                            $badgeClass = [
-                                'open' => 'danger',
-                                'in_progress' => 'warning',
-                                'closed' => 'success',
-                            ][$status] ?? 'secondary';
-                        @endphp
+        <div class="card-body p-3">
+            @if(auth()->user() && auth()->user()->role->role_name != 'puskesmas')
+            <!-- Filter Section -->
+            <div class="mb-3 p-3 border rounded" style="background:#f8f9fc;">
+                <div class="form-row">
+                    <div class="form-group col-md-2 mb-2">
+                        <label class="small font-weight-bold mb-1">Provinsi</label>
+                        <select id="filter-province" class="form-control form-control-sm">
+                            <option value="">Semua</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-md-2 mb-2">
+                        <label class="small font-weight-bold mb-1">Kabupaten</label>
+                        <select id="filter-regency" class="form-control form-control-sm" disabled>
+                            <option value="">Semua</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-md-2 mb-2">
+                        <label class="small font-weight-bold mb-1">Kecamatan</label>
+                        <select id="filter-district" class="form-control form-control-sm" disabled>
+                            <option value="">Semua</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-md-2 mb-2">
+                        <label class="small font-weight-bold mb-1">Status</label>
+                        <select id="filter-status" class="form-control form-control-sm">
+                            <option value="">Semua</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-md-2 mb-2">
+                        <label class="small font-weight-bold mb-1">Kategori Insiden</label>
+                        <select id="filter-kategori" class="form-control form-control-sm">
+                            <option value="">Semua</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-md-2 mb-2 d-flex align-items-end">
+                        <button id="btn-reset-filter" class="btn btn-secondary btn-sm btn-block"><i class="fas fa-undo mr-1"></i>Reset</button>
+                    </div>
+                </div>
+            </div>
+            @endif
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped table-sm" id="reported-incidents-table">
+                    <thead>
                         <tr>
-                            <td class="text-center">{{ $date ? \Illuminate\Support\Carbon::parse($date)->format('d-m-Y') : '-' }}</td>
-                            <td>{{ $category }}</td>
-                            <td class="text-center">
-                                <span class="badge badge-{{ $badgeClass }}">
-                                    {{ \Illuminate\Support\Str::of($status)->replace('_', ' ')->title() }}
-                                </span>
-                            </td>
+                            <th style="font-size: 11pt;">No.</th>
+                            <th style="font-size: 11pt;">Provinsi</th>
+                            <th style="font-size: 11pt;">Kabupaten</th>
+                            <th style="font-size: 11pt;">Kecamatan</th>
+                            <th style="font-size: 11pt;">Nama Puskesmas</th>
+                            <th style="font-size: 11pt;">Tanggal Kejadian</th>
+                            <th style="font-size: 11pt;">Insiden</th>
+                            <th style="font-size: 11pt;">Tahapan</th>
+                            <th style="font-size: 11pt;">Kategori Insiden</th>
+                            <th style="font-size: 11pt;">Status</th>
+                            <th class="text-center" style="font-size: 11pt;">Actions</th>
                         </tr>
-                    @empty
-                        <tr>
-                            <td colspan="3" class="text-center text-muted py-3">
-                                <i class="fas fa-info-circle"></i> No incidents reported yet
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- New Incident Modal -->
-    <div class="modal fade" id="newIncidentModal" tabindex="-1" role="dialog" aria-labelledby="newIncidentModalLabel" data-backdrop="static" data-keyboard="false">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header bg-primary text-white">
-                    <h4 class="modal-title" id="newIncidentModalLabel">
-                        <i class="fas fa-plus-circle"></i> Lapor Insiden Baru
-                    </h4>
-                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <form id="newIncidentForm" method="POST" action="{{ route('reported-incidents.store') }}" enctype="multipart/form-data">
-                        @csrf
-                        
-                        <div class="row">
-                            <!-- Basic Information -->
-                            <div class="col-md-12">
-                                <h5 class="text-primary mb-3">
-                                    <i class="fas fa-info-circle"></i> Informasi Dasar
-                                </h5>
-                            </div>
-
-                            <!-- Tanggal Kejadian -->
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="tgl_kejadian"><i class="fas fa-calendar"></i> Tanggal Kejadian *</label>
-                                    <input type="date" class="form-control" id="tgl_kejadian" name="tgl_kejadian" required>
-                                </div>
-                            </div>
-
-                            <!-- Kategori Insiden -->
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="kategori_id"><i class="fas fa-tags"></i> Kategori Insiden *</label>
-                                    <select class="form-control" id="kategori_id" name="kategori_id" required>
-                                        <option value="">Pilih Kategori Insiden</option>
-                                        <!-- Options will be populated via AJAX or server-side -->
-                                    </select>
-                                </div>
-                            </div>
-
-                            <!-- Nama Korban -->
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="nama_korban"><i class="fas fa-user"></i> Nama Korban *</label>
-                                    <input type="text" class="form-control" id="nama_korban" name="nama_korban" required>
-                                </div>
-                            </div>
-
-                            <!-- Bagian/Unit -->
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="bagian"><i class="fas fa-building"></i> Bagian/Unit *</label>
-                                    <input type="text" class="form-control" id="bagian" name="bagian" required>
-                                </div>
-                            </div>
-
-                            <!-- Tahapan -->
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="tahapan_id"><i class="fas fa-step-forward"></i> Tahapan</label>
-                                    <select class="form-control" id="tahapan_id" name="tahapan_id">
-                                        <option value="">Pilih Tahapan</option>
-                                        <!-- Options will be populated via AJAX or server-side -->
-                                    </select>
-                                </div>
-                            </div>
-
-                            <!-- Status -->
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="status_id"><i class="fas fa-flag"></i> Status</label>
-                                    <select class="form-control" id="status_id" name="status_id">
-                                        <option value="">Pilih Status</option>
-                                        <!-- Options will be populated via AJAX or server-side -->
-                                    </select>
-                                </div>
-                            </div>
-
-                            <!-- Judul Insiden -->
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label for="insiden"><i class="fas fa-exclamation-triangle"></i> Judul Insiden *</label>
-                                    <input type="text" class="form-control" id="insiden" name="insiden" required>
-                                </div>
-                            </div>
-
-                            <!-- Kronologis -->
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label for="kronologis"><i class="fas fa-list-ol"></i> Kronologis Kejadian *</label>
-                                    <textarea class="form-control" id="kronologis" name="kronologis" rows="4" required placeholder="Deskripsikan kronologis kejadian secara detail..."></textarea>
-                                </div>
-                            </div>
-
-                            <!-- Dokumentasi -->
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label for="dokumentasi"><i class="fas fa-paperclip"></i> Dokumentasi (Optional)</label>
-                                    <input type="file" class="form-control-file" id="dokumentasi" name="dokumentasi[]" multiple accept="image/*,application/pdf">
-                                    <small class="form-text text-muted">Upload foto atau dokumen pendukung (JPG, PNG, PDF)</small>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                        <i class="fas fa-times"></i> Batal
-                    </button>
-                    <button type="submit" form="newIncidentForm" class="btn btn-primary">
-                        <i class="fas fa-save"></i> Simpan Insiden
-                    </button>
-                </div>
+                    </thead>
+                    <tbody style="font-size: 10pt;">
+                        <!-- Data will be populated here via AJAX -->
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -235,134 +81,317 @@
 
 @section('css')
     <link rel="stylesheet" href="/css/admin_custom.css">
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css">
+    <!-- Toastr CSS for toast notifications -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    <style>
+        .section-title-bar{font-size:.7rem;font-weight:600;letter-spacing:.5px;text-transform:uppercase;}
+        #reported-incidents-table {
+            font-size: 0.85rem;
+        }
+
+        #reported-incidents-table thead th {
+            background-color: #f8f9fa;
+            border-color: #dee2e6;
+            font-weight: 600;
+        }
+
+        #reported-incidents-table tbody td {
+            vertical-align: middle;
+            border-color: #dee2e6;
+        }
+
+        .btn-action {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+        }
+    </style>
 @stop
 
 @section('js')
+    <!-- Toastr JS for toast notifications -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <!-- SweetAlert2 JS -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
+
     <script>
+        // Configure toastr options
+        toastr.options = {
+            "closeButton": true,
+            "debug": false,
+            "newestOnTop": true,
+            "progressBar": true,
+            "positionClass": "toast-top-right",
+            "preventDuplicates": false,
+            "onclick": null,
+            "showDuration": "300",
+            "hideDuration": "1000",
+            "timeOut": "5000",
+            "extendedTimeOut": "1000",
+            "showEasing": "swing",
+            "hideEasing": "linear",
+            "showMethod": "fadeIn",
+            "hideMethod": "fadeOut"
+        };
+
         $(document).ready(function() {
-            // Load dropdown data when modal is opened
-            $('#newIncidentModal').on('show.bs.modal', function () {
-                loadDropdownData();
+            // Initialize DataTable
+            const table = $('#reported-incidents-table').DataTable({
+                processing: true,
+                serverSide: false,
+                responsive: true,
+                pageLength: 10,
+                lengthMenu: [[5, 10, 25, 50], [5, 10, 25, 50]],
+                order: [[5, 'desc']], // Sort by date descending
+                language: {
+                    processing: "Memuat data...",
+                    search: "Cari:",
+                    lengthMenu: "Tampilkan _MENU_ data per halaman",
+                    info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+                    infoEmpty: "Menampilkan 0 sampai 0 dari 0 data",
+                    infoFiltered: "(difilter dari _MAX_ total data)",
+                    paginate: {
+                        first: "Pertama",
+                        last: "Terakhir",
+                        next: "Selanjutnya",
+                        previous: "Sebelumnya"
+                    },
+                    emptyTable: "Tidak ada data insiden yang tersedia",
+                    zeroRecords: "Tidak ada data yang cocok"
+                },
+                columns: [
+                    { data: null, orderable: false, searchable: false, width: '5%' },
+                    { data: 'province_name', name: 'province_name', width: '10%' },
+                    { data: 'regency_name', name: 'regency_name', width: '10%' },
+                    { data: 'district_name', name: 'district_name', width: '10%' },
+                    { data: 'puskesmas_name', name: 'puskesmas_name', width: '15%' },
+                    { data: 'tgl_kejadian', name: 'tgl_kejadian', width: '10%' },
+                    { data: 'insiden', name: 'insiden', width: '20%' },
+                    { data: 'tahapan', name: 'tahapan', width: '10%' },
+                    { data: 'kategori_insiden', name: 'kategori_insiden', width: '12%' },
+                    { data: 'status', name: 'status', width: '8%' },
+                    { data: 'actions', name: 'actions', orderable: false, searchable: false, width: '6%' }
+                ],
+                columnDefs: [
+                    {
+                        targets: 0,
+                        render: function (data, type, row, meta) {
+                            return meta.row + meta.settings._iDisplayStart + 1;
+                        }
+                    },
+                    {
+                        targets: 6, // Insiden column
+                        render: function (data, type, row) {
+                            if (data && data.length > 80) {
+                                return `<div style="max-width:250px; white-space:normal;">${data.substring(0, 80)}...</div>`;
+                            }
+                            return `<div style="max-width:250px; white-space:normal;">${data || '-'}</div>`;
+                        }
+                    },
+                    {
+                        targets: 8, // Kategori Insiden column
+                        render: function (data, type, row) {
+                            let badgeClass = 'badge-secondary';
+                            const kategoriLower = (data || '').toLowerCase();
+
+                            switch (kategoriLower) {
+                                case 'rendah':
+                                    badgeClass = 'badge-info';
+                                    break;
+                                case 'sedang':
+                                    badgeClass = 'badge-warning';
+                                    break;
+                                case 'tinggi':
+                                case 'kritis':
+                                    badgeClass = 'badge-danger';
+                                    break;
+                            }
+
+                            return `<span class="badge ${badgeClass}">${data || '-'}</span>`;
+                        }
+                    },
+                    {
+                        targets: 9, // Status column
+                        render: function (data, type, row) {
+                            let badgeClass = 'badge-secondary';
+                            const statusLower = (data || '').toLowerCase();
+
+                            switch (statusLower) {
+                                case 'open':
+                                case 'buka':
+                                    badgeClass = 'badge-danger';
+                                    break;
+                                case 'in_progress':
+                                case 'proses':
+                                    badgeClass = 'badge-warning';
+                                    break;
+                                case 'closed':
+                                case 'selesai':
+                                    badgeClass = 'badge-success';
+                                    break;
+                            }
+
+                            return `<span class="badge ${badgeClass}">${data || '-'}</span>`;
+                        }
+                    },
+                    {
+                        targets: 10, // Actions
+                        render: function (data, type, row) {
+                            const detailUrl = '{{ route("insiden.detail", ":id") }}'.replace(':id', row.id);
+                            return `<div class="d-flex justify-content-center align-items-center">
+                                        <a href="${detailUrl}" class="text-secondary" title="Lihat Detail">
+                                            <i class="fas fa-search"></i>
+                                        </a>
+                                    </div>`;
+                        }
+                    }
+                ],
+                ajax: {
+                    url: '{{ route('insiden.fetch-data') }}',
+                    type: 'GET',
+                    dataSrc: function(json) {
+                        if (json.success) {
+                            return json.data;
+                        } else {
+                            console.error('Error loading insiden data:', json.message);
+                            return [];
+                        }
+                    },
+                    error: function(xhr, error, code) {
+                        console.error('AJAX Error:', error);
+                        toastr.error('Gagal memuat data insiden');
+                    }
+                }
             });
 
-            // Load dropdown data
-            function loadDropdownData() {
-                // Load Kategori Insiden
-                $.ajax({
-                    url: '{{ route("api.kategori-insiden") }}',
-                    method: 'GET',
-                    success: function(data) {
-                        let options = '<option value="">Pilih Kategori Insiden</option>';
-                        data.forEach(function(item) {
-                            options += `<option value="${item.id}">${item.name}</option>`;
-                        });
-                        $('#kategori_id').html(options);
-                    },
-                    error: function() {
-                        console.log('Failed to load kategori insiden');
+            // Province -> Regency -> District cascading using existing API endpoints
+            const provincesUrl = '{{ route('api-puskesmas.provinces') }}';
+            const regenciesUrl = '{{ route('api-puskesmas.regencies') }}';
+            const districtsUrl = '{{ route('api-puskesmas.districts') }}';
+
+            function loadProvinces(){
+                $.get(provincesUrl).done(r=>{
+                    if(r.success){
+                        const $p = $('#filter-province');
+                        r.data.forEach(p=> $p.append(`<option value="${p.name}" data-id="${p.id}">${p.name}</option>`));
                     }
                 });
-
-                // Load Tahapan
-                $.ajax({
-                    url: '{{ route("api.tahapan") }}',
-                    method: 'GET',
-                    success: function(data) {
-                        let options = '<option value="">Pilih Tahapan</option>';
-                        data.forEach(function(item) {
-                            options += `<option value="${item.id}">${item.tahapan}</option>`;
-                        });
-                        $('#tahapan_id').html(options);
-                    },
-                    error: function() {
-                        console.log('Failed to load tahapan');
+            }
+            function loadRegencies(provinceId){
+                $('#filter-regency').prop('disabled', true).html('<option value="">Semua</option>');
+                $('#filter-district').prop('disabled', true).html('<option value="">Semua</option>');
+                if(!provinceId) return;
+                $.get(regenciesUrl,{ province_id: provinceId }).done(r=>{
+                    if(r.success){
+                        const $r = $('#filter-regency');
+                        r.data.forEach(it=> $r.append(`<option value="${it.name}" data-id="${it.id}">${it.name}</option>`));
+                        $r.prop('disabled', false);
                     }
                 });
+            }
+            function loadDistricts(regencyId){
+                $('#filter-district').prop('disabled', true).html('<option value="">Semua</option>');
+                if(!regencyId) return;
+                $.get(districtsUrl,{ regency_id: regencyId }).done(r=>{
+                    if(r.success){
+                        const $d = $('#filter-district');
+                        r.data.forEach(it=> $d.append(`<option value="${it.name}" data-id="${it.id}">${it.name}</option>`));
+                        $d.prop('disabled', false);
+                    }
+                });
+            }
 
-                // Load Status Insiden
+            // Load master data for kategori and status filters
+            function loadMasterData(){
+                // Load status options
                 $.ajax({
                     url: '{{ route("api.status-insiden") }}',
                     method: 'GET',
                     success: function(data) {
-                        let options = '<option value="">Pilih Status</option>';
+                        const $status = $('#filter-status');
                         data.forEach(function(item) {
-                            options += `<option value="${item.id}">${item.name}</option>`;
+                            $status.append(`<option value="${item.status}">${item.status}</option>`);
                         });
-                        $('#status_id').html(options);
                     },
                     error: function() {
                         console.log('Failed to load status insiden');
                     }
                 });
+
+                // Load kategori options
+                $.ajax({
+                    url: '{{ route("api.kategori-insiden") }}',
+                    method: 'GET',
+                    success: function(data) {
+                        const $kategori = $('#filter-kategori');
+                        data.forEach(function(item) {
+                            $kategori.append(`<option value="${item.name}">${item.name}</option>`);
+                        });
+                    },
+                    error: function() {
+                        console.log('Failed to load kategori insiden');
+                    }
+                });
             }
 
-            // Handle form submission
-            $('#newIncidentForm').on('submit', function(e) {
+            // Initialize filters
+            loadProvinces();
+            loadMasterData();
+
+            // Filter handlers
+            $('#filter-province').on('change', function(){
+                const selected = $(this).find(':selected').data('id');
+                loadRegencies(selected);
+                table.draw();
+            });
+            $('#filter-regency').on('change', function(){
+                const selected = $(this).find(':selected').data('id');
+                loadDistricts(selected);
+                table.draw();
+            });
+            $('#filter-district, #filter-status, #filter-kategori').on('change keyup', function(){
+                table.draw();
+            });
+            $('#btn-reset-filter').on('click', function(e){
                 e.preventDefault();
-                
-                let formData = new FormData(this);
-                
-                // Show loading state
-                Swal.fire({
-                    title: 'Menyimpan...',
-                    text: 'Sedang memproses laporan insiden',
-                    allowOutsideClick: false,
-                    showConfirmButton: false,
-                    willOpen: () => {
-                        Swal.showLoading();
-                    }
-                });
-                
-                $.ajax({
-                    url: $(this).attr('action'),
-                    method: 'POST',
-                    data: formData,
-                    processData: false,
-                    contentType: false,
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    },
-                    success: function(response) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Berhasil!',
-                            text: response.message || 'Insiden berhasil dilaporkan',
-                            timer: 2000,
-                            showConfirmButton: false
-                        }).then(() => {
-                            $('#newIncidentModal').modal('hide');
-                            $('#newIncidentForm')[0].reset();
-                            // Reload page or update table
-                            window.location.reload();
-                        });
-                    },
-                    error: function(xhr) {
-                        let errorMessage = 'Terjadi kesalahan saat menyimpan insiden';
-                        
-                        if (xhr.status === 422) {
-                            // Validation errors
-                            let errors = xhr.responseJSON.errors;
-                            let errorText = '';
-                            Object.keys(errors).forEach(function(key) {
-                                errorText += errors[key][0] + '\n';
-                            });
-                            errorMessage = errorText;
-                        } else if (xhr.responseJSON && xhr.responseJSON.message) {
-                            errorMessage = xhr.responseJSON.message;
-                        }
-                        
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Gagal',
-                            text: errorMessage
-                        });
-                    }
-                });
+                $('#filter-province').val('');
+                $('#filter-regency').html('<option value="">Semua</option>').prop('disabled', true);
+                $('#filter-district').html('<option value="">Semua</option>').prop('disabled', true);
+                $('#filter-status').val('');
+                $('#filter-kategori').val('');
+                table.draw();
             });
 
-            // Set default date to today
-            $('#tgl_kejadian').val(new Date().toISOString().split('T')[0]);
+            // Custom filtering plug-in
+            $.fn.dataTable.ext.search.push(function(settings, data, dataIndex){
+                if(settings.nTable.id !== 'reported-incidents-table') return true;
+                const province = $('#filter-province').val();
+                const regency = $('#filter-regency').val();
+                const district = $('#filter-district').val();
+                const status = $('#filter-status').val();
+                const kategori = $('#filter-kategori').val();
+
+                // Data columns mapping
+                const rowProvince = data[1];
+                const rowRegency = data[2];
+                const rowDistrict = data[3];
+                const rowStatus = data[9]; // Status column
+                const rowKategori = data[8]; // Kategori column
+
+                if(province && rowProvince !== province) return false;
+                if(regency && rowRegency !== regency) return false;
+                if(district && rowDistrict !== district) return false;
+                if(status && rowStatus.toLowerCase() !== status.toLowerCase()) return false;
+                if(kategori && rowKategori.toLowerCase() !== kategori.toLowerCase()) return false;
+                return true;
+            });
+
+
+
         });
     </script>
 @stop

@@ -63,7 +63,7 @@ class DaftarRevisiController extends Controller
                 'nama_puskesmas' => $puskesmas->name,
                 'document_types' => $documentTypes->toArray(),
                 'revision_count' => $revisionGroup->count(),
-                'latest_created_at' => $firstRevision->created_at->format('d-m-Y'),
+                'latest_created_at' => $firstRevision->created_at->translatedFormat('d M Y'),
                 'created_at_raw' => $firstRevision->created_at,
                 'sort_date' => $firstRevision->created_at->timestamp // For sorting purposes
             ];

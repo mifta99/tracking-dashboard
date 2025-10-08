@@ -20,10 +20,18 @@ class KeluhanController extends Controller
             if ($request->has('puskesmas_id') && $request->puskesmas_id) {
                 $query->where('puskesmas_id', $request->puskesmas_id);
             } else {
-                // For index page: automatically exclude 'selesai' status
-                $query->whereHas('statusKeluhan', function($q) {
-                    $q->where('status', '!=', 'selesai');
-                });
+                // Handle status filtering based on request parameter
+                if ($request->has('show_completed') && $request->show_completed == 'true') {
+                    // Show only completed complaints
+                    $query->whereHas('statusKeluhan', function($q) {
+                        $q->where('status', 'selesai');
+                    });
+                } else {
+                    // For index page: automatically exclude 'selesai' status (default behavior)
+                    $query->whereHas('statusKeluhan', function($q) {
+                        $q->where('status', '!=', 'selesai');
+                    });
+                }
             }
 
             // For puskesmas users, only show their own keluhan
@@ -42,13 +50,13 @@ class KeluhanController extends Controller
 
                 return [
                     'id' => $item->id,
-                    'tanggal_dilaporkan' => $item->reported_date ? $item->reported_date->format('d-m-Y') : '-',
+                    'tanggal_dilaporkan' => $item->reported_date ? $item->reported_date->translatedFormat('d M Y') : '-',
                     'tanggal_dilaporkan_raw' => $item->reported_date,
                     'keluhan' => $item->reported_subject ?? '-',
                     'detail_keluhan' => $item->reported_issue ?? '-',
                     'kategori_keluhan' => $item->kategoriKeluhan->kategori ?? '-',
                     'jumlah_downtime' => $item->total_downtime ? $item->total_downtime . ' hari' : '-',
-                    'tanggal_selesai' => $item->resolved_date ? $item->resolved_date->format('d-m-Y') : '-',
+                    'tanggal_selesai' => $item->resolved_date ? $item->resolved_date->translatedFormat('d M Y') : '-',
                     'tanggal_selesai_raw' => $item->resolved_date,
                     'status' => $item->statusKeluhan->status ?? '-',
                     'status_id' => $item->status_id,
@@ -97,6 +105,64 @@ class KeluhanController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Error fetching master data: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get total complaint count for menu badge
+     * Similar to DaftarRevisiController::getTotalRevisionCount()
+     */
+    public static function getTotalComplaintCount()
+    {
+        try {
+            // Count complaints that are not resolved (status != 'selesai')
+            return Keluhan::whereHas('statusKeluhan', function($query) {
+                $query->where('status', '!=', 'selesai');
+            })->count();
+        } catch (\Exception $e) {
+            return 0;
+        }
+    }
+
+    /**
+     * Get complaint counts by status for dashboard cards
+     */
+    public function getStatusCounts()
+    {
+        try {
+            $counts = [
+                'baru' => 0,
+                'proses' => 0,
+                'selesai' => 0,
+                'total' => 0
+            ];
+
+            // Get counts by status
+            $statusCounts = Keluhan::with('statusKeluhan')
+                ->get()
+                ->groupBy(function($keluhan) {
+                    return strtolower($keluhan->statusKeluhan->status ?? 'unknown');
+                })
+                ->map(function($group) {
+                    return $group->count();
+                });
+
+            $counts['baru'] = $statusCounts->get('baru', 0);
+            $counts['proses'] = $statusCounts->get('proses', 0);
+            $counts['selesai'] = $statusCounts->get('selesai', 0);
+            $counts['total'] = $counts['baru'] + $counts['proses'] + $counts['selesai'];
+
+            return response()->json([
+                'success' => true,
+                'data' => $counts
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching status counts: ' . $e->getMessage(),
+                'data' => ['baru' => 0, 'proses' => 0, 'selesai' => 0, 'total' => 0]
             ], 500);
         }
     }

@@ -262,37 +262,46 @@
                         $verificationStatus = 'none'; // none, verified, revision, pending
                         $hasRevision = false;
                         $isVerified = false;
+                        $hasResolvedRevision = false;
 
                         switch($t->tahap_ke) {
                             case 3: // Penerimaan -> is_verified_bast (documents table)
                                 $isVerified = $doc && $doc->is_verified_bast;
                                 $hasRevision = isset($revisions['bast']) && !$revisions['bast']->is_resolved;
+                                $hasResolvedRevision = isset($revisions['bast']) && $revisions['bast']->is_resolved && !$isVerified;
                                 break;
                             case 4: // Instalasi -> is_verified_instalasi (uji_fungsi table)
                                 $isVerified = $uji && $uji->is_verified_instalasi;
                                 $hasRevision = isset($revisions['instalasi']) && !$revisions['instalasi']->is_resolved;
+                                $hasResolvedRevision = isset($revisions['instalasi']) && $revisions['instalasi']->is_resolved && !$isVerified;
                                 break;
                             case 5: // Uji Fungsi -> is_verified_uji_fungsi (uji_fungsi table)
                                 $isVerified = $uji && $uji->is_verified_uji_fungsi;
                                 $hasRevision = isset($revisions['uji_fungsi']) && !$revisions['uji_fungsi']->is_resolved;
+                                $hasResolvedRevision = isset($revisions['uji_fungsi']) && $revisions['uji_fungsi']->is_resolved && !$isVerified;
                                 break;
                             case 6: // Pelatihan Alat -> is_verified_pelatihan (uji_fungsi table)
                                 $isVerified = $uji && $uji->is_verified_pelatihan;
                                 $hasRevision = isset($revisions['pelatihan']) && !$revisions['pelatihan']->is_resolved;
+                                $hasResolvedRevision = isset($revisions['pelatihan']) && $revisions['pelatihan']->is_resolved && !$isVerified;
                                 break;
                             case 7: // BASTO -> is_verified_basto (documents table)
                                 $isVerified = $doc && $doc->is_verified_basto;
                                 $hasRevision = isset($revisions['basto']) && !$revisions['basto']->is_resolved;
+                                $hasResolvedRevision = isset($revisions['basto']) && $revisions['basto']->is_resolved && !$isVerified;
                                 break;
                             case 8: // ASPAK -> is_verified_aspak (documents table)
                                 $isVerified = $doc && $doc->is_verified_aspak;
                                 $hasRevision = isset($revisions['aspak']) && !$revisions['aspak']->is_resolved;
+                                $hasResolvedRevision = isset($revisions['aspak']) && $revisions['aspak']->is_resolved && !$isVerified;
                                 break;
                         }
 
                         // Determine verification status - only for steps that are active or completed
                         if ($hasRevision) {
                             $verificationStatus = 'revision';
+                        } elseif ($hasResolvedRevision) {
+                            $verificationStatus = 'pending';
                         } elseif ($isVerified) {
                             $verificationStatus = 'verified';
                         } elseif ($t->tahap_ke >= 3 && $t->tahap_ke <= 8) {
@@ -311,7 +320,8 @@
                                      ($t->tahap_ke == 7 ? 'fas fa-clipboard-check' : 'fas fa-check-circle')))))),
                             'verification_status' => $verificationStatus,
                             'is_verified' => $isVerified,
-                            'has_revision' => $hasRevision
+                            'has_revision' => $hasRevision,
+                            'has_resolved_revision' => $hasResolvedRevision
                         ];
                     }
                 }
@@ -550,12 +560,12 @@
                 </div>
                 <div class="card-body p-3">
                     <table class="table table-sm table-borderless table-kv mb-0">
-                        <tr><td>Tanggal Pengiriman</td><td>{{ optional($peng->tgl_pengiriman)->format('d F Y') ?? '-' }}</td></tr>
-                        <tr><td>ETA</td><td>{{ optional($peng->eta)->format('d F Y') ?? '-' }}</td></tr>
+                        <tr><td>Tanggal Pengiriman</td><td>{{ optional($peng->tgl_pengiriman)->translatedFormat('d F Y') ?? '-' }}</td></tr>
+                        <tr><td>ETA</td><td>{{ optional($peng->eta)->translatedFormat('d F Y') ?? '-' }}</td></tr>
                         <tr><td>RESI</td><td>{{ $peng->resi ?? '-' }}</td></tr>
                         <tr><td>Link Tracking</td><td>@if($peng && $peng->tracking_link)<a class="text-decoration-none" target="_blank" href="{{ $peng->tracking_link }}">View Here</a>@else - @endif</td></tr>
                         <tr><td>Serial Number</td><td>{{ $puskesmas->equipment->serial_number ?? '-' }}</td></tr>
-                        <tr><td>Tanggal Diterima</td><td>{{ optional($peng->tgl_diterima)->format('d F Y') ?? '-' }}</td></tr>
+                        <tr><td>Tanggal Diterima</td><td>{{ optional($peng->tgl_diterima)->translatedFormat('d F Y') ?? '-' }}</td></tr>
                         <tr><td>Nama Penerima</td><td>{{ $peng->nama_penerima ?? '-' }}</td></tr>
                         <tr><td>Jabatan Penerima</td><td>{{ $peng->jabatan_penerima ?? '-' }}</td></tr>
                         <tr><td>Instansi Penerima</td><td>{{ $peng->instansi_penerima ?? '-' }}</td></tr>
@@ -581,12 +591,13 @@
             <div class="row  border-bottom pb-2 mb-3">
                 <div class="col-md-6">
                     <table class="table table-sm table-borderless table-kv mb-0">
-                        <tr><td>Tanggal Instalasi</td><td>{{ optional($uji->tgl_instalasi)->format('d F Y') ?? '-' }}</td></tr>
+                        <tr><td>Tanggal Instalasi</td><td>{{ optional($uji->tgl_instalasi)->translatedFormat('d F Y') ?? '-' }}</td></tr>
                         <tr><td>Berita Acara Instalasi</td><td>@if($uji && $uji->doc_instalasi)<a class="text-decoration-none" target="_blank" href="{{ asset('storage/' . $uji->doc_instalasi) }}">View Here</a>@else - @endif</td></tr>
                     </table>
                 </div>
                 <div class="col-md-6">
                     <table class="table table-sm table-borderless table-kv mb-0">
+                        @if($uji && $uji->doc_instalasi)
                         <tr>
                             <td>Verifikasi Berita Acara Instalasi</td>
                             <td>
@@ -605,30 +616,31 @@
                                 </form>
                             </td>
                         </tr>
-                        <tr {{ $uji->verified_at_instalasi ? '' : 'hidden' }}><td>Tanggal Verifikasi Instalasi</td><td>{{ $uji->verified_at_instalasi ? $uji->verified_at_instalasi->setTimezone('Asia/Jakarta')->format('d F Y H:i') . ' WIB' : '-' }}</td></tr>
+                        @endif
+                        <tr {{ $uji->verified_at_instalasi ? '' : 'hidden' }}><td>Tanggal Verifikasi Instalasi</td><td>{{ $uji->verified_at_instalasi ? $uji->verified_at_instalasi->setTimezone('Asia/Jakarta')->translatedFormat('d F Y H:i') . ' WIB' : '-' }}</td></tr>
                         <tr {{ $uji->is_verified_instalasi ? 'hidden' : '' }}>
                             @if($revisions['instalasi'])
                             <td>{{ $revisions['instalasi']->is_resolved ? 'Revisi Terselesaikan' : 'Catatan Revisi' }}</td>
                             <td>
                                 <div class="{{ $revisions['instalasi']->is_resolved ? 'text-success' : 'text-danger' }}">
                                     {!! nl2br(e($revisions['instalasi']->catatan)) !!}<br>
-                                    <small class="text-muted">Direvisi pada {{ $revisions['instalasi']->created_at->setTimezone('Asia/Jakarta')->format('d F Y H:i') }} WIB</small>
+                                    <small class="text-muted">Direvisi pada {{ $revisions['instalasi']->created_at->setTimezone('Asia/Jakarta')->translatedFormat('d F Y H:i') }} WIB</small>
                                     @if($revisions['instalasi']->resolved_at)
-                                        <br><small class="text-muted">Dokumen revisi telah diunggah ulang pada {{ $revisions['instalasi']->resolved_at->setTimezone('Asia/Jakarta')->format('d F Y H:i') }} WIB</small>
+                                        <br><small class="text-muted">Dokumen revisi telah diunggah ulang pada {{ $revisions['instalasi']->resolved_at->setTimezone('Asia/Jakarta')->translatedFormat('d F Y H:i') }} WIB</small>
                                     @endif
                                 </div>
-                                @if(!$revisions['instalasi']->is_resolved && auth()->user() && auth()->user()->role->role_name == 'kemenkes')
+                                @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes')
                                     <button class="btn btn-sm mt-2 btn-danger revisi-btn"
                                                 data-toggle="modal" data-target="#revisiModal"
                                                 data-doc-type="doc_instalasi"
                                                 data-doc-name="Berita Acara Instalasi"
                                                 data-jenis-dokumen-id="3">
-                                            <i class="fas fa-edit"></i> Edit Catatan Revisi
+                                            <i class="fas fa-edit"></i> {{ $revisions['instalasi']->is_resolved ? 'Revisi Ulang' : 'Edit Catatan Revisi' }}
                                     </button>
                                 @endif
                             </td>
                             @else
-                                @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes')
+                                @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes' && $uji && $uji->doc_instalasi)
                                 <td>Revisi Berita Acara Instalasi</td>
                                 <td>
                                     <button class="btn btn-sm ml-auto btn-danger revisi-btn"
@@ -648,13 +660,14 @@
             <div class="row  border-bottom pb-2 mb-3">
                 <div class="col-md-6">
                     <table class="table table-sm table-borderless table-kv mb-0">
-                        <tr><td>Target Tanggal Uji Fungsi</td><td>{{ optional($uji->target_tgl_uji_fungsi)->format('d F Y') ?? '-' }}</td></tr>
-                        <tr><td>Tanggal Uji Fungsi</td><td>{{ optional($uji->tgl_uji_fungsi)->format('d F Y') ?? '-' }}</td></tr>
+                        <tr><td>Target Tanggal Uji Fungsi</td><td>{{ optional($uji->target_tgl_uji_fungsi)->translatedFormat('d F Y') ?? '-' }}</td></tr>
+                        <tr><td>Tanggal Uji Fungsi</td><td>{{ optional($uji->tgl_uji_fungsi)->translatedFormat('d F Y') ?? '-' }}</td></tr>
                         <tr><td>Berita Acara Uji Fungsi</td><td>@if($uji && $uji->doc_uji_fungsi)<a class="text-decoration-none" target="_blank" href="{{ asset('storage/' . $uji->doc_uji_fungsi) }}">View Here</a>@else - @endif</td></tr>
                     </table>
                 </div>
                 <div class="col-md-6">
                     <table class="table table-sm table-borderless table-kv mb-0">
+                        @if($uji && $uji->doc_uji_fungsi)
                         <tr>
                             <td>Verifikasi Berita Acara Uji Fungsi</td>
                             <td>
@@ -673,30 +686,31 @@
                                 </form>
                             </td>
                         </tr>
-                        <tr {{ $uji->verified_at_uji_fungsi ? '' : 'hidden' }}><td>Tanggal Verifikasi Uji Fungsi</td><td>{{ $uji->verified_at_uji_fungsi ? $uji->verified_at_uji_fungsi->setTimezone('Asia/Jakarta')->format('d F Y H:i') . ' WIB' : '-' }}</td></tr>
+                        @endif
+                        <tr {{ $uji->verified_at_uji_fungsi ? '' : 'hidden' }}><td>Tanggal Verifikasi Uji Fungsi</td><td>{{ $uji->verified_at_uji_fungsi ? $uji->verified_at_uji_fungsi->setTimezone('Asia/Jakarta')->translatedFormat('d F Y H:i') . ' WIB' : '-' }}</td></tr>
                         <tr {{ $uji->is_verified_uji_fungsi ? 'hidden' : '' }}>
                             @if($revisions['uji_fungsi'])
                             <td>{{ $revisions['uji_fungsi']->is_resolved ? 'Revisi Terselesaikan' : 'Catatan Revisi' }}</td>
                             <td>
                                 <div class="{{ $revisions['uji_fungsi']->is_resolved ? 'text-success' : 'text-danger' }}">
                                     {!! nl2br(e($revisions['uji_fungsi']->catatan)) !!}<br>
-                                    <small class="text-muted">Direvisi pada {{ $revisions['uji_fungsi']->created_at->setTimezone('Asia/Jakarta')->format('d F Y H:i') }} WIB</small>
+                                    <small class="text-muted">Direvisi pada {{ $revisions['uji_fungsi']->created_at->setTimezone('Asia/Jakarta')->translatedFormat('d F Y H:i') }} WIB</small>
                                     @if($revisions['uji_fungsi']->resolved_at)
-                                        <br><small class="text-muted">Dokumen revisi telah diunggah ulang pada {{ $revisions['uji_fungsi']->resolved_at->setTimezone('Asia/Jakarta')->format('d F Y H:i') }} WIB</small>
+                                        <br><small class="text-muted">Dokumen revisi telah diunggah ulang pada {{ $revisions['uji_fungsi']->resolved_at->setTimezone('Asia/Jakarta')->translatedFormat('d F Y H:i') }} WIB</small>
                                     @endif
                                 </div>
-                                @if(!$revisions['uji_fungsi']->is_resolved && auth()->user() && auth()->user()->role->role_name == 'kemenkes')
+                                @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes')
                                     <button class="btn btn-sm mt-2 btn-danger revisi-btn"
                                                 data-toggle="modal" data-target="#revisiModal"
                                                 data-doc-type="doc_uji_fungsi"
                                                 data-doc-name="Berita Acara Uji Fungsi"
                                                 data-jenis-dokumen-id="4">
-                                            <i class="fas fa-edit"></i> Edit Catatan Revisi
+                                            <i class="fas fa-edit"></i> {{ $revisions['uji_fungsi']->is_resolved ? 'Revisi Ulang' : 'Edit Catatan Revisi' }}
                                     </button>
                                 @endif
                             </td>
                             @else
-                                @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes')
+                                @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes' && $uji && $uji->doc_uji_fungsi)
                                 <td>Revisi Berita Acara Uji Fungsi</td>
                                 <td>
                                     <button class="btn btn-sm ml-auto btn-danger revisi-btn"
@@ -716,13 +730,14 @@
             <div class="row">
                 <div class="col-md-6">
                     <table class="table table-sm table-borderless table-kv mb-0">
-                        <tr><td>Tanggal Pelatihan Alat</td><td>{{ optional($uji->tgl_pelatihan)->format('d F Y') ?? '-' }}</td></tr>
+                        <tr><td>Tanggal Pelatihan Alat</td><td>{{ optional($uji->tgl_pelatihan)->translatedFormat('d F Y') ?? '-' }}</td></tr>
                         <tr><td>Berita Acara Pelatihan Alat</td><td>@if($uji && $uji->doc_pelatihan)<a class="text-decoration-none" target="_blank" href="{{ asset('storage/' . $uji->doc_pelatihan) }}">View Here</a>@else - @endif</td></tr>
                         <tr><td>Catatan</td><td>{{ $uji->catatan ?? '-' }}</td></tr>
                     </table>
                 </div>
                 <div class="col-md-6">
                     <table class="table table-sm table-borderless table-kv mb-0">
+                        @if($uji && $uji->doc_pelatihan)
                         <tr>
                             <td>Verifikasi Berita Acara Pelatihan Alat</td>
                             <td>
@@ -741,30 +756,31 @@
                                 </form>
                             </td>
                         </tr>
-                        <tr {{ $uji->verified_at_pelatihan ? '' : 'hidden' }}><td>Tanggal Verifikasi Pelatihan Alat</td><td>{{ $uji->verified_at_pelatihan ? $uji->verified_at_pelatihan->setTimezone('Asia/Jakarta')->format('d F Y H:i') . ' WIB' : '-' }}</td></tr>
+                        @endif
+                        <tr {{ $uji->verified_at_pelatihan ? '' : 'hidden' }}><td>Tanggal Verifikasi Pelatihan Alat</td><td>{{ $uji->verified_at_pelatihan ? $uji->verified_at_pelatihan->setTimezone('Asia/Jakarta')->translatedFormat('d F Y H:i') . ' WIB' : '-' }}</td></tr>
                         <tr {{ $uji->is_verified_pelatihan ? 'hidden' : '' }}>
                             @if($revisions['pelatihan'])
                             <td>{{ $revisions['pelatihan']->is_resolved ? 'Revisi Terselesaikan' : 'Catatan Revisi' }}</td>
                             <td>
                                 <div class="{{ $revisions['pelatihan']->is_resolved ? 'text-success' : 'text-danger' }}">
                                     {!! nl2br(e($revisions['pelatihan']->catatan)) !!}<br>
-                                    <small class="text-muted">Direvisi pada {{ $revisions['pelatihan']->created_at->setTimezone('Asia/Jakarta')->format('d F Y H:i') }} WIB</small>
+                                    <small class="text-muted">Direvisi pada {{ $revisions['pelatihan']->created_at->setTimezone('Asia/Jakarta')->translatedFormat('d F Y H:i') }} WIB</small>
                                     @if($revisions['pelatihan']->resolved_at)
-                                        <br><small class="text-muted">Dokumen revisi telah diunggah ulang pada {{ $revisions['pelatihan']->resolved_at->setTimezone('Asia/Jakarta')->format('d F Y H:i') }} WIB</small>
+                                        <br><small class="text-muted">Dokumen revisi telah diunggah ulang pada {{ $revisions['pelatihan']->resolved_at->setTimezone('Asia/Jakarta')->translatedFormat('d F Y H:i') }} WIB</small>
                                     @endif
                                 </div>
-                                @if(!$revisions['pelatihan']->is_resolved && auth()->user() && auth()->user()->role->role_name == 'kemenkes')
+                                @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes')
                                     <button class="btn btn-sm mt-2 btn-danger revisi-btn"
                                                 data-toggle="modal" data-target="#revisiModal"
                                                 data-doc-type="doc_pelatihan"
                                                 data-doc-name="Berita Acara Pelatihan Alat"
                                                 data-jenis-dokumen-id="5">
-                                            <i class="fas fa-edit"></i> Edit Catatan Revisi
+                                            <i class="fas fa-edit"></i> {{ $revisions['pelatihan']->is_resolved ? 'Revisi Ulang' : 'Edit Catatan Revisi' }}
                                     </button>
                                 @endif
                             </td>
                             @else
-                                @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes')
+                                @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes' && $uji && $uji->doc_pelatihan)
                                 <td>Revisi Berita Acara Pelatihan Alat</td>
                                 <td>
                                     <button class="btn btn-sm ml-auto btn-danger revisi-btn"
@@ -801,6 +817,7 @@
                 </div>
                 <div class="col-md-6">
                     <table class="table table-sm table-borderless table-kv mb-0">
+                        @if($doc && $doc->kalibrasi)
                         <tr>
                             <td>Verifikasi Berita Acara Kalibrasi</td>
                             <td>
@@ -819,30 +836,31 @@
                                 </form>
                             </td>
                         </tr>
-                        <tr {{ ($doc && $doc->verified_at_kalibrasi) ? '' : 'hidden' }}><td>Tanggal Verifikasi Kalibrasi</td><td>{{ ($doc && $doc->verified_at_kalibrasi) ? $doc->verified_at_kalibrasi->setTimezone('Asia/Jakarta')->format('d F Y H:i') . ' WIB' : '-' }}</td></tr>
+                        @endif
+                        <tr {{ ($doc && $doc->verified_at_kalibrasi) ? '' : 'hidden' }}><td>Tanggal Verifikasi Kalibrasi</td><td>{{ ($doc && $doc->verified_at_kalibrasi) ? $doc->verified_at_kalibrasi->setTimezone('Asia/Jakarta')->translatedFormat('d F Y H:i') . ' WIB' : '-' }}</td></tr>
                         <tr {{ ($doc && $doc->is_verified_kalibrasi) ? 'hidden' : '' }}>
                             @if($revisions['kalibrasi'])
                             <td>{{ $revisions['kalibrasi']->is_resolved ? 'Revisi Terselesaikan' : 'Catatan Revisi' }}</td>
                             <td>
                                 <div class="{{ $revisions['kalibrasi']->is_resolved ? 'text-success' : 'text-danger' }}">
                                     {!! nl2br(e($revisions['kalibrasi']->catatan)) !!}<br>
-                                    <small class="text-muted">Direvisi pada {{ $revisions['kalibrasi']->created_at->setTimezone('Asia/Jakarta')->format('d F Y H:i') }} WIB</small>
+                                    <small class="text-muted">Direvisi pada {{ $revisions['kalibrasi']->created_at->setTimezone('Asia/Jakarta')->translatedFormat('d F Y H:i') }} WIB</small>
                                     @if($revisions['kalibrasi']->resolved_at)
-                                        <br><small class="text-muted">Dokumen revisi telah diunggah ulang pada {{ $revisions['kalibrasi']->resolved_at->setTimezone('Asia/Jakarta')->format('d F Y H:i') }} WIB</small>
+                                        <br><small class="text-muted">Dokumen revisi telah diunggah ulang pada {{ $revisions['kalibrasi']->resolved_at->setTimezone('Asia/Jakarta')->translatedFormat('d F Y H:i') }} WIB</small>
                                     @endif
                                 </div>
-                                @if(!$revisions['kalibrasi']->is_resolved && auth()->user() && auth()->user()->role->role_name == 'kemenkes')
+                                @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes')
                                     <button class="btn btn-sm mt-2 btn-danger revisi-btn"
                                                 data-toggle="modal" data-target="#revisiModal"
                                                 data-doc-type="kalibrasi"
                                                 data-doc-name="Berita Acara Kalibrasi"
                                                 data-jenis-dokumen-id="1">
-                                            <i class="fas fa-edit"></i> Edit Catatan Revisi
+                                            <i class="fas fa-edit"></i> {{ $revisions['kalibrasi']->is_resolved ? 'Revisi Ulang' : 'Edit Catatan Revisi' }}
                                     </button>
                                 @endif
                             </td>
                             @else
-                                @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes')
+                                @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes' && $doc && $doc->kalibrasi)
                                 <td>Revisi Berita Acara Kalibrasi</td>
                                 <td>
                                     <button class="btn btn-sm ml-auto btn-danger revisi-btn"
@@ -867,6 +885,7 @@
                 </div>
                 <div class="col-md-6">
                     <table class="table table-sm table-borderless table-kv mb-0">
+                        @if($doc && $doc->bast)
                         <tr>
                             <td>Verifikasi Berita Acara BAST</td>
                             <td>
@@ -885,30 +904,31 @@
                                 </form>
                             </td>
                         </tr>
-                        <tr {{ ($doc && $doc->verified_at_bast) ? '' : 'hidden' }}><td>Tanggal Verifikasi BAST</td><td>{{ ($doc && $doc->verified_at_bast) ? $doc->verified_at_bast->setTimezone('Asia/Jakarta')->format('d F Y H:i') . ' WIB' : '-' }}</td></tr>
+                        @endif
+                        <tr {{ ($doc && $doc->verified_at_bast) ? '' : 'hidden' }}><td>Tanggal Verifikasi BAST</td><td>{{ ($doc && $doc->verified_at_bast) ? $doc->verified_at_bast->setTimezone('Asia/Jakarta')->translatedFormat('d F Y H:i') . ' WIB' : '-' }}</td></tr>
                         <tr {{ ($doc && $doc->is_verified_bast) ? 'hidden' : '' }}>
                             @if($revisions['bast'])
                             <td>{{ $revisions['bast']->is_resolved ? 'Revisi Terselesaikan' : 'Catatan Revisi' }}</td>
                             <td>
                                 <div class="{{ $revisions['bast']->is_resolved ? 'text-success' : 'text-danger' }}">
                                     {!! nl2br(e($revisions['bast']->catatan)) !!}<br>
-                                    <small class="text-muted">Direvisi pada {{ $revisions['bast']->created_at->setTimezone('Asia/Jakarta')->format('d F Y H:i') }} WIB</small>
+                                    <small class="text-muted">Direvisi pada {{ $revisions['bast']->created_at->setTimezone('Asia/Jakarta')->translatedFormat('d F Y H:i') }} WIB</small>
                                     @if($revisions['bast']->resolved_at)
-                                        <br><small class="text-muted">Dokumen revisi telah diunggah ulang pada {{ $revisions['bast']->resolved_at->setTimezone('Asia/Jakarta')->format('d F Y H:i') }} WIB</small>
+                                        <br><small class="text-muted">Dokumen revisi telah diunggah ulang pada {{ $revisions['bast']->resolved_at->setTimezone('Asia/Jakarta')->translatedFormat('d F Y H:i') }} WIB</small>
                                     @endif
                                 </div>
-                                @if(!$revisions['bast']->is_resolved && auth()->user() && auth()->user()->role->role_name == 'kemenkes')
+                                @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes')
                                     <button class="btn btn-sm mt-2 btn-danger revisi-btn"
                                                 data-toggle="modal" data-target="#revisiModal"
                                                 data-doc-type="bast"
                                                 data-doc-name="Berita Acara BAST"
                                                 data-jenis-dokumen-id="2">
-                                            <i class="fas fa-edit"></i> Edit Catatan Revisi
+                                            <i class="fas fa-edit"></i> {{ $revisions['bast']->is_resolved ? 'Revisi Ulang' : 'Edit Catatan Revisi' }}
                                     </button>
                                 @endif
                             </td>
                             @else
-                                @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes')
+                                @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes' && $doc && $doc->bast)
                                 <td>Revisi Berita Acara BAST</td>
                                 <td>
                                     <button class="btn btn-sm ml-auto btn-danger revisi-btn"
@@ -933,6 +953,7 @@
                 </div>
                 <div class="col-md-6">
                     <table class="table table-sm table-borderless table-kv mb-0">
+                        @if($doc && $doc->basto)
                         <tr>
                             <td>Verifikasi Berita Acara BASTO</td>
                             <td>
@@ -951,30 +972,31 @@
                                 </form>
                             </td>
                         </tr>
-                        <tr {{ ($doc && $doc->verified_at_basto) ? '' : 'hidden' }}><td>Tanggal Verifikasi BASTO</td><td>{{ ($doc && $doc->verified_at_basto) ? $doc->verified_at_basto->setTimezone('Asia/Jakarta')->format('d F Y H:i') . ' WIB' : '-' }}</td></tr>
+                        @endif
+                        <tr {{ ($doc && $doc->verified_at_basto) ? '' : 'hidden' }}><td>Tanggal Verifikasi BASTO</td><td>{{ ($doc && $doc->verified_at_basto) ? $doc->verified_at_basto->setTimezone('Asia/Jakarta')->translatedFormat('d F Y H:i') . ' WIB' : '-' }}</td></tr>
                         <tr {{ ($doc && $doc->is_verified_basto) ? 'hidden' : '' }}>
                             @if($revisions['basto'])
                             <td>{{ $revisions['basto']->is_resolved ? 'Revisi Terselesaikan' : 'Catatan Revisi' }}</td>
                             <td>
                                 <div class="{{ $revisions['basto']->is_resolved ? 'text-success' : 'text-danger' }}">
                                     {!! nl2br(e($revisions['basto']->catatan)) !!}<br>
-                                    <small class="text-muted">Direvisi pada {{ $revisions['basto']->created_at->setTimezone('Asia/Jakarta')->format('d F Y H:i') }} WIB</small>
+                                    <small class="text-muted">Direvisi pada {{ $revisions['basto']->created_at->setTimezone('Asia/Jakarta')->translatedFormat('d F Y H:i') }} WIB</small>
                                     @if($revisions['basto']->resolved_at)
-                                        <br><small class="text-muted">Dokumen revisi telah diunggah ulang pada {{ $revisions['basto']->resolved_at->setTimezone('Asia/Jakarta')->format('d F Y H:i') }} WIB</small>
+                                        <br><small class="text-muted">Dokumen revisi telah diunggah ulang pada {{ $revisions['basto']->resolved_at->setTimezone('Asia/Jakarta')->translatedFormat('d F Y H:i') }} WIB</small>
                                     @endif
                                 </div>
-                                @if(!$revisions['basto']->is_resolved && auth()->user() && auth()->user()->role->role_name == 'kemenkes')
+                                @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes')
                                     <button class="btn btn-sm mt-2 btn-danger revisi-btn"
                                                 data-toggle="modal" data-target="#revisiModal"
                                                 data-doc-type="basto"
                                                 data-doc-name="Berita Acara BASTO"
                                                 data-jenis-dokumen-id="6">
-                                            <i class="fas fa-edit"></i> Edit Catatan Revisi
+                                            <i class="fas fa-edit"></i> {{ $revisions['basto']->is_resolved ? 'Revisi Ulang' : 'Edit Catatan Revisi' }}
                                     </button>
                                 @endif
                             </td>
                             @else
-                                @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes')
+                                @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes' && $doc && $doc->basto)
                                 <td>Revisi Berita Acara BASTO</td>
                                 <td>
                                     <button class="btn btn-sm ml-auto btn-danger revisi-btn"
@@ -999,6 +1021,7 @@
                 </div>
                 <div class="col-md-6">
                     <table class="table table-sm table-borderless table-kv mb-0">
+                        @if($doc && $doc->aspak)
                         <tr>
                             <td>Verifikasi Berita Acara ASPAK</td>
                             <td>
@@ -1017,30 +1040,31 @@
                                 </form>
                             </td>
                         </tr>
-                        <tr {{ ($doc && $doc->verified_at_aspak) ? '' : 'hidden' }}><td>Tanggal Verifikasi ASPAK</td><td>{{ ($doc && $doc->verified_at_aspak) ? $doc->verified_at_aspak->setTimezone('Asia/Jakarta')->format('d F Y H:i') . ' WIB' : '-' }}</td></tr>
+                        @endif
+                        <tr {{ ($doc && $doc->verified_at_aspak) ? '' : 'hidden' }}><td>Tanggal Verifikasi ASPAK</td><td>{{ ($doc && $doc->verified_at_aspak) ? $doc->verified_at_aspak->setTimezone('Asia/Jakarta')->translatedFormat('d F Y H:i') . ' WIB' : '-' }}</td></tr>
                         <tr {{ ($doc && $doc->is_verified_aspak) ? 'hidden' : '' }}>
                             @if($revisions['aspak'])
                             <td>{{ $revisions['aspak']->is_resolved ? 'Revisi Terselesaikan' : 'Catatan Revisi' }}</td>
                             <td>
                                 <div class="{{ $revisions['aspak']->is_resolved ? 'text-success' : 'text-danger' }}">
                                     {!! nl2br(e($revisions['aspak']->catatan)) !!}<br>
-                                    <small class="text-muted">Direvisi pada {{ $revisions['aspak']->created_at->setTimezone('Asia/Jakarta')->format('d F Y H:i') }} WIB</small>
+                                    <small class="text-muted">Direvisi pada {{ $revisions['aspak']->created_at->setTimezone('Asia/Jakarta')->translatedFormat('d F Y H:i') }} WIB</small>
                                     @if($revisions['aspak']->resolved_at)
-                                        <br><small class="text-muted">Dokumen revisi telah diunggah ulang pada {{ $revisions['aspak']->resolved_at->setTimezone('Asia/Jakarta')->format('d F Y H:i') }} WIB</small>
+                                        <br><small class="text-muted">Dokumen revisi telah diunggah ulang pada {{ $revisions['aspak']->resolved_at->setTimezone('Asia/Jakarta')->translatedFormat('d F Y H:i') }} WIB</small>
                                     @endif
                                 </div>
-                                @if(!$revisions['aspak']->is_resolved && auth()->user() && auth()->user()->role->role_name == 'kemenkes')
+                                @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes')
                                     <button class="btn btn-sm mt-2 btn-danger revisi-btn"
                                                 data-toggle="modal" data-target="#revisiModal"
                                                 data-doc-type="aspak"
                                                 data-doc-name="Berita Acara ASPAK"
                                                 data-jenis-dokumen-id="7">
-                                            <i class="fas fa-edit"></i> Edit Catatan Revisi
+                                            <i class="fas fa-edit"></i> {{ $revisions['aspak']->is_resolved ? 'Revisi Ulang' : 'Edit Catatan Revisi' }}
                                     </button>
                                 @endif
                             </td>
                             @else
-                                @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes')
+                                @if(auth()->user() && auth()->user()->role->role_name == 'kemenkes' && $doc && $doc->aspak)
                                 <td>Revisi Berita Acara ASPAK</td>
                                 <td>
                                     <button class="btn btn-sm ml-auto btn-danger revisi-btn"
@@ -1229,56 +1253,164 @@
 
     <!-- Incident Management -->
     <div class="card shadow-sm mb-4">
-        <div class="card-header py-2 pr-1 d-flex align-items-center" style="background:#e226d2;">
+        <div class="card-header py-2 pr-1 d-flex align-items-center" style="background:#6f42c1;">
             <span class="section-title-bar text-white">Pelaporan Insiden</span>
+            @if(auth()->user() && auth()->user()->role->role_name == 'endo')
+            <button class="btn btn-sm ml-auto text-white" style="background:#6f42c1;" data-toggle="modal" data-target="#addIncidentModal"><i class="fas fa-plus"></i> Laporkan Insiden Baru</button>
+            @endif
         </div>
         <div class="card-body p-3">
             <div class="table-responsive">
-                <table class="table table-sm table-striped table-bordered mb-0">
-                    <thead class="thead-light">
+                <table class="table table-bordered table-striped table-sm" id="insidenTable">
+                    <thead>
                         <tr>
-                            <th rowspan="3" class="align-middle text-center" style="width:40px">NO</th>
-                            <th rowspan="3" class="align-middle text-center" style="width:120px">TANGGAL KEJADIAN</th>
-                            <th rowspan="3" class="align-middle text-center" style="width:150px">NAMA</th>
-                            <th rowspan="3" class="align-middle text-center" style="width:120px">BAGIAN</th>
-                            <th rowspan="3" class="align-middle text-center" style="width:150px">KRONOLOGIS KEJADIAN</th>
-                            <th colspan="6" class="text-center">TINDAKAN KOREKSI</th>
-                            <th colspan="6" class="text-center">TINDAKAN KOREKTIF</th>
-                        </tr>
-                        <tr>
-                            <!-- Tindakan Koreksi columns -->
-                            <th rowspan="2" class="align-middle text-center" style="width:120px">RENCANA TINDAKAN KOREKSI</th>
-                            <th rowspan="2" class="align-middle text-center" style="width:100px">PELAKSANA TINDAKAN</th>
-                            <th rowspan="2" class="align-middle text-center" style="width:100px">TANGGAL SELESAI</th>
-                            <th colspan="3" class="text-center">VERIFIKASI</th>
-                            <!-- Tindakan Korektif columns -->
-                            <th rowspan="2" class="align-middle text-center" style="width:120px">RENCANA TINDAKAN KOREKTIF</th>
-                            <th rowspan="2" class="align-middle text-center" style="width:100px">PELAKSANA TINDAKAN</th>
-                            <th rowspan="2" class="align-middle text-center" style="width:100px">TANGGAL SELESAI</th>
-                            <th colspan="3" class="text-center">VERIFIKASI</th>
-                        </tr>
-                        <tr>
-                            <!-- Verifikasi sub-columns for Tindakan Koreksi -->
-                            <th class="text-center" style="width:80px">HASIL</th>
-                            <th class="text-center" style="width:100px">TANGGAL</th>
-                            <th class="text-center" style="width:100px">PELAKSANA</th>
-                            <!-- Verifikasi sub-columns for Tindakan Korektif -->
-                            <th class="text-center" style="width:80px">HASIL</th>
-                            <th class="text-center" style="width:100px">TANGGAL</th>
-                            <th class="text-center" style="width:100px">PELAKSANA</th>
+                            <th style="font-size: 11pt;">No.</th>
+                            <th style="font-size: 11pt;">Tanggal Kejadian</th>
+                            <th style="font-size: 11pt;">Insiden</th>
+                            <th style="font-size: 11pt;">Tahapan</th>
+                            <th style="font-size: 11pt;">Kategori Insiden</th>
+                            <th style="font-size: 11pt;">Status</th>
+                            <th class="text-center" style="font-size: 11pt;">Actions</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr>
-                            <td colspan="17" class="text-center text-muted py-4">
-                                <i class="fas fa-info-circle"></i> No incidents reported yet
-                            </td>
-                        </tr>
+                    <tbody style="font-size: 10pt;">
+                        <!-- Data will be populated here via AJAX -->
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
+
+    <!-- Modal Tambah Insiden -->
+    @if(auth()->user() && auth()->user()->role->role_name == 'endo')
+    <div class="modal fade" id="addIncidentModal" tabindex="-1" role="dialog" aria-labelledby="addIncidentModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header text-white" style="background:#6f42c1;">
+                    <h5 class="modal-title" id="addIncidentModalLabel">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                        Tambah Insiden Baru
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form id="addIncidentForm" method="POST" action="{{ route('insiden.store', $puskesmas->id) }}" enctype="multipart/form-data">
+                    <div class="modal-body">
+                        @csrf
+
+                        <div class="alert alert-info mb-4">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            <strong>Petunjuk:</strong> Lengkapi form di bawah untuk melaporkan insiden terkait alat kesehatan T-Piece.
+                        </div>
+
+                        <div class="row">
+                            <!-- Tanggal Kejadian -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="tgl_kejadian" class="required">Tanggal Kejadian <span class="text-danger">*</span></label>
+                                    <input type="date" class="form-control" id="tgl_kejadian" name="tgl_kejadian" required>
+                                </div>
+                            </div>
+
+                            <!-- Kategori Insiden -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="kategori_id" class="required">Kategori Insiden <span class="text-danger">*</span></label>
+                                    <select class="form-control" id="kategori_id" name="kategori_id" required>
+                                        <option value="">Pilih Kategori Insiden</option>
+                                        <!-- Options will be populated via AJAX -->
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Nama Korban -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="nama_korban" class="required">Nama Korban <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="nama_korban" name="nama_korban" required>
+                                </div>
+                            </div>
+
+                            <!-- Bagian -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="bagian" class="required">Bagian/Unit <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="bagian" name="bagian" required>
+                                </div>
+                            </div>
+
+                            <!-- Tahapan -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="tahapan_id">Tahapan</label>
+                                    <select class="form-control" id="tahapan_id" name="tahapan_id">
+                                        <option value="">Pilih Tahapan</option>
+                                        <!-- Options will be populated via AJAX -->
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Judul Insiden -->
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="insiden" class="required">Judul Insiden <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="insiden" name="insiden" placeholder="Masukkan judul / ringkasan insiden" maxlength="255" required>
+                                    <small class="form-text text-muted">Maksimal 255 karakter</small>
+                                </div>
+                            </div>
+
+                            <!-- Kronologis -->
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="kronologis" class="required">Kronologis Kejadian <span class="text-danger">*</span></label>
+                                    <textarea class="form-control" id="kronologis" name="kronologis" rows="4" required placeholder="Deskripsikan kronologis kejadian secara detail..." maxlength="1000"></textarea>
+                                    <div class="d-flex justify-content-between">
+                                        <small class="form-text text-muted">Maksimal 1000 karakter</small>
+                                        <small class="text-muted"><span id="kronologis-char-count">0</span>/1000</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Dokumentasi -->
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label><i class="fas fa-paperclip"></i> Bukti Dokumentasi</label>
+
+                                    <!-- File input for multiple selection -->
+                                    <input type="file" id="incident-file-input-multiple" class="form-control-file mb-2"
+                                           accept="image/jpeg,image/jpg,image/png" multiple>
+                                    <small class="form-text text-muted">
+                                        Maksimal 5 file, masing-masing 5MB (JPG, PNG)
+                                    </small>
+
+                                    <!-- Selected files list with previews -->
+                                    <div id="incident-selected-files-container" style="display: none;">
+                                        <h6 class="mb-2">File Terpilih:</h6>
+                                        <div id="incident-selected-files-list" class="row">
+                                            <!-- Files will be displayed here with previews -->
+                                        </div>
+                                    </div>
+
+                                    <!-- Hidden inputs to store file data for form submission -->
+                                    <div id="incident-hidden-file-inputs"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                            <i class="fas fa-times"></i> Batal
+                        </button>
+                        <button type="submit" class="btn text-white" style="background:#6f42c1;">
+                            <i class="fas fa-save"></i> Simpan Insiden
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    @endif
 
     <!-- Modal Delivery Information -->
     @if(auth()->user() && auth()->user()->role->role_name == 'endo')
@@ -1296,11 +1428,11 @@
                         <div class="form-row">
                             <div class="form-group col-md-3">
                                 <label class="small mb-1">Tanggal Pengiriman</label>
-                                <input type="date" class="form-control form-control-sm" name="tgl_pengiriman" value="{{ optional($peng->tgl_pengiriman)->format('Y-m-d') }}">
+                                <input type="date" class="form-control form-control-sm" name="tgl_pengiriman" value="{{ optional($peng->tgl_pengiriman)->translatedFormat('Y-m-d') }}">
                             </div>
                             <div class="form-group col-md-2">
                                 <label class="small mb-1">ETA</label>
-                                <input type="date" class="form-control form-control-sm" name="eta" value="{{ optional($peng->eta)->format('Y-m-d') }}">
+                                <input type="date" class="form-control form-control-sm" name="eta" value="{{ optional($peng->eta)->translatedFormat('Y-m-d') }}">
                             </div>
                             <div class="form-group col-md-3">
                                 <label class="small mb-1">RESI</label>
@@ -1320,7 +1452,7 @@
                         <div class="form-row">
                             <div class="form-group col-md-3">
                                 <label class="small mb-1">Tanggal Diterima</label>
-                                <input type="date" class="form-control form-control-sm" name="tgl_diterima" value="{{ optional($peng->tgl_diterima)->format('Y-m-d') }}">
+                                <input type="date" class="form-control form-control-sm" name="tgl_diterima" value="{{ optional($peng->tgl_diterima)->translatedFormat('Y-m-d') }}">
                             </div>
                             <div class="form-group col-md-3">
                                 <label class="small mb-1">Nama Penerima</label>
@@ -1379,19 +1511,19 @@
                         <div class="form-row">
                             <div class="form-group col-md-3">
                                 <label class="small mb-1">Tanggal Instalasi</label>
-                                <input type="date" name="tgl_instalasi" class="form-control form-control-sm" value="{{ optional($uji->tgl_instalasi)->format('Y-m-d') }}">
+                                <input type="date" name="tgl_instalasi" class="form-control form-control-sm" value="{{ optional($uji->tgl_instalasi)->translatedFormat('Y-m-d') }}">
                             </div>
                             <div class="form-group col-md-3">
                                 <label class="small mb-1">Target Tanggal Uji Fungsi</label>
-                                <input type="date" name="target_tgl_uji_fungsi" class="form-control form-control-sm" value="{{ optional($uji->target_tgl_uji_fungsi)->format('Y-m-d') }}">
+                                <input type="date" name="target_tgl_uji_fungsi" class="form-control form-control-sm" value="{{ optional($uji->target_tgl_uji_fungsi)->translatedFormat('Y-m-d') }}">
                             </div>
                             <div class="form-group col-md-3">
                                 <label class="small mb-1">Tanggal Uji Fungsi</label>
-                                <input type="date" name="tgl_uji_fungsi" class="form-control form-control-sm" value="{{ optional($uji->tgl_uji_fungsi)->format('Y-m-d') }}">
+                                <input type="date" name="tgl_uji_fungsi" class="form-control form-control-sm" value="{{ optional($uji->tgl_uji_fungsi)->translatedFormat('Y-m-d') }}">
                             </div>
                             <div class="form-group col-md-3">
                                 <label class="small mb-1">Tanggal Pelatihan Alat</label>
-                                <input type="date" name="tgl_pelatihan" class="form-control form-control-sm" value="{{ optional($uji->tgl_pelatihan)->format('Y-m-d') }}">
+                                <input type="date" name="tgl_pelatihan" class="form-control form-control-sm" value="{{ optional($uji->tgl_pelatihan)->translatedFormat('Y-m-d') }}">
                             </div>
                         </div>
                         <div class="mb-2 mt-3 pb-1 border-bottom"><strong class="text-muted small">Dokumen</strong></div>
@@ -2659,6 +2791,114 @@ $(document).ready(function() {
             }
         });
     }
+
+    // Initialize Insiden DataTable
+    if ($('#insidenTable').length > 0) {
+        $('#insidenTable').DataTable({
+            processing: true,
+            serverSide: false,
+            responsive: true,
+            pageLength: 10,
+            lengthMenu: [[5, 10, 25, 50], [5, 10, 25, 50]],
+            order: [[1, 'desc']], // Sort by date descending
+            language: {
+                processing: "Memuat data...",
+                search: "Cari:",
+                lengthMenu: "Tampilkan _MENU_ data per halaman",
+                info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+                infoEmpty: "Menampilkan 0 sampai 0 dari 0 data",
+                infoFiltered: "(difilter dari _MAX_ total data)",
+                paginate: {
+                    first: "Pertama",
+                    last: "Terakhir",
+                    next: "Selanjutnya",
+                    previous: "Sebelumnya"
+                },
+                emptyTable: "Tidak ada data insiden yang tersedia",
+                zeroRecords: "Tidak ada data yang cocok"
+            },
+            columns: [
+                { data: null, orderable: false, searchable: false, width: '5%' },
+                { data: 'tgl_kejadian', name: 'tgl_kejadian', width: '12%' },
+                { data: 'insiden', name: 'insiden', width: '25%' },
+                { data: 'tahapan', name: 'tahapan', width: '15%' },
+                { data: 'kategori_insiden', name: 'kategori_insiden', width: '15%' },
+                { data: 'status', name: 'status', width: '12%' },
+                { data: 'actions', name: 'actions', orderable: false, searchable: false, width: '8%' }
+            ],
+            columnDefs: [
+                {
+                    targets: 0,
+                    render: function (data, type, row, meta) {
+                        return meta.row + meta.settings._iDisplayStart + 1;
+                    }
+                },
+                {
+                    targets: 2, // Insiden column
+                    render: function (data, type, row) {
+                        if (data && data.length > 80) {
+                            return `<div style="max-width:250px; white-space:normal;">${data.substring(0, 80)}...</div>`;
+                        }
+                        return `<div style="max-width:250px; white-space:normal;">${data || '-'}</div>`;
+                    }
+                },
+                {
+                    targets: 5, // Status column
+                    render: function (data, type, row) {
+                        let badgeClass = 'badge-secondary';
+                        const statusLower = (data || '').toLowerCase();
+
+                        switch (statusLower) {
+                            case 'open':
+                            case 'buka':
+                                badgeClass = 'badge-danger';
+                                break;
+                            case 'in_progress':
+                            case 'proses':
+                                badgeClass = 'badge-warning';
+                                break;
+                            case 'closed':
+                            case 'selesai':
+                                badgeClass = 'badge-success';
+                                break;
+                        }
+
+                        return `<span class="badge ${badgeClass}">${data || '-'}</span>`;
+                    }
+                },
+                {
+                    targets: 6, // Actions
+                    render: function (data, type, row) {
+                        const detailUrl = '{{ route("insiden.detail", ":id") }}'.replace(':id', row.id);
+                        return `<div class="d-flex justify-content-center align-items-center">
+                                    <a href="${detailUrl}" class="text-secondary" title="Lihat Detail">
+                                        <i class="fas fa-search"></i>
+                                    </a>
+                                </div>`;
+                    }
+                }
+            ],
+            ajax: {
+                url: '{{ route('insiden.fetch-data') }}',
+                type: 'GET',
+                data: {
+                    puskesmas_id: '{{ $puskesmas->id }}'
+                },
+                dataSrc: function(json) {
+                    if (json.success) {
+                        return json.data;
+                    } else {
+                        console.error('Error loading insiden data:', json.message);
+                        return [];
+                    }
+                },
+                error: function(xhr, error, code) {
+                    console.error('AJAX Error:', error);
+                    toastr.error('Gagal memuat data insiden');
+                }
+            }
+        });
+    }
 });
 
 
@@ -2956,5 +3196,274 @@ function resetKeluhanForm() {
     $('#documentation-preview').hide();
     $('#preview-container').empty();
 }
+
+// Incident Form Management
+$(document).ready(function() {
+    // Load dropdown data when modal is opened
+    $('#addIncidentModal').on('show.bs.modal', function () {
+        loadIncidentDropdownData();
+    });
+
+    // Character counter for kronologis
+    $('#kronologis').on('input', function() {
+        const current = $(this).val().length;
+        $('#kronologis-char-count').text(current);
+
+        if (current > 1000) {
+            $('#kronologis-char-count').addClass('text-danger');
+        } else {
+            $('#kronologis-char-count').removeClass('text-danger');
+        }
+    });
+
+    // Load dropdown data for incident form
+    function loadIncidentDropdownData() {
+        // Load Kategori Insiden
+        $.ajax({
+            url: '{{ route("api.kategori-insiden") }}',
+            method: 'GET',
+            success: function(data) {
+                let options = '<option value="">Pilih Kategori Insiden</option>';
+                data.forEach(function(item) {
+                    options += `<option value="${item.id}">${item.name}</option>`;
+                });
+                $('#kategori_id').html(options);
+            },
+            error: function() {
+                console.log('Failed to load kategori insiden');
+                toastr.warning('Gagal memuat kategori insiden');
+            }
+        });
+
+        // Load Tahapan
+        $.ajax({
+            url: '{{ route("api.tahapan") }}',
+            method: 'GET',
+            success: function(data) {
+                let options = '<option value="">Pilih Tahapan</option>';
+                data.forEach(function(item) {
+                    options += `<option value="${item.id}">${item.tahapan}</option>`;
+                });
+                $('#tahapan_id').html(options);
+            },
+            error: function() {
+                console.log('Failed to load tahapan');
+                toastr.warning('Gagal memuat data tahapan');
+            }
+        });
+    }
+
+    // Global variables for incident file management
+    let selectedIncidentFiles = [];
+
+    // File input change handler for incidents
+    $('#incident-file-input-multiple').on('change', function() {
+        const files = Array.from(this.files);
+
+        files.forEach(file => {
+            // Check if file already exists
+            if (selectedIncidentFiles.some(f => f.name === file.name && f.size === file.size)) {
+                toastr.warning(`File ${file.name} sudah dipilih`);
+                return;
+            }
+
+            // Check file size (5MB limit)
+            if (file.size > 5 * 1024 * 1024) {
+                toastr.warning(`File ${file.name} terlalu besar (maksimal 5MB)`);
+                return;
+            }
+
+            // Check file count (max 5 files)
+            if (selectedIncidentFiles.length >= 5) {
+                toastr.warning('Maksimal 5 file dapat dipilih');
+                return;
+            }
+
+            selectedIncidentFiles.push(file);
+        });
+
+        // Update display
+        updateIncidentFileDisplay();
+
+        // Clear the input so user can select the same file again if needed
+        $(this).val('');
+    });
+
+    // Function to update incident file display with image previews
+    function updateIncidentFileDisplay() {
+        const $container = $('#incident-selected-files-list');
+        $container.empty();
+
+        if (selectedIncidentFiles.length === 0) {
+            $('#incident-selected-files-container').hide();
+            return;
+        }
+
+        $('#incident-selected-files-container').show();
+
+        selectedIncidentFiles.forEach((file, index) => {
+            const $fileItem = $(`
+                <div class="col-md-3 mb-2">
+                    <div class="card">
+                        <div class="card-body p-2">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <small class="text-muted">${file.name}</small>
+                                <button type="button" class="btn btn-sm btn-danger remove-incident-file-btn" data-index="${index}">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <div class="incident-file-preview" data-index="${index}">
+                                ${createIncidentImagePreview(file, index)}
+                            </div>
+                            <small class="text-muted">${formatFileSize(file.size)}</small>
+                        </div>
+                    </div>
+                </div>
+            `);
+            $container.append($fileItem);
+        });
+
+        // Update hidden inputs for form submission
+        updateIncidentHiddenInputs();
+    }
+
+    // Function to create incident image preview
+    function createIncidentImagePreview(file, index) {
+        if (file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                $(`[data-index="${index}"]`).html(`<img src="${e.target.result}" class="img-thumbnail" style="max-width: 100%; height: 80px; object-fit: cover;">`);
+            };
+            reader.readAsDataURL(file);
+            return '<div class="text-center"><i class="fas fa-image fa-2x text-muted"></i></div>';
+        } else {
+            return '<div class="text-center"><i class="fas fa-file fa-2x text-muted"></i></div>';
+        }
+    }
+
+    // Function to update incident hidden inputs for form submission
+    function updateIncidentHiddenInputs() {
+        const $hiddenContainer = $('#incident-hidden-file-inputs');
+        $hiddenContainer.empty();
+
+        selectedIncidentFiles.forEach((file, index) => {
+            const $hiddenInput = $(`<input type="file" name="dokumentasi[]" style="display: none;">`);
+            
+            // Create a new FileList containing just this file
+            const dt = new DataTransfer();
+            dt.items.add(file);
+            $hiddenInput[0].files = dt.files;
+            
+            $hiddenContainer.append($hiddenInput);
+        });
+    }
+
+    // Remove incident file event handler
+    $(document).on('click', '.remove-incident-file-btn', function() {
+        const index = parseInt($(this).data('index'));
+        selectedIncidentFiles.splice(index, 1);
+        updateIncidentFileDisplay();
+    });
+
+    // Handle incident form submission
+    $('#addIncidentForm').on('submit', function(e) {
+        e.preventDefault();
+
+        const $submitBtn = $(this).find('button[type="submit"]');
+        const originalHtml = $submitBtn.html();
+
+        // Disable submit button and show loading
+        $submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Menyimpan...');
+
+        // Create FormData manually to include selected files
+        const formData = new FormData();
+        
+        // Add form fields
+        formData.append('_token', $('input[name="_token"]').val());
+        formData.append('puskesmas_id', $('#puskesmas_id').val());
+        formData.append('tgl_kejadian', $('#tgl_kejadian').val());
+        formData.append('kategori_id', $('#kategori_id').val());
+        formData.append('nama_korban', $('#nama_korban').val());
+        formData.append('bagian', $('#bagian').val());
+        formData.append('tahapan_id', $('#tahapan_id').val());
+        formData.append('insiden', $('#insiden').val());
+        formData.append('kronologis', $('#kronologis').val());
+
+        // Add selected files
+        selectedIncidentFiles.forEach((file, index) => {
+            formData.append('dokumentasi[]', file);
+        });
+
+        $.ajax({
+            url: $(this).attr('action'),
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            success: function(response) {
+                if (response.success) {
+                    toastr.success(response.message || 'Insiden berhasil dilaporkan');
+                    $('#addIncidentModal').modal('hide');
+                    $('#addIncidentForm')[0].reset();
+                    $('#kronologis-char-count').text('0').removeClass('text-danger');
+
+                    // Clear selected incident files
+                    selectedIncidentFiles = [];
+                    $('#incident-selected-files-container').hide();
+                    $('#incident-selected-files-list').empty();
+                    $('#incident-hidden-file-inputs').empty();
+                    $('#incident-file-input-multiple').val('');
+
+                    // Refresh the insiden table if it exists
+                    if ($('#insidenTable').length && $.fn.DataTable.isDataTable('#insidenTable')) {
+                        $('#insidenTable').DataTable().ajax.reload();
+                    }
+                } else {
+                    toastr.error(response.message || 'Terjadi kesalahan');
+                }
+            },
+            error: function(xhr) {
+                let errorMessage = 'Terjadi kesalahan saat menyimpan insiden';
+
+                if (xhr.status === 422) {
+                    // Validation errors
+                    let errors = xhr.responseJSON.errors;
+                    let errorText = '';
+                    Object.keys(errors).forEach(function(key) {
+                        errorText += errors[key][0] + '\n';
+                    });
+                    errorMessage = errorText;
+                } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
+                }
+
+                toastr.error(errorMessage);
+            },
+            complete: function() {
+                // Re-enable submit button
+                $submitBtn.prop('disabled', false).html(originalHtml);
+            }
+        });
+    });
+
+    // Reset form when modal closes
+    $('#addIncidentModal').on('hidden.bs.modal', function() {
+        $('#addIncidentForm')[0].reset();
+        $('#kronologis-char-count').text('0').removeClass('text-danger');
+        
+        // Clear selected incident files
+        selectedIncidentFiles = [];
+        $('#incident-selected-files-container').hide();
+        $('#incident-selected-files-list').empty();
+        $('#incident-hidden-file-inputs').empty();
+        $('#incident-file-input-multiple').val('');
+    });
+
+    // Set default date to today
+    $('#tgl_kejadian').val(new Date().toISOString().split('T')[0]);
+});
 </script>
 @endsection

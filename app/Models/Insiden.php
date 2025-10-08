@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Insiden extends Model
 {
@@ -110,6 +111,16 @@ class Insiden extends Model
     public function reporter(): BelongsTo
     {
         return $this->belongsTo(User::class, 'reported_by', 'id');
+    }
+
+    /**
+     * Get all of the dokumentasiInsiden for the Insiden
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function dokumentasiInsiden(): HasMany
+    {
+        return $this->hasMany(DokumentasiInsiden::class, 'insiden_id', 'id');
     }
 
 }

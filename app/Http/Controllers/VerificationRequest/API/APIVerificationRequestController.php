@@ -264,12 +264,12 @@ class APIVerificationRequestController extends Controller
                 'success' => true,
                 'message' => 'Data pengiriman berhasil diperbarui',
                 'data' => [
-                    'tgl_pengiriman' => $pengiriman->tgl_pengiriman ? $pengiriman->tgl_pengiriman->format('d F Y') : null,
-                    'eta' => $pengiriman->eta ? $pengiriman->eta->format('d F Y') : null,
+                    'tgl_pengiriman' => $pengiriman->tgl_pengiriman ? $pengiriman->tgl_pengiriman->translatedFormat('d F Y') : null,
+                    'eta' => $pengiriman->eta ? $pengiriman->eta->translatedFormat('d F Y') : null,
                     'resi' => $pengiriman->resi,
                     'tracking_link' => $pengiriman->tracking_link,
                     'serial_number' => $puskesmas->equipment->serial_number ?? null,
-                    'tgl_diterima' => $pengiriman->tgl_diterima ? $pengiriman->tgl_diterima->format('d F Y') : null,
+                    'tgl_diterima' => $pengiriman->tgl_diterima ? $pengiriman->tgl_diterima->translatedFormat('d F Y') : null,
                     'nama_penerima' => $pengiriman->nama_penerima,
                     'jabatan_penerima' => $pengiriman->jabatan_penerima,
                     'instansi_penerima' => $pengiriman->instansi_penerima,
@@ -429,10 +429,10 @@ class APIVerificationRequestController extends Controller
                 'success' => true,
                 'message' => 'Data uji fungsi berhasil diperbarui',
                 'data' => [
-                    'tgl_instalasi' => $ujiFungsi->tgl_instalasi ? $ujiFungsi->tgl_instalasi->format('d F Y') : null,
-                    'target_tgl_uji_fungsi' => $ujiFungsi->target_tgl_uji_fungsi ? $ujiFungsi->target_tgl_uji_fungsi->format('d F Y') : null,
-                    'tgl_uji_fungsi' => $ujiFungsi->tgl_uji_fungsi ? $ujiFungsi->tgl_uji_fungsi->format('d F Y') : null,
-                    'tgl_pelatihan' => $ujiFungsi->tgl_pelatihan ? $ujiFungsi->tgl_pelatihan->format('d F Y') : null,
+                    'tgl_instalasi' => $ujiFungsi->tgl_instalasi ? $ujiFungsi->tgl_instalasi->translatedFormat('d F Y') : null,
+                    'target_tgl_uji_fungsi' => $ujiFungsi->target_tgl_uji_fungsi ? $ujiFungsi->target_tgl_uji_fungsi->translatedFormat('d F Y') : null,
+                    'tgl_uji_fungsi' => $ujiFungsi->tgl_uji_fungsi ? $ujiFungsi->tgl_uji_fungsi->translatedFormat('d F Y') : null,
+                    'tgl_pelatihan' => $ujiFungsi->tgl_pelatihan ? $ujiFungsi->tgl_pelatihan->translatedFormat('d F Y') : null,
                     'doc_instalasi' => $ujiFungsi->doc_instalasi,
                     'doc_uji_fungsi' => $ujiFungsi->doc_uji_fungsi,
                     'doc_pelatihan' => $ujiFungsi->doc_pelatihan,
@@ -730,7 +730,7 @@ class APIVerificationRequestController extends Controller
                 'data' => [
                     'is_verified' => $ujiFungsi->is_verified_instalasi,
                     'verified_at' => $ujiFungsi->verified_at_instalasi ?
-                        $ujiFungsi->verified_at_instalasi->setTimezone('Asia/Jakarta')->format('d F Y H:i') . ' WIB' :
+                        $ujiFungsi->verified_at_instalasi->setTimezone('Asia/Jakarta')->translatedFormat('d F Y H:i') . ' WIB' :
                         null
                 ]
             ]);
@@ -804,7 +804,7 @@ class APIVerificationRequestController extends Controller
                 'data' => [
                     'is_verified' => $ujiFungsi->is_verified_uji_fungsi,
                     'verified_at' => $ujiFungsi->verified_at_uji_fungsi ?
-                        $ujiFungsi->verified_at_uji_fungsi->setTimezone('Asia/Jakarta')->format('d F Y H:i') . ' WIB' :
+                        $ujiFungsi->verified_at_uji_fungsi->setTimezone('Asia/Jakarta')->translatedFormat('d F Y H:i') . ' WIB' :
                         null
                 ]
             ]);
@@ -878,7 +878,7 @@ class APIVerificationRequestController extends Controller
                 'data' => [
                     'is_verified' => $ujiFungsi->is_verified_pelatihan,
                     'verified_at' => $ujiFungsi->verified_at_pelatihan ?
-                        $ujiFungsi->verified_at_pelatihan->setTimezone('Asia/Jakarta')->format('d F Y H:i') . ' WIB' :
+                        $ujiFungsi->verified_at_pelatihan->setTimezone('Asia/Jakarta')->translatedFormat('d F Y H:i') . ' WIB' :
                         null
                 ]
             ]);
@@ -1001,7 +1001,7 @@ class APIVerificationRequestController extends Controller
                 'data' => [
                     'is_verified' => $document->is_verified_kalibrasi,
                     'verified_at' => $document->verified_at_kalibrasi ?
-                        $document->verified_at_kalibrasi->setTimezone('Asia/Jakarta')->format('d F Y H:i') . ' WIB' :
+                        $document->verified_at_kalibrasi->setTimezone('Asia/Jakarta')->translatedFormat('d F Y H:i') . ' WIB' :
                         null
                 ]
             ]);
@@ -1076,7 +1076,7 @@ class APIVerificationRequestController extends Controller
                 'data' => [
                     'is_verified' => $document->is_verified_bast,
                     'verified_at' => $document->verified_at_bast ?
-                        $document->verified_at_bast->setTimezone('Asia/Jakarta')->format('d F Y H:i') . ' WIB' :
+                        $document->verified_at_bast->setTimezone('Asia/Jakarta')->translatedFormat('d F Y H:i') . ' WIB' :
                         null
                 ]
             ]);
@@ -1151,7 +1151,7 @@ class APIVerificationRequestController extends Controller
                 'data' => [
                     'is_verified' => $document->is_verified_basto,
                     'verified_at' => $document->verified_at_basto ?
-                        $document->verified_at_basto->setTimezone('Asia/Jakarta')->format('d F Y H:i') . ' WIB' :
+                        $document->verified_at_basto->setTimezone('Asia/Jakarta')->translatedFormat('d F Y H:i') . ' WIB' :
                         null
                 ]
             ]);
@@ -1226,7 +1226,7 @@ class APIVerificationRequestController extends Controller
                 'data' => [
                     'is_verified' => $document->is_verified_aspak,
                     'verified_at' => $document->verified_at_aspak ?
-                        $document->verified_at_aspak->setTimezone('Asia/Jakarta')->format('d F Y H:i') . ' WIB' :
+                        $document->verified_at_aspak->setTimezone('Asia/Jakarta')->translatedFormat('d F Y H:i') . ' WIB' :
                         null
                 ]
             ]);
