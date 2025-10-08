@@ -27,19 +27,32 @@ class DashboardController extends Controller
     public function index()
     {
         $dataPuskesmasCount = Puskesmas::count();
-        $dataStatus = collect(
-            [
-                'shipment_process' =>Pengiriman::where('tahapan_id', 1)->count(),
-                'on_delivery' => Pengiriman::where('tahapan_id', 2)->count(),
-                'received' => Pengiriman::where('tahapan_id', 3)->count(),
-                'installation' => Pengiriman::where('tahapan_id', 4)->count(),
-                'function_test' => Pengiriman::where('tahapan_id', 5)->count(),
-                'item_training' => Pengiriman::where('tahapan_id', 6)->count(),
-                'basto' => Pengiriman::where('tahapan_id', 7)->count(),
-                'aspak' => Pengiriman::where('tahapan_id', 8)->count(),
-            ]
-        );
+        foreach (Tahapan::all() as $tahapan) {
+            $dataStatus[$tahapan->tahapan] = Pengiriman::where('tahapan_id', $tahapan->id)->count();
+        }
+        $countDataProvince = Puskesmas::query()
+            ->join('districts', 'districts.id', '=', 'puskesmas.district_id')
+            ->join('regencies', 'regencies.id', '=', 'districts.regency_id')
+            ->join('provinces', 'provinces.id', '=', 'regencies.province_id')
+            ->distinct()
+            ->count('provinces.id');
+
+        $countRegency = Puskesmas::query()
+        ->join('districts', 'districts.id', '=', 'puskesmas.district_id')
+        ->join('regencies', 'regencies.id', '=', 'districts.regency_id')
+        ->join('provinces', 'provinces.id', '=', 'regencies.province_id')
+        ->distinct()
+        ->count('regencies.id');
+
+        $countDistrict = Puskesmas::query()
+        ->join('districts', 'districts.id', '=', 'puskesmas.district_id')
+        ->join('regencies', 'regencies.id', '=', 'districts.regency_id')
+        ->join('provinces', 'provinces.id', '=', 'regencies.province_id')
+        ->distinct()
+        ->count('districts.id');
+
+
         $tahapan = Tahapan::all();
-        return view('dashboard', ['countPuskesmas' => $dataPuskesmasCount, 'dataStatus' => $dataStatus, 'tahapan' => $tahapan]);
+        return view('dashboard', ['countPuskesmas' => $dataPuskesmasCount, 'dataStatus' => $dataStatus, 'tahapan' => $tahapan , 'countDataProvince' => $countDataProvince, 'countRegency' => $countRegency, 'countDistrict' => $countDistrict]);
     }
 }

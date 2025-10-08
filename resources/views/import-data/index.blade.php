@@ -1,9 +1,9 @@
 @extends('adminlte::page')
 
-@section('title', 'Import Data')
+@section('title', 'Impor Data')
 
 @section('content_header')
-    <h1 style="font-size: 24px;">Import Data</h1>
+    <h1 style="font-size: 24px;">Impor Data</h1>
 @stop
 
 @section('content')
@@ -17,10 +17,10 @@
                     <div class="d-flex align-items-center">
                         <i class="fas fa-file-excel fa-2x mr-3 text-white"></i>
                         <div>
-                            <h6 class="fw-bold mb-1">Format Template Required</h6>
+                            <h6 class="fw-bold mb-1">Format Template Diperlukan</h6>
                             <small class="text-white-50">
                                 Pastikan file <strong>XLSX</strong> mengikuti format template yang disediakan 
-                                agar import data berjalan dengan benar.
+                                agar impor data berjalan dengan benar.
                             </small>
                         </div>
                     </div>
@@ -29,7 +29,7 @@
                                         <div class="ms-3">
                         <a href="{{ route('import-data.download.template') }}" id="download-template-btn" class="btn btn-light btn-sm shadow-sm px-3 py-2 text-decoration-none d-flex align-items-center text-secondary" onmouseover="this.classList.add('text-dark')" onmouseout="this.classList.remove('text-dark')">
                             <i class="fas fa-download me-2 text-danger"></i>
-                            <span class="fw-semibold px-2">Download Template</span>
+                            <span class="fw-semibold px-2">Unduh Template</span>
                         </a>
                     </div>
                 </div>
@@ -38,7 +38,7 @@
         <div class="col-md-12">
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">Upload Excel File</h3>
+                    <h3 class="card-title">Unggah File Excel</h3>
                 </div>
                 {{-- {{ route('import.data') }} --}}
                 <form action="{{ route('import-data.import.puskesmas') }}" method="POST" enctype="multipart/form-data">
@@ -67,22 +67,22 @@
                         @endif
 
                         <div class="form-group">
-                            <label for="excel_file">Choose Excel File</label>
+                            <label for="excel_file">Pilih File Excel</label>
                             <div class="input-group">
                                 <div class="custom-file">
                                     <input type="file" class="custom-file-input" id="excel_file" name="excel_file" accept=".xlsx,.xls,.csv">
-                                    <label class="custom-file-label" for="excel_file">Choose file</label>
+                                    <label class="custom-file-label" for="excel_file">Pilih file</label>
                                 </div>
                             </div>
-                            <small class="form-text text-muted">Supported formats: .xlsx, .xls, .csv</small>
+                            <small class="form-text text-muted">Format yang didukung: .xlsx, .xls, .csv</small>
                         </div>
 
                         @if(auth()->user() && auth()->user()->role && auth()->user()->role->role_name === 'endo')
                         <div class="form-group">
                             <div class="d-flex justify-content-between align-items-center mb-2">
-                                <label class="font-weight-bold mb-0">Additional Columns for Export Template <span class="text-muted">(Optional for Endo)</span></label>
+                                <label class="font-weight-bold mb-0">Kolom Tambahan untuk Template Ekspor <span class="text-muted">(Opsional untuk Endo)</span></label>
                                 <button type="button" class="btn btn-outline-primary btn-sm" id="toggle-additional-columns">
-                                    <i class="fas fa-eye"></i> Show Additional Options
+                                    <i class="fas fa-eye"></i> Tampilkan Opsi Tambahan
                                 </button>
                             </div>
                             <div class="card" id="additional-columns-card" style="display: none;">
@@ -154,7 +154,7 @@
                                         </div>
                                         <!-- Testing & Installation -->
                                         <div class="col-md-4">
-                                            <h6 class="text-warning mb-2"><i class="fas fa-cog"></i> Testing & Installation</h6>
+                                            <h6 class="text-warning mb-2"><i class="fas fa-cog"></i> Pengujian & Instalasi</h6>
                                             <div class="form-check mb-1">
                                                 <input class="form-check-input" type="checkbox" id="include_tgl_instalasi" name="additional_columns[]" value="tgl_instalasi" checked>
                                                 <label class="form-check-label small" for="include_tgl_instalasi">Tanggal Instalasi</label>
@@ -178,14 +178,14 @@
                                             <div class="d-flex justify-content-between align-items-center">
                                                 <small class="text-muted">
                                                     <i class="fas fa-info-circle"></i>
-                                                    Kolom yang dipilih akan ditambahkan ke template export Excel.
+                                                    Kolom yang dipilih akan ditambahkan ke template ekspor Excel.
                                                 </small>
                                                 <div>
                                                     <button type="button" class="btn btn-outline-secondary btn-sm" id="select-all-columns">
-                                                        <i class="fas fa-check-square"></i> Select All
+                                                        <i class="fas fa-check-square"></i> Pilih Semua
                                                     </button>
                                                     <button type="button" class="btn btn-outline-secondary btn-sm ml-1" id="deselect-all-columns">
-                                                        <i class="fas fa-square"></i> Deselect All
+                                                        <i class="fas fa-square"></i> Batal Pilih Semua
                                                     </button>
                                                 </div>
                                             </div>
@@ -198,10 +198,10 @@
                     </div>
                     <div class="card-footer">
                         <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-upload"></i> Upload & Import
+                            <i class="fas fa-upload"></i> Unggah & Impor
                         </button>
                         <a href="{{ url()->previous() }}" class="btn btn-secondary">
-                            <i class="fas fa-arrow-left"></i> Back
+                            <i class="fas fa-arrow-left"></i> Kembali
                         </a>
                     </div>
                 </form>
@@ -214,7 +214,7 @@
 @section('css')
 <style>
     .custom-file-label::after {
-        content: "Browse";
+        content: "Telusuri";
     }
     
     .form-check {
@@ -279,11 +279,11 @@
             
             if ($card.is(':visible')) {
                 $card.slideUp();
-                $button.html('<i class="fas fa-eye"></i> Show Additional Options');
+                $button.html('<i class="fas fa-eye"></i> Tampilkan Opsi Tambahan');
                 $button.removeClass('btn-primary').addClass('btn-outline-primary');
             } else {
                 $card.slideDown();
-                $button.html('<i class="fas fa-eye-slash"></i> Hide Additional Options');
+                $button.html('<i class="fas fa-eye-slash"></i> Sembunyikan Opsi Tambahan');
                 $button.removeClass('btn-outline-primary').addClass('btn-primary');
             }
         });

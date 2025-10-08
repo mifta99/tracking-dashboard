@@ -1,29 +1,19 @@
 @extends('adminlte::page')
 
-@section('title', 'Raised Issues')
+@section('title', 'Pelaporan Keluhan')
 
 @section('content_header')
-    <h1>Raised Issues</h1>
+    <h1>Pelaporan Keluhan</h1>
 @stop
 
 @section('content')
     <div class="card">
         <div class="card-header text-md font-weight-bold d-flex justify-content-between align-items-center" style="background-color: #ce8220; color: white;">
             <h3 class="card-title mb-0">Data Keluhan</h3>
-            <div class="d-flex align-items-center">
-                <div class="mr-2">
-                    <span class="badge badge-light" style="color:#ce8220; background:#fff;">Filter & Manage</span>
-                </div>
-                @if(auth()->user() && auth()->user()->role->name === 'puskesmas')
-                <div class="card-tools">
-                    <button type="button" class="btn btn-primary btn-sm" id="btn-add-issue">
-                        <i class="fas fa-plus"></i> Tambah Keluhan Baru
-                    </button>
-                </div>
-                @endif
-            </div>
         </div>
+
         <div class="card-body">
+            @if(auth()->user() && auth()->user()->role->role_name != 'puskesmas')
             <!-- Filter Section -->
             <div class="mb-3 p-3 border rounded" style="background:#f8f9fc;">
                 <div class="form-row">
@@ -63,96 +53,227 @@
                     </div>
                 </div>
             </div>
-
-            <table class="table table-bordered table-striped table-sm text-sm" id="issues-table" style="width:100%;">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Provinsi</th>
-                        <th>Kabupaten</th>
-                        <th>Kecamatan</th>
-                        <th>Nama Puskesmas</th>
-                        <th>Tanggal Keluhan</th>
-                        <th>PIC Puskesmas</th>
-                        <th>Keluhan</th>
-                        <th class="text-center">Status</th>
-                        <th class="text-center">Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($data as $issue)
-                    <tr 
-                        data-province="{{ $issue->reporter->puskesmas->provinsi_name ?? '' }}" 
-                        data-regency="{{ $issue->reporter->puskesmas->kabupaten_name ?? '' }}" 
-                        data-district="{{ $issue->reporter->puskesmas->kecamatan_name ?? '' }}"
-                        data-status="{{ $issue->status_id }}"
-                    >
-                        <td>{{ $issue->id }}</td>
-                        <td>{{ $issue->reporter->puskesmas->provinsi_name ?? '-' }}</td>
-                        <td>{{ $issue->reporter->puskesmas->kabupaten_name ?? '-' }}</td>
-                        <td>{{ $issue->reporter->puskesmas->kecamatan_name ?? '-' }}</td>
-                        <td>{{ $issue->reporter->puskesmas->name ?? 'N/A' }}</td>
-                        <td data-date="{{ $issue->created_at->format('Y-m') }}">{{ $issue->created_at->format('d-m-Y') }}</td>
-                        <td>{{ $issue->reporter->puskesmas->kepala  ?? 'N/A' }}</td>
-                        <td style="max-width:250px; white-space:normal;">{{ $issue->reported_issue }}</td>
-                        <td class="text-center">
-                            @php
-                                $statusClass = '';
-                                $statusLabel = ucfirst(str_replace('_', ' ', $issue->statusKeluhan->status ?? 'N/A'));
-                                switch($issue->status_id) {
-                                    case 1: $statusClass = 'badge-danger'; break;
-                                    case 2: $statusClass = 'badge-warning'; break;
-                                    case 3: $statusClass = 'badge-success'; break;
-                                    default: $statusClass = 'badge-secondary';
-                                }
-                            @endphp
-                            <span class="badge {{ $statusClass }}">{{ $statusLabel }}</span>
-                        </td>
-                        <td class="text-center">
-                            <a href="" class="text-center btn btn-xs btn-outline-primary"><i class="fas fa-search"></i></a>
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
+            @endif
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped table-sm" id="issues-table" style="width:100%;">
+                    <thead>
+                        <tr>
+                            <th style="font-size: 11pt;">No.</th>
+                            <th style="font-size: 11pt;">Provinsi</th>
+                            <th style="font-size: 11pt;">Kabupaten</th>
+                            <th style="font-size: 11pt;">Kecamatan</th>
+                            <th style="font-size: 11pt;">Nama Puskesmas</th>
+                            <th style="font-size: 11pt;">Tanggal Dilaporkan</th>
+                            <th style="font-size: 11pt;">Keluhan</th>
+                            <th style="font-size: 11pt;">Kategori Keluhan</th>
+                            <th style="font-size: 11pt;">Jumlah Downtime</th>
+                            <th style="font-size: 11pt;">Status</th>
+                            <th class="text-center" style="font-size: 11pt;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody style="font-size: 10pt;">
+                        <!-- Data will be populated here via AJAX -->
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
+
+
 @stop
 
 @section('css')
     <link rel="stylesheet" href="/css/admin_custom.css">
+    <!-- Toastr CSS for toast notifications -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css">
     <style>
-        #issues-table thead th { white-space: nowrap; }
-        #issues-table tbody td { vertical-align: middle; }
+        /* DataTable styling to match detail page */
+        #issues-table {
+            font-size: 0.875rem;
+        }
+
+        #issues-table thead th {
+            font-size: 11pt;
+            font-weight: 600;
+            background-color: #f8f9fa;
+            white-space: nowrap;
+        }
+
+        #issues-table tbody td {
+            vertical-align: middle;
+            font-size: 10pt;
+        }
+
         .dataTables_wrapper .dataTables_filter input { border-radius:4px; }
         .badge { font-size: 11px; }
+
+        /* Modal Styles */
+        .modal-header {
+            background: linear-gradient(135deg, #ce8220, #f4a261);
+            color: white;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .required::after {
+            content: ' *';
+            color: #e74c3c;
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, #ce8220, #f4a261);
+            border: none;
+            color: white;
+            font-weight: 600;
+        }
+
+        .btn-submit:hover {
+            background: linear-gradient(135deg, #b8741c, #e8925a);
+            color: white;
+        }
     </style>
 @stop
 
 @section('js')
+    <!-- Toastr JS for toast notifications -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         $(function(){
             // Initialize DataTable
             const table = $('#issues-table').DataTable({
-                pageLength: 25,
-                order: [[0,'desc']],
+                processing: true,
+                serverSide: false,
                 responsive: true,
+                pageLength: 10,
+                lengthMenu: [[5, 10, 25, 50], [5, 10, 25, 50]],
+                order: [[5, 'desc']], // Sort by date descending
                 language: {
-                    search: 'Cari:',
-                    lengthMenu: 'Tampilkan _MENU_ data',
-                    info: 'Menampilkan _START_ - _END_ dari _TOTAL_ data',
-                    infoEmpty: 'Tidak ada data',
-                    zeroRecords: 'Data tidak ditemukan',
-                    paginate: { next: '▶', previous: '◀' }
+                    processing: "Memuat data...",
+                    search: "Cari:",
+                    lengthMenu: "Tampilkan _MENU_ data per halaman",
+                    info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+                    infoEmpty: "Menampilkan 0 sampai 0 dari 0 data",
+                    infoFiltered: "(difilter dari _MAX_ total data)",
+                    paginate: {
+                        first: "Pertama",
+                        last: "Terakhir",
+                        next: "Selanjutnya",
+                        previous: "Sebelumnya"
+                    },
+                    emptyTable: "Tidak ada data keluhan yang tersedia",
+                    zeroRecords: "Tidak ada data yang cocok"
                 },
+                columns: [
+                    { data: null, orderable: false, searchable: false, width: '5%' },
+                    { data: 'province_name', name: 'province_name', width: '10%' },
+                    { data: 'regency_name', name: 'regency_name', width: '10%' },
+                    { data: 'district_name', name: 'district_name', width: '10%' },
+                    { data: 'puskesmas_name', name: 'puskesmas_name', width: '15%' },
+                    { data: 'tanggal_dilaporkan', name: 'tanggal_dilaporkan', width: '10%' },
+                    { data: 'keluhan', name: 'keluhan', width: '20%' },
+                    { data: 'kategori_keluhan', name: 'kategori_keluhan', width: '10%' },
+                    { data: 'jumlah_downtime', name: 'jumlah_downtime', width: '8%' },
+                    { data: 'status', name: 'status', width: '8%' },
+                    { data: 'actions', name: 'actions', orderable: false, searchable: false, width: '6%' }
+                ],
                 columnDefs: [
-                    { targets: [1,2,3], visible: false }, // hide region columns but usable for filtering
-                    { targets: 7, width: '25%' },
-                    { targets: -1, orderable:false, searchable:false }
-                ]
+                    {
+                        targets: 0,
+                        render: function (data, type, row, meta) {
+                            return meta.row + meta.settings._iDisplayStart + 1;
+                        }
+                    },
+                    {
+                        targets: 6, // Keluhan column
+                        render: function (data, type, row) {
+                            if (data && data.length > 100) {
+                                return `<div style="max-width:300px; white-space:normal;">${data.substring(0, 100)}...</div>`;
+                            }
+                            return `<div style="max-width:300px; white-space:normal;">${data || '-'}</div>`;
+                        }
+                    },
+                    {
+                        targets: 7, // Kategori column
+                        render: function (data, type, row) {
+                            let badgeClass = 'badge-secondary';
+                            const kategoriLower = (data || '').toLowerCase();
+
+                            switch (kategoriLower) {
+                                case 'rendah':
+                                    badgeClass = 'badge-warning';
+                                    break;
+                                case 'sedang':
+                                    badgeClass = 'badge-info';
+                                    break;
+                                case 'kritis':
+                                    badgeClass = 'badge-danger';
+                                    break;
+                            }
+
+                            return `<span class="badge ${badgeClass}">${data || '-'}</span>`;
+                        }
+                    },
+                    {
+                        targets: 9, // Status column
+                        render: function (data, type, row) {
+                            let badgeClass = 'badge-secondary';
+                            const statusLower = (data || '').toLowerCase();
+
+                            switch (statusLower) {
+                                case 'baru':
+                                    badgeClass = 'badge-warning';
+                                    break;
+                                case 'proses':
+                                    badgeClass = 'badge-info';
+                                    break;
+                                case 'selesai':
+                                    badgeClass = 'badge-success';
+                                    break;
+                            }
+
+                            return `<span class="badge ${badgeClass}">${data || '-'}</span>`;
+                        }
+                    },
+                    {
+                        targets: 10, // Actions
+                        render: function (data, type, row) {
+                            const detailUrl = '{{ route("raised-issue.detail", ":id") }}'.replace(':id', row.id);
+                            return `<div class="d-flex justify-content-center align-items-center">
+                                        <a href="${detailUrl}" class="text-secondary" title="Lihat Detail">
+                                            <i class="fas fa-search"></i>
+                                        </a>
+                                    </div>`;
+                        }
+                    }
+                ],
+                ajax: {
+                    url: '{{ route('keluhan.fetch-data') }}',
+                    type: 'GET',
+                    dataSrc: function(json) {
+                        if (json.success) {
+                            return json.data;
+                        } else {
+                            console.error('Error loading keluhan data:', json.message);
+                            return [];
+                        }
+                    },
+                    error: function(xhr, error, code) {
+                        console.error('AJAX Error:', error);
+                        toastr.error('Gagal memuat data keluhan');
+                    }
+                }
             });
 
             // Province -> Regency -> District cascading using existing API endpoints (assumes already created)
@@ -247,6 +368,8 @@
 
             // Redraw after adding custom search
             table.draw();
+
+
         });
     </script>
 @stop

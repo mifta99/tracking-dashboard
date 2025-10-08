@@ -345,17 +345,25 @@ return [
             'icon' => 'fas fa-fw fa-check-circle',
             'can'   => ['kemenkes']
         ],
+        [
+            'text' => 'Daftar Revisi',
+            'url'  => '/daftar-revisi',
+            'icon' => 'fas fa-fw fa-exclamation-triangle',
+            'label' => 0, // Will be updated dynamically
+            'label_color' => 'danger',
+            'can'   => ['endo']
+        ],
                 [
             'text' => 'Pelaporan Keluhan',
             'url'  => '/raised-issue',
             'icon' => 'fas fa-fw fa-exclamation-circle',
-            'can'   => ['endo','kemenkes','puskesmas']
+            'can'   => ['endo','kemenkes']
         ],
         [
             'text' => 'Pelaporan Insiden',
             'url'  => '/reported-incidents',
             'icon' => 'fas fa-fw fa-heartbeat',
-            'can'   => ['endo','kemenkes','puskesmas']
+            'can'   => ['endo','kemenkes']
         ],
                 [
             'text' => 'Impor Data',

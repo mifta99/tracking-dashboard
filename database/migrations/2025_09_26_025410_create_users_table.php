@@ -27,6 +27,7 @@ class CreateUsersTable extends Migration
             $table->boolean('must_change_password')->default(true);
             $table->rememberToken();
             $table->timestamps();
+            $table->timestamp('email_verified_at')->nullable();
         });
 
         Schema::table('users', function (Blueprint $table) {
