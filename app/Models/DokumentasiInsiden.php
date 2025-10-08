@@ -4,12 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class KategoriInsiden extends Model
+class DokumentasiInsiden extends Model
 {
     use HasFactory;
-    protected $table = 'kategori_insidens';
     protected $primaryKey = 'id';
+    protected $table = 'dokumentasi_insidens';
 
     /**
      * The attributes that are mass assignable.
@@ -18,7 +19,8 @@ class KategoriInsiden extends Model
      */
     protected $fillable = [
         'id',
-        'kategori',
+        'insiden_id',
+        'link_foto',
     ];
 
     /**
@@ -28,6 +30,16 @@ class KategoriInsiden extends Model
      */
     protected $casts = [
         'id' => 'integer',
+        'insiden_id' => 'integer',
     ];
 
+    /**
+     * Get the insiden that owns the DokumentasiInsiden
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function insiden(): BelongsTo
+    {
+        return $this->belongsTo(Insiden::class, 'insiden_id', 'id');
+    }
 }
