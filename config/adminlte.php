@@ -357,6 +357,8 @@ return [
             'text' => 'Pelaporan Keluhan',
             'url'  => '/raised-issue',
             'icon' => 'fas fa-fw fa-exclamation-circle',
+            'label' => 0, // Will be updated dynamically
+            'label_color' => 'danger',
             'can'   => ['endo','kemenkes']
         ],
         [

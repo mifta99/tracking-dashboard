@@ -100,4 +100,20 @@ class KeluhanController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Get total complaint count for menu badge
+     * Similar to DaftarRevisiController::getTotalRevisionCount()
+     */
+    public static function getTotalComplaintCount()
+    {
+        try {
+            // Count complaints that are not resolved (status != 'selesai')
+            return Keluhan::whereHas('statusKeluhan', function($query) {
+                $query->where('status', '!=', 'selesai');
+            })->count();
+        } catch (\Exception $e) {
+            return 0;
+        }
+    }
 }
