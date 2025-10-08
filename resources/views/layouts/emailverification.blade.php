@@ -275,68 +275,121 @@
 <body>
 @php
     $appName = $appName ?? config('app.name');
-    $displayName = $recipientName ?? 'Bapak/Ibu';
+    $displayName = 'Bapak/Ibu' . $recipientName ?? 'Bapak/Ibu';
     $rawCode = (string) ($verificationCode ?? '');
     $digitsOnly = preg_replace('/[^0-9]/', '', $rawCode);
     $codeToShow = $digitsOnly !== '' ? $digitsOnly : ($rawCode !== '' ? $rawCode : '------');
     $formattedCode = trim(implode(' ', preg_split('//u', $codeToShow, -1, PREG_SPLIT_NO_EMPTY)));
     $verificationUrl = $verificationUrl ?? '#';
 @endphp
-    <div class="wrapper">
-        <div class="card">
-            <div class="header">
-                <table width="100%" cellpadding="0" cellspacing="0" style="margin:0; padding:0;">
-                    <tr>
-                        <td style="vertical-align:middle; text-align:left;">
-                            <span class="brand__name">{{ $appName ?? 'T-Piece Dashboard' }}</span>
-                        </td>
-                        <td style="vertical-align:middle; text-align:right; width:88px;">
-                            <div style="margin:0; padding:0; width:88px; height:88px; border-radius:12px; overflow:hidden; line-height:0; font-size:0; display:inline-block;">
-                                <img src="https://i.imghippo.com/files/kud1899sk.png"
-                                     alt="{{ $appName ?? 'Logo' }}"
-                                     width="88" height="88"
-                                     style="display:block; width:88px; height:88px; border:0; outline:none; text-decoration:none; -ms-interpolation-mode:bicubic; object-fit:cover; object-position:center; border-radius:12px;">
-                            </div>
-                        </td>
-                    </tr>
-                </table>
-            </div>
-            <div class="content">
-                <h1 class="title">Verifikasi Alamat Email Anda</h1>
-                <p class="paragraph">Kepada Yth. {{ $displayName }},</p>
-                <p class="paragraph">Terima kasih telah melakukan registrasi pada platform <strong>{{ $appName ?? 'MediDistribusi' }}</strong>. Untuk menjaga keamanan akun Anda, kami perlu memastikan bahwa alamat email ini benar-benar milik Anda.</p>
-                <div class="info-box">
-                    Mohon selesaikan proses verifikasi dalam waktu 30 menit. Setelah lewat batas waktu, Anda harus meminta kode verifikasi baru untuk keamanan akun Anda.
+    @if(isset($isResetPassword) && $isResetPassword)
+<div class="wrapper">
+    <div class="card">
+        <div class="header">
+        <table width="100%" cellpadding="0" cellspacing="0" style="margin:0; padding:0;">
+            <tr>
+            <td style="vertical-align:middle; text-align:left;">
+                <span class="brand__name">{{ $appName ?? 'T-Piece Dashboard' }}</span>
+            </td>
+            <td style="vertical-align:middle; text-align:right; width:88px;">
+                <div style="margin:0; padding:0; width:88px; height:88px; border-radius:12px; overflow:hidden; line-height:0; font-size:0; display:inline-block;">
+                <img src="https://i.imghippo.com/files/kud1899sk.png"
+                     alt="{{ $appName ?? 'Logo' }}"
+                     width="88" height="88"
+                     style="display:block; width:88px; height:88px; border:0; outline:none; text-decoration:none; -ms-interpolation-mode:bicubic; object-fit:cover; object-position:center; border-radius:12px;">
                 </div>
-                <div class="code-wrapper">
-                    <div class="code-label">Kode verifikasi Anda</div>
-                    <div class="verification-code">{{ $formattedCode }}</div>
-                    @if(!empty($expiryDisplay))
-                        <div class="expiry">Kode berlaku hingga: {{ $expiryDisplay }}</div>
-                    @endif
-                </div>
-                <div style="text-align:center; margin-bottom: 28px;">
-                    <a href="{{ $verificationUrl }}" 
-                       class="button" 
-                       target="_blank" 
-                       rel="noopener"
-                       style="display: inline-block; padding: 14px 34px; background-color: #2563eb !important; color: #ffffff !important; font-weight: 600; text-decoration: none !important; border-radius: 12px; box-shadow: 0 10px 20px rgba(37, 99, 235, 0.25); letter-spacing: 0.04em; border: 2px solid #2563eb; font-family: 'Poppins', Arial, sans-serif; font-size: 14px;">
-                       Verifikasi Sekarang
-                    </a>
-                </div>
-                <p class="paragraph">Jika tombol di atas tidak berfungsi, salin dan tempel tautan berikut pada peramban Anda:</p>
-                <div class="link-box">{{ $verificationUrl }}</div>
-                <p class="paragraph">Apabila Anda tidak merasa melakukan pendaftaran, abaikan email ini. Anda juga dapat menghubungi tim dukungan kami agar akun tetap aman.</p>
-                <div class="signature">
-                    Hormat kami,<br>
-                    <strong>Tim {{ $appName ?? 'MediDistribusi' }}</strong>
-                </div>
-            </div>
-            <div class="footer">
-                Email ini dikirim secara otomatis, mohon tidak membalas pesan ini.<br>
-                &copy; {{ now()->format('Y') }} {{ $appName ?? 'MediDistribusi' }}. Seluruh hak cipta dilindungi.
-            </div>
+            </td>
+            </tr>
+        </table>
+        </div>
+        <div class="content">
+        <h1 class="title">Reset Kata Sandi Anda</h1>
+        <p class="paragraph">Kepada Yth. {{ $displayName }},</p>
+        <p class="paragraph">Kami menerima permintaan untuk mereset kata sandi akun Anda di <strong>{{ $appName ?? 'T-Piece Dashboard' }}</strong>. Untuk keamanan akun, gunakan kode verifikasi di bawah ini untuk melanjutkan proses pergantian kata sandi.</p>
+        <div class="info-box">
+            Kode verifikasi ini berlaku selama 30 menit. Jika tidak digunakan dalam waktu tersebut, Anda perlu meminta kode baru untuk menjaga keamanan akun.
+        </div>
+        <div class="code-wrapper">
+            <div class="code-label">Kode reset kata sandi</div>
+            <div class="verification-code">{{ $formattedCode }}</div>
+        </div>
+        <div style="text-align:center; margin-bottom: 28px;">
+            <a href="{{ $verificationUrl }}" 
+               class="button" 
+               target="_blank" 
+               rel="noopener"
+               style="display: inline-block; padding: 14px 34px; background-color: #2563eb !important; color: #ffffff !important; font-weight: 600; text-decoration: none !important; border-radius: 12px; box-shadow: 0 10px 20px rgba(37, 99, 235, 0.25); letter-spacing: 0.04em; border: 2px solid #2563eb; font-family: 'Poppins', Arial, sans-serif; font-size: 14px;">
+               Reset Kata Sandi
+            </a>
+        </div>
+        <p class="paragraph">Jika tombol di atas tidak berfungsi, salin dan tempel tautan berikut pada peramban Anda:</p>
+        <div class="link-box">{{ $verificationUrl }}</div>
+        <p class="paragraph">Jika Anda tidak meminta reset kata sandi, abaikan email ini dan kata sandi Anda akan tetap aman. Hubungi tim dukungan kami jika Anda merasa ada aktivitas mencurigakan pada akun Anda.</p>
+        <div class="signature">
+            Hormat kami,<br>
+            <strong>Tim {{ $appName ?? 'MediDistribusi' }}</strong>
+        </div>
+        </div>
+        <div class="footer">
+        Email ini dikirim secara otomatis, mohon tidak membalas pesan ini.<br>
+        &copy; {{ now()->format('Y') }} {{ $appName ?? 'MediDistribusi' }}. Seluruh hak cipta dilindungi.
         </div>
     </div>
+    </div>
+    @else
+    <div class="wrapper">
+    <div class="card">
+        <div class="header">
+        <table width="100%" cellpadding="0" cellspacing="0" style="margin:0; padding:0;">
+            <tr>
+            <td style="vertical-align:middle; text-align:left;">
+                <span class="brand__name">{{ $appName ?? 'T-Piece Dashboard' }}</span>
+            </td>
+            <td style="vertical-align:middle; text-align:right; width:88px;">
+                <div style="margin:0; padding:0; width:88px; height:88px; border-radius:12px; overflow:hidden; line-height:0; font-size:0; display:inline-block;">
+                <img src="https://i.imghippo.com/files/kud1899sk.png"
+                     alt="{{ $appName ?? 'Logo' }}"
+                     width="88" height="88"
+                     style="display:block; width:88px; height:88px; border:0; outline:none; text-decoration:none; -ms-interpolation-mode:bicubic; object-fit:cover; object-position:center; border-radius:12px;">
+                </div>
+            </td>
+            </tr>
+        </table>
+        </div>
+        <div class="content">
+        <h1 class="title">Verifikasi Alamat Email Anda</h1>
+        <p class="paragraph">Kepada Yth. {{ $displayName }},</p>
+        <p class="paragraph">Terima kasih telah melakukan registrasi pada platform <strong>{{ $appName ?? 'T-Piece Dashboard' }}</strong>. Untuk menjaga keamanan akun Anda, kami perlu memastikan bahwa alamat email ini benar-benar milik Anda.</p>
+        <div class="info-box">
+            Mohon selesaikan proses verifikasi dalam waktu 30 menit. Setelah lewat batas waktu, Anda harus meminta kode verifikasi baru untuk keamanan akun Anda.
+        </div>
+        <div class="code-wrapper">
+            <div class="code-label">Kode verifikasi Anda</div>
+            <div class="verification-code">{{ $formattedCode }}</div>
+        </div>
+        <div style="text-align:center; margin-bottom: 28px;">
+            <a href="{{ $verificationUrl }}" 
+               class="button" 
+               target="_blank" 
+               rel="noopener"
+               style="display: inline-block; padding: 14px 34px; background-color: #2563eb !important; color: #ffffff !important; font-weight: 600; text-decoration: none !important; border-radius: 12px; box-shadow: 0 10px 20px rgba(37, 99, 235, 0.25); letter-spacing: 0.04em; border: 2px solid #2563eb; font-family: 'Poppins', Arial, sans-serif; font-size: 14px;">
+               Verifikasi Sekarang
+            </a>
+        </div>
+        <p class="paragraph">Jika tombol di atas tidak berfungsi, salin dan tempel tautan berikut pada peramban Anda:</p>
+        <div class="link-box">{{ $verificationUrl }}</div>
+        <p class="paragraph">Apabila Anda tidak merasa melakukan pendaftaran, abaikan email ini. Anda juga dapat menghubungi tim dukungan kami agar akun tetap aman.</p>
+        <div class="signature">
+            Hormat kami,<br>
+            <strong>Tim {{ $appName ?? 'MediDistribusi' }}</strong>
+        </div>
+        </div>
+        <div class="footer">
+        Email ini dikirim secara otomatis, mohon tidak membalas pesan ini.<br>
+        &copy; {{ now()->format('Y') }} {{ $appName ?? 'MediDistribusi' }}. Seluruh hak cipta dilindungi.
+        </div>
+    </div>
+    </div>
+    @endif
 </body>
 </html>

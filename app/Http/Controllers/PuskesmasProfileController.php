@@ -264,16 +264,13 @@ class PuskesmasProfileController extends Controller
             
             $token = \Illuminate\Support\Str::uuid()->toString();
             $recipient = $validated['email'] ?? 'tpieceverfication@gmail.com';
-            $mailerName = $validated['mailer'] ?? config('mail.default');
+            $mailerName = config('mail.default');
             $requestType = $validated['request_type'] ?? 'verification';
 
             $verificationCode = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
             $verificationUrl = 'https://127.0.0.1/email/verify?code=' . $token;
 
             $expiresAtInput = $validated['expires_at'] ?? null;
-            $expiresAt = $expiresAtInput
-                ? Carbon::parse($expiresAtInput)->setTimezone('Asia/Jakarta')
-                : Carbon::now('Asia/Jakarta')->addDay();
 
             $recipientName = $validated['name'] ?? null;
             
@@ -299,15 +296,12 @@ class PuskesmasProfileController extends Controller
                 ->send(new EmailVerificationMail(
                     $verificationCode,
                     $verificationUrl,
-                    $expiresAt,
                     $recipientName,
                     $emailTitle
                 ));
 
-            $cfg = config("mail.mailers.$mailerName") ?? [];
-            
-            $message = $requestType === 'email_update' 
-                ? 'Kode OTP untuk perubahan email telah dikirim.' 
+            $message = $requestType === 'email_update'
+                ? 'Kode OTP untuk perubahan email telah dikirim.'
                 : 'Verification email dispatched.';
 
             return response()->json([
