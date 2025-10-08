@@ -374,6 +374,8 @@ return [
             'text' => 'Pelaporan Insiden',
             'url'  => '/reported-incidents',
             'icon' => 'fas fa-fw fa-heartbeat',
+            'label' => 0, // Will be updated dynamically
+            'label_color' => 'danger',
             'can'   => ['endo','kemenkes']
         ],
                 [

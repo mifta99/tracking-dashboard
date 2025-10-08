@@ -131,8 +131,10 @@ Route::prefix('raised-issue')->name('raised-issue.')->group(function () {
     });
     Route::middleware(['auth', 'roles:2,3'])->group(function () {
         Route::get('/', [App\Http\Controllers\RaisedIssue\RaisedIssueController::class, 'index'])->name('index');
-        Route::post('/store', [App\Http\Controllers\RaisedIssue\RaisedIssueController::class, 'store'])->name('store');
         Route::put('/{id}/update-tindak-lanjut', [App\Http\Controllers\RaisedIssue\RaisedIssueController::class, 'updateTindakLanjut'])->name('update-tindak-lanjut');
+    });
+     Route::middleware(['auth', 'roles:1'])->group(function () {
+        Route::post('/store', [App\Http\Controllers\RaisedIssue\RaisedIssueController::class, 'store'])->name('store');
     });
 });
 
