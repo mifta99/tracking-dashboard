@@ -262,37 +262,46 @@
                         $verificationStatus = 'none'; // none, verified, revision, pending
                         $hasRevision = false;
                         $isVerified = false;
+                        $hasResolvedRevision = false;
 
                         switch($t->tahap_ke) {
                             case 3: // Penerimaan -> is_verified_bast (documents table)
                                 $isVerified = $doc && $doc->is_verified_bast;
                                 $hasRevision = isset($revisions['bast']) && !$revisions['bast']->is_resolved;
+                                $hasResolvedRevision = isset($revisions['bast']) && $revisions['bast']->is_resolved && !$isVerified;
                                 break;
                             case 4: // Instalasi -> is_verified_instalasi (uji_fungsi table)
                                 $isVerified = $uji && $uji->is_verified_instalasi;
                                 $hasRevision = isset($revisions['instalasi']) && !$revisions['instalasi']->is_resolved;
+                                $hasResolvedRevision = isset($revisions['instalasi']) && $revisions['instalasi']->is_resolved && !$isVerified;
                                 break;
                             case 5: // Uji Fungsi -> is_verified_uji_fungsi (uji_fungsi table)
                                 $isVerified = $uji && $uji->is_verified_uji_fungsi;
                                 $hasRevision = isset($revisions['uji_fungsi']) && !$revisions['uji_fungsi']->is_resolved;
+                                $hasResolvedRevision = isset($revisions['uji_fungsi']) && $revisions['uji_fungsi']->is_resolved && !$isVerified;
                                 break;
                             case 6: // Pelatihan Alat -> is_verified_pelatihan (uji_fungsi table)
                                 $isVerified = $uji && $uji->is_verified_pelatihan;
                                 $hasRevision = isset($revisions['pelatihan']) && !$revisions['pelatihan']->is_resolved;
+                                $hasResolvedRevision = isset($revisions['pelatihan']) && $revisions['pelatihan']->is_resolved && !$isVerified;
                                 break;
                             case 7: // BASTO -> is_verified_basto (documents table)
                                 $isVerified = $doc && $doc->is_verified_basto;
                                 $hasRevision = isset($revisions['basto']) && !$revisions['basto']->is_resolved;
+                                $hasResolvedRevision = isset($revisions['basto']) && $revisions['basto']->is_resolved && !$isVerified;
                                 break;
                             case 8: // ASPAK -> is_verified_aspak (documents table)
                                 $isVerified = $doc && $doc->is_verified_aspak;
                                 $hasRevision = isset($revisions['aspak']) && !$revisions['aspak']->is_resolved;
+                                $hasResolvedRevision = isset($revisions['aspak']) && $revisions['aspak']->is_resolved && !$isVerified;
                                 break;
                         }
 
                         // Determine verification status - only for steps that are active or completed
                         if ($hasRevision) {
                             $verificationStatus = 'revision';
+                        } elseif ($hasResolvedRevision) {
+                            $verificationStatus = 'pending';
                         } elseif ($isVerified) {
                             $verificationStatus = 'verified';
                         } elseif ($t->tahap_ke >= 3 && $t->tahap_ke <= 8) {
@@ -311,7 +320,8 @@
                                      ($t->tahap_ke == 7 ? 'fas fa-clipboard-check' : 'fas fa-check-circle')))))),
                             'verification_status' => $verificationStatus,
                             'is_verified' => $isVerified,
-                            'has_revision' => $hasRevision
+                            'has_revision' => $hasRevision,
+                            'has_resolved_revision' => $hasResolvedRevision
                         ];
                     }
                 }
