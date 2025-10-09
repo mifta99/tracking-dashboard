@@ -414,7 +414,7 @@
             background: rgba(255, 193, 7, 0.15);
             color: #b38301;
         }
-        .raised-incident-detail .badge-status-proses {
+        .raised-incident-detail .badge-status-proses-penyelesaian {
             background: rgba(23, 162, 184, 0.15);
             color: #117a8b;
         }

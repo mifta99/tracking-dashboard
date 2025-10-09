@@ -140,7 +140,7 @@
                     <div class="row">
                         <div class="col-lg-6">
                             <table class="table table-sm table-borderless table-kv mb-0">
-                                <tr><td>Total Downtime</td><td>{{ $issue->total_downtime . ' Hari' ?? '-' }} </td></tr>
+                                <tr><td>Total Downtime</td><td>{{ $issue->total_downtime ? $issue->total_downtime . ' Hari' : '-' }} </td></tr>
                                 <tr><td>Detail Tindak Lanjut</td><td>{{ $issue->action_taken ?? '-' }}</td></tr>
                                 <tr><td>Catatan</td><td>{{ $issue->catatan ?? '-' }}</td></tr>
                                 <tr><td>Status</td><td>

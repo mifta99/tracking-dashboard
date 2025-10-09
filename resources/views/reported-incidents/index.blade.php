@@ -387,15 +387,9 @@
                             const statusLower = (data || '').toLowerCase();
 
                             switch (statusLower) {
-                                case 'open':
-                                case 'buka':
-                                    badgeClass = 'badge-danger';
-                                    break;
-                                case 'in_progress':
-                                case 'proses':
+                                case 'proses penyelesaian':
                                     badgeClass = 'badge-warning';
                                     break;
-                                case 'closed':
                                 case 'selesai':
                                     badgeClass = 'badge-success';
                                     break;
