@@ -79,7 +79,8 @@ Route::middleware(['auth', 'roles:2,3'])->prefix('daftar-revisi')->name('daftar-
 Route::middleware(['auth'])->prefix('keluhan')->name('keluhan.')->group(function () {
     Route::get('/fetch-data', [App\Http\Controllers\KeluhanController::class, 'fetchData'])->name('fetch-data');
     Route::get('/master-data', [App\Http\Controllers\KeluhanController::class, 'getMasterData'])->name('master-data');
-     Route::get('/status-counts', [App\Http\Controllers\KeluhanController::class, 'getStatusCounts'])->name('status-counts');
+    Route::get('/status-counts', [App\Http\Controllers\KeluhanController::class, 'getStatusCounts'])->name('status-counts');
+    Route::get('/kategori-chart', [App\Http\Controllers\KeluhanController::class, 'getKategoriChart'])->name('kategori-chart');
 });
 
 /*
@@ -135,6 +136,7 @@ Route::prefix('raised-issue')->name('raised-issue.')->group(function () {
     });
      Route::middleware(['auth', 'roles:1'])->group(function () {
         Route::post('/store', [App\Http\Controllers\RaisedIssue\RaisedIssueController::class, 'store'])->name('store');
+        Route::put('/{id}/update-laporan', [App\Http\Controllers\RaisedIssue\RaisedIssueController::class, 'updateLaporan'])->name('update-laporan');
     });
 });
 
@@ -161,6 +163,9 @@ Route::middleware(['auth'])->prefix('insiden')->name('insiden.')->group(function
     Route::post('/{puskesmas_id}/store', [App\Http\Controllers\Incident\IncidentController::class, 'store'])->name('store');
     Route::get('/detail/{id}', [App\Http\Controllers\Incident\IncidentController::class, 'detail'])->name('detail');
     Route::patch('/{id}/update', [App\Http\Controllers\Incident\IncidentController::class, 'update'])->name('update');
+    Route::get('/tahapan-chart', [App\Http\Controllers\Incident\IncidentController::class, 'getTahapanChart'])->name('tahapan-chart');
+    Route::get('/kategori-chart', [App\Http\Controllers\Incident\IncidentController::class, 'getKategoriInsidenChart'])->name('kategori-chart');
+    Route::get('/status-chart', [App\Http\Controllers\Incident\IncidentController::class, 'getStatusInsidenChart'])->name('status-chart');
 });
 
 // API Routes for dropdown data

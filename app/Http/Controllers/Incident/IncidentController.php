@@ -299,4 +299,172 @@ class IncidentController extends Controller
             return 0;
         }
     }
+
+    /**
+     * Get insiden data grouped by tahapan for chart visualization
+     */
+    public function getTahapanChart()
+    {
+        try {
+            // Get all tahapan from master table
+            $allTahapan = Tahapan::all();
+
+            // Base query for insiden
+            $query = Insiden::query();
+
+            // For puskesmas users, only show their own insiden
+            if (auth()->user()->role_id == 1) {
+                $query->where('puskesmas_id', auth()->user()->puskesmas_id);
+            }
+
+            // Get insiden counts grouped by tahapan_id
+            $insidenCounts = $query->selectRaw('COALESCE(tahapan_id, 0) as tahapan_id, COUNT(*) as count')
+                                  ->groupBy('tahapan_id')
+                                  ->pluck('count', 'tahapan_id')
+                                  ->toArray();
+
+            // Format data for ECharts - include all tahapan even with 0 count
+            $chartData = [];
+            foreach ($allTahapan as $tahapan) {
+                $count = $insidenCounts[$tahapan->id] ?? 0;
+                $chartData[] = [
+                    'name' => $tahapan->tahapan,
+                    'value' => $count
+                ];
+            }
+
+            // Add count for insiden without tahapan (null tahapan_id -> converted to 0)
+            $nullCount = $insidenCounts[0] ?? 0;
+            if ($nullCount > 0) {
+                $chartData[] = [
+                    'name' => 'Belum Ditentukan',
+                    'value' => $nullCount
+                ];
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $chartData
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching tahapan chart data: ' . $e->getMessage(),
+                'data' => []
+            ], 500);
+        }
+    }
+
+    /**
+     * Get insiden data grouped by kategori insiden for chart visualization
+     */
+    public function getKategoriInsidenChart()
+    {
+        try {
+            // Get all kategori insiden from master table
+            $allKategori = KategoriInsiden::all();
+
+            // Base query for insiden
+            $query = Insiden::query();
+
+            // For puskesmas users, only show their own insiden
+            if (auth()->user()->role_id == 1) {
+                $query->where('puskesmas_id', auth()->user()->puskesmas_id);
+            }
+
+            // Get insiden counts grouped by kategori_id
+            $insidenCounts = $query->selectRaw('COALESCE(kategori_id, 0) as kategori_id, COUNT(*) as count')
+                                  ->groupBy('kategori_id')
+                                  ->pluck('count', 'kategori_id')
+                                  ->toArray();
+
+            // Format data for ECharts - include all kategori even with 0 count
+            $chartData = [];
+            foreach ($allKategori as $kategori) {
+                $count = $insidenCounts[$kategori->id] ?? 0;
+                $chartData[] = [
+                    'name' => $kategori->kategori,
+                    'value' => $count
+                ];
+            }
+
+            // Add count for insiden without kategori (null kategori_id -> converted to 0)
+            $nullCount = $insidenCounts[0] ?? 0;
+            if ($nullCount > 0) {
+                $chartData[] = [
+                    'name' => 'Belum Dikategorikan',
+                    'value' => $nullCount
+                ];
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $chartData
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching kategori insiden chart data: ' . $e->getMessage(),
+                'data' => []
+            ], 500);
+        }
+    }
+
+    /**
+     * Get insiden data grouped by status for chart visualization
+     */
+    public function getStatusInsidenChart()
+    {
+        try {
+            // Get all status insiden from master table
+            $allStatus = StatusInsiden::all();
+
+            // Base query for insiden
+            $query = Insiden::query();
+
+            // For puskesmas users, only show their own insiden
+            if (auth()->user()->role_id == 1) {
+                $query->where('puskesmas_id', auth()->user()->puskesmas_id);
+            }
+
+            // Get insiden counts grouped by status_id
+            $insidenCounts = $query->selectRaw('COALESCE(status_id, 0) as status_id, COUNT(*) as count')
+                                  ->groupBy('status_id')
+                                  ->pluck('count', 'status_id')
+                                  ->toArray();
+
+            // Format data for ECharts - include all status even with 0 count
+            $chartData = [];
+            foreach ($allStatus as $status) {
+                $count = $insidenCounts[$status->id] ?? 0;
+                $chartData[] = [
+                    'name' => $status->status, // Use status field as confirmed by existing API
+                    'value' => $count
+                ];
+            }
+
+            // Add count for insiden without status (null status_id -> converted to 0)
+            $nullCount = $insidenCounts[0] ?? 0;
+            if ($nullCount > 0) {
+                $chartData[] = [
+                    'name' => 'Belum Ditentukan',
+                    'value' => $nullCount
+                ];
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $chartData
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching status insiden chart data: ' . $e->getMessage(),
+                'data' => []
+            ], 500);
+        }
+    }
 }
