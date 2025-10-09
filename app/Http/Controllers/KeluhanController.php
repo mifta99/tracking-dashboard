@@ -166,4 +166,56 @@ class KeluhanController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Get keluhan data grouped by kategori for chart visualization
+     */
+    public function getKategoriChart()
+    {
+        try {
+            // Base query for keluhan
+            $query = Keluhan::with(['kategoriKeluhan']);
+
+            // For puskesmas users, only show their own keluhan
+            if (auth()->user()->role_id == 1) {
+                $query->where('puskesmas_id', auth()->user()->puskesmas_id);
+            }
+
+            $keluhan = $query->get();
+
+            // Group by kategori and count
+            $kategoriCounts = [];
+            
+            foreach ($keluhan as $item) {
+                if ($item->kategoriKeluhan) {
+                    $kategoriName = $item->kategoriKeluhan->kategori;
+                    $kategoriCounts[$kategoriName] = ($kategoriCounts[$kategoriName] ?? 0) + 1;
+                } else {
+                    // Count null/empty kategori as "Belum Dikategorikan"
+                    $kategoriCounts['Belum Dikategorikan'] = ($kategoriCounts['Belum Dikategorikan'] ?? 0) + 1;
+                }
+            }
+
+            // Format data for ECharts pie chart
+            $chartData = [];
+            foreach ($kategoriCounts as $kategori => $count) {
+                $chartData[] = [
+                    'name' => $kategori,
+                    'value' => $count
+                ];
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $chartData
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching kategori chart data: ' . $e->getMessage(),
+                'data' => []
+            ], 500);
+        }
+    }
 }

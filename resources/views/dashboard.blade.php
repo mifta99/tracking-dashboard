@@ -15,8 +15,8 @@
                     {{ session('status') }}
                 </div>
             @endif
-            <div class="bg-primary text-white p-1 rounded ps-1 font-weight-bold mb-3">
-                Distribusi Jumlah Alat Kesehatan
+            <div class="bg-primary text-white p-3 rounded ps-1 font-weight-bold mb-3">
+                Distribusi Jumlah Pengiriman
             </div>
             <div class="row">
                 <div class="col-lg-3 col-md-6 col-sm-6 col-12">
@@ -129,7 +129,7 @@
                     </div>
                 </div>
             </div>
-            <div class="bg-primary text-white p-1 rounded ps-1 font-weight-bold mb-3">
+            <div class="bg-primary text-white p-3 rounded ps-1 font-weight-bold mb-3">
                Data Pengiriman
             </div>
 
@@ -278,10 +278,10 @@
     <!-- DataTables JS -->
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
-    
+
     <!-- ECharts (Pie Chart Replacement for Highcharts) -->
     <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
-    
+
     <script>
     $(document).ready(function () {
         'use strict';
@@ -353,7 +353,7 @@
                                     @php
                                         $statusText = ucfirst(str_replace("_", " ", $status));
                                         $badgeClass = 'badge-secondary';
-                                        
+
                                         // Match colors with verification request index
                                         switch($status) {
                                             case 'Pengemasan':
@@ -544,7 +544,7 @@
             const mockValues = generateMockData();
             trackingValues.splice(0, trackingValues.length, ...mockValues);
             renderTrackingChart(currentTrackingMode);
-        
+
         }
         $(document).ready(function() {
             setTimeout(() => {
@@ -552,7 +552,7 @@
             }, 100);
         });
 
-        
+
         let trackingChartInstance = null;
         let currentTrackingMode = 'cascade';
 

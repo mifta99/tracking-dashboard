@@ -167,4 +167,101 @@ class RaisedIssueController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Update laporan keluhan (only accessible by puskesmas users and only when status is 'Baru')
+     */
+    public function updateLaporan(Request $request, $id): JsonResponse
+    {
+        // Check if user is puskesmas
+        if (auth()->user()->role->role_name !== 'puskesmas') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Akses ditolak. Hanya pengguna puskesmas yang dapat mengedit laporan keluhan.'
+            ], 403);
+        }
+
+        $keluhan = Keluhan::find($id);
+        if (!$keluhan) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Keluhan tidak ditemukan.'
+            ], 404);
+        }
+
+        // Check if keluhan belongs to the user's puskesmas
+        if ($keluhan->puskesmas_id != auth()->user()->puskesmas_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Akses ditolak. Anda hanya dapat mengedit keluhan dari puskesmas Anda.'
+            ], 403);
+        }
+
+        // Check if status is still 'Baru' (status_id = 1)
+        if ($keluhan->status_id != 1) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Keluhan hanya dapat diedit jika status masih "Baru".'
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'reported_subject' => 'required|string|max:255',
+            'reported_issue' => 'required|string|max:1000',
+            'bukti_dokumentasi' => 'nullable|array|max:5',
+            'bukti_dokumentasi.*' => 'file|mimes:jpeg,jpg,png|max:5120', // 5MB per file
+        ], [
+            'reported_subject.required' => 'Judul keluhan wajib diisi',
+            'reported_subject.max' => 'Judul maksimal 255 karakter',
+            'reported_issue.required' => 'Deskripsi keluhan wajib diisi',
+            'reported_issue.max' => 'Deskripsi maksimal 1000 karakter',
+            'bukti_dokumentasi.max' => 'Maksimal 5 file dokumentasi',
+            'bukti_dokumentasi.*.mimes' => 'File harus berformat JPG atau PNG',
+            'bukti_dokumentasi.*.max' => 'Ukuran file maksimal 5MB',
+        ]);
+
+        try {
+            // Update the keluhan record
+            $keluhan->update([
+                'reported_subject' => $validated['reported_subject'],
+                'reported_issue' => $validated['reported_issue'],
+            ]);
+
+            // Handle file uploads if present - replace existing documentation
+            if ($request->hasFile('bukti_dokumentasi')) {
+                // Delete old documentation files and records
+                foreach ($keluhan->dokumentasiKeluhan as $oldDoc) {
+                    // Delete file from storage if it exists
+                    $fullPath = storage_path('app/public/' . $oldDoc->link_foto);
+                    if (file_exists($fullPath)) {
+                        unlink($fullPath);
+                    }
+                    $oldDoc->delete();
+                }
+
+                // Upload new files
+                foreach ($request->file('bukti_dokumentasi') as $index => $file) {
+                    $filename = time() . '_' . $index . '_' . $file->getClientOriginalName();
+                    $path = $file->storeAs('keluhan-documentation', $filename, 'public');
+
+                    // Create new documentation record
+                    $keluhan->dokumentasiKeluhan()->create([
+                        'link_foto' => $path,
+                    ]);
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Laporan keluhan berhasil diperbarui.'
+            ], 200);
+
+        } catch (\Exception $e) {
+            Log::error('Error updating laporan keluhan: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat memperbarui laporan keluhan. Silakan coba lagi.'
+            ], 500);
+        }
+    }
 }

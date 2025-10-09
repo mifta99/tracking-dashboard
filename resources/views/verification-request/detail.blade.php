@@ -3026,17 +3026,6 @@ $(document).ready(function() {
                             case 'lainnya':
                                 badgeClass = 'badge-kategori-lainnya';
                                 break;
-                            // Fallback for simple categories
-                            case 'rendah':
-                                badgeClass = 'badge-info';
-                                break;
-                            case 'sedang':
-                                badgeClass = 'badge-warning';
-                                break;
-                            case 'tinggi':
-                            case 'kritis':
-                                badgeClass = 'badge-danger';
-                                break;
                             default:
                                 badgeClass = 'badge-secondary';
                                 break;
@@ -3052,15 +3041,9 @@ $(document).ready(function() {
                         const statusLower = (data || '').toLowerCase();
 
                         switch (statusLower) {
-                            case 'open':
-                            case 'buka':
-                                badgeClass = 'badge-danger';
-                                break;
-                            case 'in_progress':
-                            case 'proses':
+                            case 'proses penyelesaian':
                                 badgeClass = 'badge-warning';
                                 break;
-                            case 'closed':
                             case 'selesai':
                                 badgeClass = 'badge-success';
                                 break;
@@ -3437,7 +3420,7 @@ $(document).ready(function() {
             success: function(data) {
                 let options = '<option value="">Pilih Kategori Insiden</option>';
                 data.forEach(function(item) {
-                    options += `<option value="${item.id}">${item.name}</option>`;
+                    options += `<option value="${item.id}">${item.kategori}</option>`;
                 });
                 $('#kategori_id').html(options);
             },

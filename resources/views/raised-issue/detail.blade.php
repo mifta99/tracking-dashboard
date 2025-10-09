@@ -44,9 +44,70 @@
     <div class="row">
         <div class="col-12">
             <div class="card shadow-sm border-0 raised-issue-detail">
-                <div class="card-header border-0" style="background-color: #ce8220; color: #fff;">
+                <div class="card-header border-0 d-flex align-items-center" style="background-color: #ce8220; color: #fff;">
                     <h3 class="card-title mb-0">Rincian Keluhan</h3>
+                    @if(auth()->user() && auth()->user()->role->role_name == 'puskesmas' && $issue->status_id == 1)
+                    <button class="btn btn-sm ml-auto" style="background-color: #ce8220; color: #fff;" data-toggle="modal" data-target="#editLaporanKeluhanModal">
+                        <i class="fas fa-edit"></i> Edit Laporan Keluhan
+                    </button>
+                    @endif
                 </div>
+    <!-- Edit Laporan Keluhan Modal -->
+    @if(auth()->user() && auth()->user()->role->role_name == 'puskesmas' && $issue->status_id == 1)
+    <div class="modal fade" id="editLaporanKeluhanModal" tabindex="-1" role="dialog" aria-labelledby="editLaporanKeluhanModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header" style="background-color: #ce8220; color: #fff;">
+                    <h5 class="modal-title" id="editLaporanKeluhanModalLabel">Edit Laporan Keluhan</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form id="editLaporanKeluhanForm" action="{{ route('raised-issue.update-laporan', $issue->id) }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    @method('PUT')
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="reported_subject">Judul Keluhan</label>
+                            <input type="text" class="form-control" id="reported_subject" name="reported_subject" value="{{ $issue->reported_subject }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="reported_issue">Deskripsi Detail Keluhan</label>
+                            <textarea class="form-control" id="reported_issue" name="reported_issue" rows="4" required>{{ $issue->reported_issue }}</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="bukti_dokumentasi">Bukti Dokumentasi (bisa upload ulang, file gambar, multiple)</label>
+                            <input type="file" class="form-control-file" id="bukti_dokumentasi" name="bukti_dokumentasi[]" accept="image/*" multiple>
+                            <small class="form-text text-muted">Abaikan jika tidak ingin mengubah dokumentasi.</small>
+                        </div>
+                        @if($documentation->isNotEmpty())
+                        <div class="mb-2">
+                            <label>Dokumentasi Saat Ini:</label>
+                            <div class="row">
+                                @foreach($documentation as $index => $doc)
+                                    @php
+                                        $rawUrl = $doc->link_foto;
+                                        $isAbsolute = $rawUrl && \Illuminate\Support\Str::startsWith($rawUrl, ['http://', 'https://']);
+                                        $url = $isAbsolute ? $rawUrl : ($rawUrl ? asset('storage/' . $rawUrl) : null);
+                                        $fileName = basename($rawUrl ?? '');
+                                    @endphp
+                                    <div class="col-md-3 col-4 mb-2">
+                                        <img src="{{ $url }}" alt="Dokumentasi {{ $index + 1 }}" class="img-thumbnail" style="height:80px;object-fit:cover;">
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                        @endif
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn" style="background-color: #ce8220; color: #fff;">Simpan Perubahan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    @endif
                 <div class="card-body">
                     <div class="row">
                         <div class="col-lg-6">
@@ -140,7 +201,7 @@
                     <div class="row">
                         <div class="col-lg-6">
                             <table class="table table-sm table-borderless table-kv mb-0">
-                                <tr><td>Total Downtime</td><td>{{ $issue->total_downtime . ' Hari' ?? '-' }} </td></tr>
+                                <tr><td>Total Downtime</td><td>{{ $issue->total_downtime ? $issue->total_downtime . ' Hari' : '-' }} </td></tr>
                                 <tr><td>Detail Tindak Lanjut</td><td>{{ $issue->action_taken ?? '-' }}</td></tr>
                                 <tr><td>Catatan</td><td>{{ $issue->catatan ?? '-' }}</td></tr>
                                 <tr><td>Status</td><td>
@@ -475,6 +536,54 @@ $(document).ready(function() {
                 if (response.success) {
                     toastr.success(response.message || 'Tindak lanjut berhasil diperbarui');
                     $('#tindakLanjutModal').modal('hide');
+                    // Reload page to show updated data
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1000);
+                } else {
+                    toastr.error(response.message || 'Terjadi kesalahan');
+                }
+            },
+            error: function(xhr) {
+                let errorMessage = 'Terjadi kesalahan';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
+                } else if (xhr.responseJSON && xhr.responseJSON.errors) {
+                    const errors = Object.values(xhr.responseJSON.errors).flat();
+                    errorMessage = errors.join('<br>');
+                }
+                toastr.error(errorMessage);
+            },
+            complete: function() {
+                submitBtn.prop('disabled', false).text(originalText);
+            }
+        });
+    });
+
+    // Handle Edit Laporan Keluhan form submission
+    $('#editLaporanKeluhanForm').on('submit', function(e) {
+        e.preventDefault();
+
+        const formData = new FormData(this);
+        const submitBtn = $(this).find('button[type="submit"]');
+        const originalText = submitBtn.text();
+
+        // Show loading state
+        submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Menyimpan...');
+
+        $.ajax({
+            url: $(this).attr('action'),
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            success: function(response) {
+                if (response.success) {
+                    toastr.success(response.message || 'Laporan keluhan berhasil diperbarui');
+                    $('#editLaporanKeluhanModal').modal('hide');
                     // Reload page to show updated data
                     setTimeout(() => {
                         location.reload();
