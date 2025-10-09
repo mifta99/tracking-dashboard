@@ -55,6 +55,20 @@
         </div>
     </div>
 
+    <!-- Chart Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header" style="background-color: #6f42c1; color: white;">
+                    <h3 class="card-title mb-0">Distribusi Keluhan Berdasarkan Kategori</h3>
+                </div>
+                <div class="card-body">
+                    <div id="kategoriKeluhanChart" style="width: 100%; height: 400px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="card">
         <div class="card-header text-md font-weight-bold d-flex justify-content-between align-items-center" style="background-color: #ce8220; color: white;">
             <h3 class="card-title mb-0">Data Keluhan Dalam Proses</h3>
@@ -289,6 +303,8 @@
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- ECharts -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
     <script>
         $(function(){
             // Initialize DataTable
@@ -770,7 +786,102 @@
                 loadStatusCounts();
                 table.ajax.reload();
                 completedTable.ajax.reload();
+                loadKategoriChart(); // Refresh chart as well
             };
+
+            // Initialize and load kategori chart
+            let kategoriChart = null;
+
+            function initKategoriChart() {
+                const chartEl = document.getElementById('kategoriKeluhanChart');
+                if (chartEl && !kategoriChart) {
+                    kategoriChart = echarts.init(chartEl, null, { renderer: 'canvas', devicePixelRatio: window.devicePixelRatio || 1 });
+                }
+            }
+
+            function loadKategoriChart() {
+                if (!kategoriChart) {
+                    initKategoriChart();
+                }
+
+                $.ajax({
+                    url: '{{ route('keluhan.kategori-chart') }}',
+                    method: 'GET',
+                    success: function(response) {
+                        if (response.success) {
+                            const chartData = response.data;
+                            
+                            const option = {
+                                title: {
+                                    text: 'Distribusi Keluhan per Kategori',
+                                    left: 'center',
+                                    textStyle: {
+                                        fontSize: 16,
+                                        fontWeight: 'bold'
+                                    }
+                                },
+                                tooltip: {
+                                    trigger: 'item',
+                                    formatter: '{a} <br/>{b}: {c} ({d}%)'
+                                },
+                                legend: {
+                                    orient: 'vertical',
+                                    right: 10,
+                                    top: 'center',
+                                    textStyle: {
+                                        fontSize: 12
+                                    }
+                                },
+                                series: [{
+                                    name: 'Keluhan',
+                                    type: 'pie',
+                                    radius: ['40%', '70%'],
+                                    center: ['40%', '50%'],
+                                    data: chartData,
+                                    emphasis: {
+                                        itemStyle: {
+                                            shadowBlur: 10,
+                                            shadowOffsetX: 0,
+                                            shadowColor: 'rgba(0, 0, 0, 0.5)'
+                                        }
+                                    },
+                                    itemStyle: {
+                                        borderRadius: 5,
+                                        borderColor: '#fff',
+                                        borderWidth: 2
+                                    },
+                                    label: {
+                                        show: true,
+                                        formatter: '{b}: {c}'
+                                    },
+                                    labelLine: {
+                                        show: true
+                                    }
+                                }],
+                                color: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8']
+                            };
+
+                            kategoriChart.setOption(option);
+                        } else {
+                            console.error('Failed to load kategori chart data:', response.message);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error loading kategori chart:', error);
+                    }
+                });
+            }
+
+            // Initialize chart on page load
+            initKategoriChart();
+            loadKategoriChart();
+
+            // Handle window resize for responsive charts
+            $(window).on('resize', function() {
+                if (kategoriChart) {
+                    kategoriChart.resize();
+                }
+            });
 
         });
     </script>

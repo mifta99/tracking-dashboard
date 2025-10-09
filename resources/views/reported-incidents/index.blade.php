@@ -8,6 +8,40 @@
 @stop
 
 @section('content')
+    <!-- Charts Section -->
+    <div class="row mb-4">
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header" style="background-color: #17a2b8; color: white;">
+                    <h3 class="card-title mb-0">Distribusi per Tahapan</h3>
+                </div>
+                <div class="card-body">
+                    <div id="tahapanChart" style="width: 100%; height: 300px;"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header" style="background-color: #28a745; color: white;">
+                    <h3 class="card-title mb-0">Distribusi per Kategori</h3>
+                </div>
+                <div class="card-body">
+                    <div id="kategoriInsidenChart" style="width: 100%; height: 300px;"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-12 mb-4">
+            <div class="card">
+                <div class="card-header" style="background-color: #ffc107; color: white;">
+                    <h3 class="card-title mb-0">Distribusi per Status</h3>
+                </div>
+                <div class="card-body">
+                    <div id="statusInsidenChart" style="width: 100%; height: 300px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="card shadow-sm">
         <div class="card-header py-2 pr-1 d-flex align-items-center" style="background:#6f42c1;">
             <span class="section-title-bar text-white" style="font-size:.7rem;font-weight:600;letter-spacing:.5px;text-transform:uppercase;">Data Insiden</span>
@@ -214,6 +248,8 @@
     <!-- DataTables JS -->
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
+    <!-- ECharts -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
 
     <script>
         // Configure toastr options
@@ -550,7 +586,248 @@
                 return true;
             });
 
+            // Initialize Charts
+            let tahapanChart = null;
+            let kategoriInsidenChart = null;
+            let statusInsidenChart = null;
 
+            function initCharts() {
+                // Tahapan Chart
+                const tahapanEl = document.getElementById('tahapanChart');
+                if (tahapanEl && !tahapanChart) {
+                    tahapanChart = echarts.init(tahapanEl, null, { renderer: 'canvas', devicePixelRatio: window.devicePixelRatio || 1 });
+                }
+
+                // Kategori Insiden Chart
+                const kategoriEl = document.getElementById('kategoriInsidenChart');
+                if (kategoriEl && !kategoriInsidenChart) {
+                    kategoriInsidenChart = echarts.init(kategoriEl, null, { renderer: 'canvas', devicePixelRatio: window.devicePixelRatio || 1 });
+                }
+
+                // Status Insiden Chart
+                const statusEl = document.getElementById('statusInsidenChart');
+                if (statusEl && !statusInsidenChart) {
+                    statusInsidenChart = echarts.init(statusEl, null, { renderer: 'canvas', devicePixelRatio: window.devicePixelRatio || 1 });
+                }
+            }
+
+            function loadTahapanChart() {
+                if (!tahapanChart) return;
+
+                $.ajax({
+                    url: '{{ route('insiden.tahapan-chart') }}',
+                    method: 'GET',
+                    success: function(response) {
+                        if (response.success) {
+                            const chartData = response.data;
+                            
+                            const option = {
+                                title: {
+                                    text: 'Tahapan',
+                                    left: 'center',
+                                    textStyle: {
+                                        fontSize: 14,
+                                        fontWeight: 'bold'
+                                    }
+                                },
+                                tooltip: {
+                                    trigger: 'item',
+                                    formatter: '{b}: {c} ({d}%)'
+                                },
+                                legend: {
+                                    orient: 'horizontal',
+                                    bottom: 0,
+                                    textStyle: {
+                                        fontSize: 10
+                                    }
+                                },
+                                series: [{
+                                    name: 'Tahapan',
+                                    type: 'pie',
+                                    radius: '60%',
+                                    center: ['50%', '45%'],
+                                    data: chartData,
+                                    emphasis: {
+                                        itemStyle: {
+                                            shadowBlur: 10,
+                                            shadowOffsetX: 0,
+                                            shadowColor: 'rgba(0, 0, 0, 0.5)'
+                                        }
+                                    },
+                                    itemStyle: {
+                                        borderRadius: 3,
+                                        borderColor: '#fff',
+                                        borderWidth: 1
+                                    },
+                                    label: {
+                                        show: false
+                                    }
+                                }],
+                                color: ['#17a2b8', '#28a745', '#ffc107', '#dc3545', '#6f42c1', '#fd7e14', '#20c997']
+                            };
+
+                            tahapanChart.setOption(option);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error loading tahapan chart:', error);
+                    }
+                });
+            }
+
+            function loadKategoriInsidenChart() {
+                if (!kategoriInsidenChart) return;
+
+                $.ajax({
+                    url: '{{ route('insiden.kategori-chart') }}',
+                    method: 'GET',
+                    success: function(response) {
+                        if (response.success) {
+                            const chartData = response.data;
+                            
+                            const option = {
+                                title: {
+                                    text: 'Kategori',
+                                    left: 'center',
+                                    textStyle: {
+                                        fontSize: 14,
+                                        fontWeight: 'bold'
+                                    }
+                                },
+                                tooltip: {
+                                    trigger: 'axis',
+                                    axisPointer: {
+                                        type: 'shadow'
+                                    }
+                                },
+                                xAxis: {
+                                    type: 'value',
+                                    axisLabel: {
+                                        fontSize: 10
+                                    }
+                                },
+                                yAxis: {
+                                    type: 'category',
+                                    data: chartData.map(item => item.name),
+                                    axisLabel: {
+                                        fontSize: 9,
+                                        interval: 0,
+                                        formatter: function(value) {
+                                            if (value.length > 15) {
+                                                return value.substring(0, 15) + '...';
+                                            }
+                                            return value;
+                                        }
+                                    }
+                                },
+                                series: [{
+                                    name: 'Jumlah',
+                                    type: 'bar',
+                                    data: chartData.map(item => item.value),
+                                    itemStyle: {
+                                        color: '#28a745',
+                                        borderRadius: [0, 3, 3, 0]
+                                    },
+                                    label: {
+                                        show: true,
+                                        position: 'right',
+                                        fontSize: 10
+                                    }
+                                }],
+                                grid: {
+                                    left: '10%',
+                                    right: '10%',
+                                    bottom: '10%',
+                                    top: '20%',
+                                    containLabel: true
+                                }
+                            };
+
+                            kategoriInsidenChart.setOption(option);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error loading kategori insiden chart:', error);
+                    }
+                });
+            }
+
+            function loadStatusInsidenChart() {
+                if (!statusInsidenChart) return;
+
+                $.ajax({
+                    url: '{{ route('insiden.status-chart') }}',
+                    method: 'GET',
+                    success: function(response) {
+                        if (response.success) {
+                            const chartData = response.data;
+                            
+                            const option = {
+                                title: {
+                                    text: 'Status',
+                                    left: 'center',
+                                    textStyle: {
+                                        fontSize: 14,
+                                        fontWeight: 'bold'
+                                    }
+                                },
+                                tooltip: {
+                                    trigger: 'item',
+                                    formatter: '{b}: {c} ({d}%)'
+                                },
+                                legend: {
+                                    orient: 'horizontal',
+                                    bottom: 0,
+                                    textStyle: {
+                                        fontSize: 10
+                                    }
+                                },
+                                series: [{
+                                    name: 'Status',
+                                    type: 'pie',
+                                    radius: ['30%', '60%'],
+                                    center: ['50%', '45%'],
+                                    data: chartData,
+                                    emphasis: {
+                                        itemStyle: {
+                                            shadowBlur: 10,
+                                            shadowOffsetX: 0,
+                                            shadowColor: 'rgba(0, 0, 0, 0.5)'
+                                        }
+                                    },
+                                    itemStyle: {
+                                        borderRadius: 3,
+                                        borderColor: '#fff',
+                                        borderWidth: 1
+                                    },
+                                    label: {
+                                        show: false
+                                    }
+                                }],
+                                color: ['#ffc107', '#dc3545', '#28a745', '#6c757d']
+                            };
+
+                            statusInsidenChart.setOption(option);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error loading status insiden chart:', error);
+                    }
+                });
+            }
+
+            // Initialize charts
+            initCharts();
+            loadTahapanChart();
+            loadKategoriInsidenChart();
+            loadStatusInsidenChart();
+
+            // Handle window resize for responsive charts
+            $(window).on('resize', function() {
+                if (tahapanChart) tahapanChart.resize();
+                if (kategoriInsidenChart) kategoriInsidenChart.resize();
+                if (statusInsidenChart) statusInsidenChart.resize();
+            });
 
         });
     </script>
