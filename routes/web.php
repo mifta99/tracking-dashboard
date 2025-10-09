@@ -135,6 +135,7 @@ Route::prefix('raised-issue')->name('raised-issue.')->group(function () {
     });
      Route::middleware(['auth', 'roles:1'])->group(function () {
         Route::post('/store', [App\Http\Controllers\RaisedIssue\RaisedIssueController::class, 'store'])->name('store');
+        Route::put('/{id}/update-laporan', [App\Http\Controllers\RaisedIssue\RaisedIssueController::class, 'updateLaporan'])->name('update-laporan');
     });
 });
 
