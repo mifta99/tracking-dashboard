@@ -24,7 +24,7 @@ class PuskesmasProfileController extends Controller
         $user = Auth::user();
         
         // Ensure this is a puskesmas user
-        if ($user->role_id !== 1) {
+        if ($user->role_id != 1) {
             return redirect()->back()->with('error', 'Unauthorized access.');
         }
         
@@ -39,7 +39,7 @@ class PuskesmasProfileController extends Controller
         $user = User::find(Auth::id());
         
         // Ensure this is a puskesmas user
-        if ($user->role_id !== 1) {
+        if ($user->role_id != 1) {
             return response()->json(['error' => 'Unauthorized access.'], 403);
         }
         
@@ -49,7 +49,7 @@ class PuskesmasProfileController extends Controller
         }
         
         // Check if email has changed and require verification before updating
-        $emailChanged = $request->email !== $user->email;
+        $emailChanged = $request->email != $user->email;
         
         if ($emailChanged) {
             // Email has changed - require verification before allowing profile update
@@ -67,7 +67,7 @@ class PuskesmasProfileController extends Controller
             }
             
             // Check if the user's current email matches the verification email and is verified
-            if ($user->email !== $request->email || !$user->hasVerifiedEmail()) {
+            if ($user->email != $request->email || !$user->hasVerifiedEmail()) {
                 return response()->json([
                     'error' => 'Email belum diverifikasi',
                     'message' => 'Anda harus memasukkan kode verifikasi yang benar sebelum dapat mengubah profile.',
@@ -115,7 +115,7 @@ class PuskesmasProfileController extends Controller
         
         try {
             // Check if email has changed
-            $emailChanged = $request->email !== $user->email;
+            $emailChanged = $request->email != $user->email;
             
             // Update user profile
             $user->name = $request->name;
