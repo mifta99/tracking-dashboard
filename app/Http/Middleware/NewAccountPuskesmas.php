@@ -14,11 +14,11 @@ class NewAccountPuskesmas
     {
         $puskesmasPassword =   Puskesmas::where('id', auth()->user()->puskesmas_id)
             ->first();
-        if(auth()->check() && Hash::check($puskesmasPassword->npsn, auth()->user()->password)){
+        if(auth()->check() && Hash::check($puskesmasPassword->id, auth()->user()->password)){
             if(auth()->user()->is_new_account){
                 return $next($request);
             } else {
-                return redirect('dashboard-puskesmas');
+                return redirect('/');
             }
         }
 
