@@ -16,6 +16,7 @@ class CreateUjiFungsiTable extends Migration
         Schema::create('uji_fungsi', function (Blueprint $table) {
             $table->integer('id')->autoIncrement()->unsigned();
             $table->string('puskesmas_id', 13);
+            $table->integer('equipment_id')->nullable()->unsigned();
             $table->date('target_tgl_uji_fungsi')->nullable();
             $table->date('tgl_instalasi')->nullable();
             $table->string('doc_instalasi')->nullable();
@@ -40,6 +41,7 @@ class CreateUjiFungsiTable extends Migration
 
         Schema::table('uji_fungsi', function (Blueprint $table) {
             $table->foreign('puskesmas_id')->references('id')->on('puskesmas');
+            $table->foreign('equipment_id')->references('id')->on('equipment');
             $table->foreign('created_by')->references('id')->on('users');
             $table->foreign('updated_by')->references('id')->on('users');
         });

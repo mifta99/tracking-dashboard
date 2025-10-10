@@ -22,6 +22,7 @@ class Keluhan extends Model
     protected $fillable = [
         'id',
         'puskesmas_id',
+        'equipment_id',
         'kategori_id',
         'opsi_keluhan_id',
         'status_id',
@@ -48,6 +49,7 @@ class Keluhan extends Model
      */
     protected $casts = [
         'id' => 'integer',
+        'equipment_id' => 'integer',
         'kategori_id' => 'integer',
         'status_id' => 'integer',
         'reported_by' => 'integer',
@@ -115,6 +117,16 @@ class Keluhan extends Model
     public function opsiKeluhan(): BelongsTo
     {
         return $this->belongsTo(OpsiKeluhan::class, 'opsi_keluhan_id', 'id');
+    }
+
+    /**
+     * Get the equipment that owns the Keluhan
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function equipment(): BelongsTo
+    {
+        return $this->belongsTo(Equipment::class, 'equipment_id', 'id');
     }
 
 }

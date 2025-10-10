@@ -16,6 +16,7 @@ class CreateDocumentsTable extends Migration
         Schema::create('documents', function (Blueprint $table) {
             $table->integer('id')->autoIncrement()->unsigned();
             $table->string('puskesmas_id', 13);
+            $table->integer('equipment_id')->nullable()->unsigned();
             $table->string('basto')->nullable();
             $table->boolean('is_verified_basto')->default(false);
             $table->timestamp('verified_at_basto')->nullable();
@@ -41,6 +42,7 @@ class CreateDocumentsTable extends Migration
 
         Schema::table('documents', function (Blueprint $table) {
             $table->foreign('puskesmas_id')->references('id')->on('puskesmas');
+            $table->foreign('equipment_id')->references('id')->on('equipment');
             $table->foreign('created_by')->references('id')->on('users');
             $table->foreign('updated_by')->references('id')->on('users');
         });

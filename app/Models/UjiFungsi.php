@@ -21,6 +21,7 @@ class UjiFungsi extends Model
     protected $fillable = [
         'id',
         'puskesmas_id',
+        'equipment_id',
         'target_tgl_uji_fungsi',
         'tgl_instalasi',
         'doc_instalasi',
@@ -48,6 +49,7 @@ class UjiFungsi extends Model
      */
     protected $casts = [
         'id' => 'integer',
+        'equipment_id' => 'integer',
         'target_tgl_uji_fungsi' => 'date',
         'tgl_instalasi' => 'date',
         'tgl_pelatihan' => 'date',
@@ -92,6 +94,16 @@ class UjiFungsi extends Model
     public function updater(): BelongsTo
     {
         return $this->belongsTo(User::class, 'updated_by', 'id');
+    }
+
+    /**
+     * Get the equipment that owns the UjiFungsi
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function equipment(): BelongsTo
+    {
+        return $this->belongsTo(Equipment::class, 'equipment_id', 'id');
     }
 
 }

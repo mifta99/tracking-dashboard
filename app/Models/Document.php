@@ -20,6 +20,7 @@ class Document extends Model
     protected $fillable = [
         'id',
         'puskesmas_id',
+        'equipment_id',
         'basto',
         'is_verified_basto',
         'verified_at_basto',
@@ -48,6 +49,7 @@ class Document extends Model
      */
     protected $casts = [
         'id' => 'integer',
+        'equipment_id' => 'integer',
         'verif_kemenkes' => 'boolean',
         'tgl_verif_kemenkes' => 'datetime',
         'verif_kemenkes_update_aspak' => 'boolean',
@@ -92,5 +94,15 @@ class Document extends Model
     public function updater(): BelongsTo
     {
         return $this->belongsTo(User::class, 'updated_by', 'id');
+    }
+
+    /**
+     * Get the equipment that owns the Document
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function equipment(): BelongsTo
+    {
+        return $this->belongsTo(Equipment::class, 'equipment_id', 'id');
     }
 }

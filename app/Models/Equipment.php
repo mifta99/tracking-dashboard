@@ -65,4 +65,54 @@ class Equipment extends Model
         return $this->hasMany(Kalibrasi::class, 'equipment_id', 'id');
     }
 
+    /**
+     * Get all of the documents for the Equipment
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function documents(): HasMany
+    {
+        return $this->hasMany(Document::class, 'equipment_id', 'id');
+    }
+
+    /**
+     * Get the insiden that owns the Equipment
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function insiden(): HasMany
+    {
+        return $this->hasMany(Insiden::class, 'equipment_id', 'id');
+    }
+
+    /**
+     * Get all of the keluhan for the Equipment
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function keluhan(): HasMany
+    {
+        return $this->hasMany(Keluhan::class, 'equipment_id', 'id');
+    }
+
+    /**
+     * Get all of the pengiriman for the Equipment
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function pengiriman(): HasMany
+    {
+        return $this->hasMany(Pengiriman::class, 'equipment_id', 'id');
+    }
+
+    /**
+     * Get all of the ujiFungsi for the Equipment
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function ujiFungsi(): HasMany
+    {
+        return $this->hasMany(UjiFungsi::class, 'equipment_id', 'id');
+    }
+
 }

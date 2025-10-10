@@ -16,6 +16,7 @@ class CreateInsidenTable extends Migration
         Schema::create('insiden', function (Blueprint $table) {
             $table->integer('id')->autoIncrement()->unsigned();
             $table->string('puskesmas_id', 13);
+            $table->integer('equipment_id')->nullable()->unsigned();
             $table->integer('tahapan_id')->unsigned();
             $table->integer('status_id')->unsigned();
             $table->integer('kategori_id')->unsigned();
@@ -47,6 +48,7 @@ class CreateInsidenTable extends Migration
 
         Schema::table('insiden', function (Blueprint $table) {
             $table->foreign('puskesmas_id')->references('id')->on('puskesmas');
+            $table->foreign('equipment_id')->references('id')->on('equipment');
             $table->foreign('tahapan_id')->references('id')->on('tahapan');
             $table->foreign('status_id')->references('id')->on('status_insiden');
             $table->foreign('kategori_id')->references('id')->on('kategori_insidens');

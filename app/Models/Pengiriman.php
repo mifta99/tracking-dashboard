@@ -20,6 +20,7 @@ class Pengiriman extends Model
     protected $fillable = [
         'id',
         'puskesmas_id',
+        'equipment_id',
         'tgl_pengiriman',
         'eta',
         'resi',
@@ -47,6 +48,7 @@ class Pengiriman extends Model
      */
     protected $casts = [
         'id' => 'integer',
+        'equipment_id' => 'integer',
         'tgl_pengiriman' => 'date',
         'eta' => 'date',
         'target_tgl' => 'date',
@@ -88,10 +90,6 @@ class Pengiriman extends Model
     {
         return $this->belongsTo(User::class, 'created_by', 'id');
     }
-        public function equipment(): BelongsTo
-    {
-        return $this->belongsTo(Equipment::class, 'puskesmas_id', 'puskesmas_id');
-    }
 
     /**
      * Get the user that owns the Pengiriman
@@ -103,5 +101,14 @@ class Pengiriman extends Model
         return $this->belongsTo(User::class, 'updated_by', 'id');
     }
 
+    /**
+     * Get the equipment that owns the Pengiriman
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function equipment(): BelongsTo
+    {
+        return $this->belongsTo(Equipment::class, 'equipment_id', 'id');
+    }
 
 }
