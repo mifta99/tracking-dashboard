@@ -5,10 +5,12 @@ namespace App\Http\Controllers\RaisedIssue;
 use App\Http\Controllers\Controller;
 use App\Models\KategoriKeluhan;
 use App\Models\Keluhan;
+use App\Models\OpsiKeluhan;
 use App\Models\Puskesmas;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class RaisedIssueController extends Controller
 {
@@ -25,25 +27,48 @@ class RaisedIssueController extends Controller
         $validated = $request->validate([
             'issue_subject' => 'required|string|max:255',
             'issue_description' => 'required|string|max:1000',
-            'documentation' => 'nullable|array|max:5',
+            'opsi_keluhan_id' => 'required|exists:opsi_keluhan,id',
+            'kategori_id' => 'nullable|exists:kategori_keluhan,id',
+            'reported_name' => 'required|string|max:255',
+            'reported_hp' => 'required|string|max:20',
+            'documentation' => 'required|array|min:1|max:5',
             'documentation.*' => 'file|mimes:jpeg,jpg,png|max:5120', // 5MB per file
         ], [
-            'issue_subject.required' => 'Judul keluhan wajib diisi',
-            'issue_subject.max' => 'Judul maksimal 255 karakter',
+            'issue_subject.required' => 'Ringkasan keluhan wajib diisi',
+            'issue_subject.max' => 'Ringkasan maksimal 255 karakter',
             'issue_description.required' => 'Deskripsi keluhan wajib diisi',
             'issue_description.max' => 'Deskripsi maksimal 1000 karakter',
+            'opsi_keluhan_id.required' => 'Opsi keluhan wajib dipilih',
+            'opsi_keluhan_id.exists' => 'Opsi keluhan tidak valid',
+            'kategori_id.exists' => 'Kategori keluhan tidak valid',
+            'reported_name.required' => 'Nama pelapor wajib diisi',
+            'reported_name.max' => 'Nama pelapor maksimal 255 karakter',
+            'reported_hp.required' => 'Nomor HP pelapor wajib diisi',
+            'reported_hp.max' => 'Nomor HP pelapor maksimal 20 karakter',
+            'documentation.required' => 'Dokumentasi wajib diunggah',
+            'documentation.min' => 'Minimal 1 file dokumentasi harus diunggah',
             'documentation.max' => 'Maksimal 5 file dokumentasi',
             'documentation.*.mimes' => 'File harus berformat JPG atau PNG',
             'documentation.*.max' => 'Ukuran file maksimal 5MB',
         ]);
 
         try {
+            // Get kategori_id from selected opsi_keluhan if not provided directly
+            $kategoriId = $validated['kategori_id'] ?? null;
+            if (!$kategoriId && $validated['opsi_keluhan_id']) {
+                $opsiKeluhan = OpsiKeluhan::find($validated['opsi_keluhan_id']);
+                $kategoriId = $opsiKeluhan ? $opsiKeluhan->kategori_keluhan_id : null;
+            }
+
             // Create the keluhan record with default values for admin-filled fields
             $keluhan = Keluhan::create([
                 'puskesmas_id' => auth()->user()->puskesmas_id,
                 'reported_subject' => $validated['issue_subject'],
                 'reported_issue' => $validated['issue_description'],
-                'kategori_id' => null,
+                'opsi_keluhan_id' => $validated['opsi_keluhan_id'],
+                'kategori_id' => $kategoriId,
+                'reported_name' => $validated['reported_name'],
+                'reported_hp' => $validated['reported_hp'],
                 'reported_by' => auth()->user()->id,
                 'status_id' => 1, // Default status: new/baru
                 'reported_date' => now(),
@@ -72,13 +97,13 @@ class RaisedIssueController extends Controller
             Log::error('Error storing keluhan: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan saat menyimpan keluhan. Silakan coba lagi.'
+                'message' => $e->getMessage(),
             ], 500);
         }
     }
     public function detail($id)
     {
-        $keluhan = Keluhan::with(['puskesmas', 'kategoriKeluhan', 'statusKeluhan', 'reporter', 'dokumentasiKeluhan'])->find($id);
+        $keluhan = Keluhan::with(['puskesmas', 'kategoriKeluhan', 'statusKeluhan', 'reporter', 'dokumentasiKeluhan', 'opsiKeluhan'])->find($id);
         if (!$keluhan) {
             return redirect()->route('raised-issue.index')->with('error', 'Keluhan tidak ditemukan.');
         }
@@ -87,7 +112,8 @@ class RaisedIssueController extends Controller
             return redirect()->route('raised-issue.index')->with('error', 'Akses ditolak.');
         }
         $kategoriKeluhan = KategoriKeluhan::all();
-        return view('raised-issue.detail', ['issue' => $keluhan, 'kategoriKeluhan' => $kategoriKeluhan]);
+        $opsiKeluhan = OpsiKeluhan::with('kategoriKeluhan')->orderBy('opsi', 'asc')->get();
+        return view('raised-issue.detail', ['issue' => $keluhan, 'kategoriKeluhan' => $kategoriKeluhan, 'opsiKeluhan' => $opsiKeluhan]);
     }
 
     /**
@@ -120,6 +146,7 @@ class RaisedIssueController extends Controller
             'proceed_date' => 'nullable|date',
             'resolved_by' => 'nullable|string|max:255',
             'resolved_date' => 'nullable|date',
+            'doc_selesai' => 'nullable|file|mimes:jpeg,jpg,png,pdf,doc,docx|max:5120',
         ], [
             'kategori_id.exists' => 'Kategori keluhan tidak valid',
             'proceed_date.date' => 'Format tanggal diproses tidak valid',
@@ -129,12 +156,27 @@ class RaisedIssueController extends Controller
             'total_downtime.max' => 'Total downtime maksimal 255 karakter',
             'proceed_by.max' => 'Nama pemroses maksimal 255 karakter',
             'resolved_by.max' => 'Nama penyelesai maksimal 255 karakter',
+            'doc_selesai.file' => 'Dokumen penyelesaian harus berupa file',
+            'doc_selesai.mimes' => 'Dokumen penyelesaian harus berformat: jpeg, jpg, png, pdf, doc, docx',
+            'doc_selesai.max' => 'Dokumen penyelesaian maksimal 5MB',
         ]);
 
         try {
+            // Handle file upload if present
+            $docSelesaiPath = $keluhan->doc_selesai; // Keep existing document path
+            if ($request->hasFile('doc_selesai')) {
+                // Delete old file if it exists
+                if ($keluhan->doc_selesai && Storage::disk('public')->exists($keluhan->doc_selesai)) {
+                    Storage::disk('public')->delete($keluhan->doc_selesai);
+                }
+
+                // Store new file
+                $docSelesaiPath = $request->file('doc_selesai')->store('keluhan/dokumen_selesai', 'public');
+            }
+
             // Determine status automatically based on filled fields
             $status_id = 1; // Default: Baru
-            
+
             if ($validated['resolved_by'] && $validated['resolved_date']) {
                 $status_id = 3; // Selesai
             } elseif ($validated['proceed_by'] || $validated['proceed_date']) {
@@ -152,6 +194,7 @@ class RaisedIssueController extends Controller
                 'resolved_by' => $validated['resolved_by'],
                 'resolved_date' => $validated['resolved_date'],
                 'status_id' => $status_id,
+                'doc_selesai' => $docSelesaiPath,
             ]);
 
             return response()->json([
@@ -208,23 +251,45 @@ class RaisedIssueController extends Controller
         $validated = $request->validate([
             'reported_subject' => 'required|string|max:255',
             'reported_issue' => 'required|string|max:1000',
+            'opsi_keluhan_id' => 'required|exists:opsi_keluhan,id',
+            'kategori_id' => 'nullable|exists:kategori_keluhan,id',
+            'reported_name' => 'required|string|max:255',
+            'reported_hp' => 'required|string|max:20',
             'bukti_dokumentasi' => 'nullable|array|max:5',
             'bukti_dokumentasi.*' => 'file|mimes:jpeg,jpg,png|max:5120', // 5MB per file
         ], [
-            'reported_subject.required' => 'Judul keluhan wajib diisi',
-            'reported_subject.max' => 'Judul maksimal 255 karakter',
+            'reported_subject.required' => 'Ringkasan keluhan wajib diisi',
+            'reported_subject.max' => 'Ringkasan maksimal 255 karakter',
             'reported_issue.required' => 'Deskripsi keluhan wajib diisi',
             'reported_issue.max' => 'Deskripsi maksimal 1000 karakter',
+            'opsi_keluhan_id.required' => 'Opsi keluhan wajib dipilih',
+            'opsi_keluhan_id.exists' => 'Opsi keluhan tidak valid',
+            'kategori_id.exists' => 'Kategori keluhan tidak valid',
+            'reported_name.required' => 'Nama pelapor wajib diisi',
+            'reported_name.max' => 'Nama pelapor maksimal 255 karakter',
+            'reported_hp.required' => 'Nomor HP pelapor wajib diisi',
+            'reported_hp.max' => 'Nomor HP pelapor maksimal 20 karakter',
             'bukti_dokumentasi.max' => 'Maksimal 5 file dokumentasi',
             'bukti_dokumentasi.*.mimes' => 'File harus berformat JPG atau PNG',
             'bukti_dokumentasi.*.max' => 'Ukuran file maksimal 5MB',
         ]);
 
         try {
+            // Get kategori_id from selected opsi_keluhan if not provided directly
+            $kategoriId = $validated['kategori_id'] ?? null;
+            if (!$kategoriId && $validated['opsi_keluhan_id']) {
+                $opsiKeluhan = OpsiKeluhan::find($validated['opsi_keluhan_id']);
+                $kategoriId = $opsiKeluhan ? $opsiKeluhan->kategori_keluhan_id : null;
+            }
+
             // Update the keluhan record
             $keluhan->update([
                 'reported_subject' => $validated['reported_subject'],
                 'reported_issue' => $validated['reported_issue'],
+                'opsi_keluhan_id' => $validated['opsi_keluhan_id'],
+                'kategori_id' => $kategoriId,
+                'reported_name' => $validated['reported_name'],
+                'reported_hp' => $validated['reported_hp'],
             ]);
 
             // Handle file uploads if present - replace existing documentation
