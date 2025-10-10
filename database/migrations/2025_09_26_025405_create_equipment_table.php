@@ -18,6 +18,8 @@ class CreateEquipmentTable extends Migration
             $table->string('puskesmas_id', 13);
             $table->string('serial_number');
             $table->string('name')->nullable();
+            $table->timestamps();
+            $table->softDeletes();
         });
 
         Schema::table('equipment', function (Blueprint $table) {

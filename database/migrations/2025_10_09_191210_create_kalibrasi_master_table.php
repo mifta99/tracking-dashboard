@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateKategoriKeluhanTable extends Migration
+class CreateKalibrasiMasterTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,13 +13,12 @@ class CreateKategoriKeluhanTable extends Migration
      */
     public function up()
     {
-        Schema::create('kategori_keluhan', function (Blueprint $table) {
+        Schema::create('kalibrasi_master', function (Blueprint $table) {
             $table->integer('id')->autoIncrement()->unsigned();
-            $table->string('kategori');
+            $table->integer('kuartal');
+            $table->date('start_period')->nullable();
+            $table->date('end_period')->nullable();
             $table->text('description')->nullable();
-            $table->integer('max_response_time')->nullable();
-            $table->integer('max_technical_time')->nullable();
-            $table->integer('max_resolution_time')->nullable();
         });
     }
 
@@ -30,6 +29,6 @@ class CreateKategoriKeluhanTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('kategori_keluhan');
+        Schema::dropIfExists('kalibrasi_master');
     }
 }

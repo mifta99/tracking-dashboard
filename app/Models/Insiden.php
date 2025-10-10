@@ -21,6 +21,7 @@ class Insiden extends Model
     protected $fillable = [
         'id',
         'puskesmas_id',
+        'equipment_id',
         'tahapan_id',
         'status_id',
         'kategori_id',
@@ -31,6 +32,7 @@ class Insiden extends Model
         'kronologis',
         'tindakan',
         'tgl_selesai',
+        'doc_selesai',
         'rencana_tindakan_koreksi',
         'pelaksana_tindakan_koreksi',
         'tgl_selesai_koreksi',
@@ -54,6 +56,7 @@ class Insiden extends Model
      */
     protected $casts = [
         'id' => 'integer',
+        'equipment_id' => 'integer',
         'tahapan_id' => 'integer',
         'status_id' => 'integer',
         'kategori_id' => 'integer',
@@ -126,4 +129,13 @@ class Insiden extends Model
         return $this->hasMany(DokumentasiInsiden::class, 'insiden_id', 'id');
     }
 
+    /**
+     * Get the equipment that owns the Insiden
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function equipment(): BelongsTo
+    {
+        return $this->belongsTo(Equipment::class, 'equipment_id', 'id');
+    }
 }

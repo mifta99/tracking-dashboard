@@ -5,13 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Equipment extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
     protected $primaryKey = 'id';
-        public $timestamps = false;
+    public $timestamps = false;
 
     /**
      * The attributes that are mass assignable.
@@ -42,6 +43,76 @@ class Equipment extends Model
     public function puskesmas(): BelongsTo
     {
         return $this->belongsTo(Puskesmas::class, 'puskesmas_id', 'id');
+    }
+
+    /**
+     * Get all of the maintenance for the Equipment
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function maintenance(): HasMany
+    {
+        return $this->hasMany(Maintenance::class, 'equipment_id', 'id');
+    }
+
+    /**
+     * Get all of the kalibrasi for the Equipment
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function kalibrasi(): HasMany
+    {
+        return $this->hasMany(Kalibrasi::class, 'equipment_id', 'id');
+    }
+
+    /**
+     * Get all of the documents for the Equipment
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function documents(): HasMany
+    {
+        return $this->hasMany(Document::class, 'equipment_id', 'id');
+    }
+
+    /**
+     * Get the insiden that owns the Equipment
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function insiden(): HasMany
+    {
+        return $this->hasMany(Insiden::class, 'equipment_id', 'id');
+    }
+
+    /**
+     * Get all of the keluhan for the Equipment
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function keluhan(): HasMany
+    {
+        return $this->hasMany(Keluhan::class, 'equipment_id', 'id');
+    }
+
+    /**
+     * Get all of the pengiriman for the Equipment
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function pengiriman(): HasMany
+    {
+        return $this->hasMany(Pengiriman::class, 'equipment_id', 'id');
+    }
+
+    /**
+     * Get all of the ujiFungsi for the Equipment
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function ujiFungsi(): HasMany
+    {
+        return $this->hasMany(UjiFungsi::class, 'equipment_id', 'id');
     }
 
 }

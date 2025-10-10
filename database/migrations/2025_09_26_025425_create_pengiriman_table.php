@@ -16,6 +16,7 @@ class CreatePengirimanTable extends Migration
         Schema::create('pengiriman', function (Blueprint $table) {
             $table->integer('id')->autoIncrement()->unsigned();
             $table->string('puskesmas_id', 13);
+            $table->integer('equipment_id')->nullable()->unsigned();
             $table->date('tgl_pengiriman')->nullable();
             $table->date('eta')->nullable();
             $table->string('resi')->nullable();
@@ -40,6 +41,7 @@ class CreatePengirimanTable extends Migration
 
         Schema::table('pengiriman', function (Blueprint $table) {
             $table->foreign('puskesmas_id')->references('id')->on('puskesmas');
+            $table->foreign('equipment_id')->references('id')->on('equipment');
             $table->foreign('tahapan_id')->references('id')->on('tahapan');
             $table->foreign('created_by')->references('id')->on('users');
             $table->foreign('updated_by')->references('id')->on('users');
