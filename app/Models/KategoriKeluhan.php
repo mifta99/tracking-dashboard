@@ -20,6 +20,10 @@ class KategoriKeluhan extends Model
     protected $fillable = [
         'id',
         'kategori',
+        'description',
+        'max_response_time',
+        'max_technical_time',
+        'max_resolution_time',
     ];
 
     /**
@@ -29,6 +33,9 @@ class KategoriKeluhan extends Model
      */
     protected $casts = [
         'id' => 'integer',
+        'max_response_time' => 'integer',
+        'max_technical_time' => 'integer',
+        'max_resolution_time' => 'integer',
     ];
 
     /**

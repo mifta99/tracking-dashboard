@@ -24,6 +24,9 @@ class CreateInsidenTable extends Migration
             $table->string('bagian')->nullable();
             $table->string('insiden')->nullable();
             $table->text('kronologis')->nullable();
+            $table->text('tindakan')->nullable();
+            $table->date('tgl_selesai')->nullable();
+            $table->string('doc_selesai')->nullable();
             $table->string('rencana_tindakan_koreksi')->nullable();
             $table->string('pelaksana_tindakan_koreksi')->nullable();
             $table->date('tgl_selesai_koreksi')->nullable();

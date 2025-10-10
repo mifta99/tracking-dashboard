@@ -16,6 +16,10 @@ class CreateKategoriKeluhanTable extends Migration
         Schema::create('kategori_keluhan', function (Blueprint $table) {
             $table->integer('id')->autoIncrement()->unsigned();
             $table->string('kategori');
+            $table->text('description')->nullable();
+            $table->integer('max_response_time')->nullable();
+            $table->integer('max_technical_time')->nullable();
+            $table->integer('max_resolution_time')->nullable();
         });
     }
 

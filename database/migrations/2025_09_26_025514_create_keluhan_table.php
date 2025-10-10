@@ -17,6 +17,7 @@ class CreateKeluhanTable extends Migration
             $table->integer('id')->autoIncrement()->unsigned();
             $table->string('puskesmas_id', 13);
             $table->integer('kategori_id')->unsigned();
+            $table->integer('opsi_keluhan_id')->unsigned();
             $table->integer('status_id')->unsigned();
             $table->integer('reported_by')->unsigned()->nullable();
             $table->date('reported_date')->nullable();
@@ -27,6 +28,9 @@ class CreateKeluhanTable extends Migration
             $table->date('resolved_date')->nullable();
             $table->text('action_taken')->nullable();
             $table->text('catatan')->nullable();
+            $table->string('doc_selesai')->nullable();
+            $table->string('reported_name')->nullable();
+            $table->string('reported_hp')->nullable();
             $table->integer('total_downtime')->nullable()->unsigned();
             $table->timestamps();
             $table->softDeletes();
@@ -35,6 +39,7 @@ class CreateKeluhanTable extends Migration
         Schema::table('keluhan', function (Blueprint $table) {
             $table->foreign('puskesmas_id')->references('id')->on('puskesmas');
             $table->foreign('kategori_id')->references('id')->on('kategori_keluhan');
+            $table->foreign('opsi_keluhan_id')->references('id')->on('opsi_keluhan');
             $table->foreign('status_id')->references('id')->on('status_keluhan');
             $table->foreign('reported_by')->references('id')->on('users');
         });
