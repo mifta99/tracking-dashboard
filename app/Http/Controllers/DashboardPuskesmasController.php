@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\KalibrasiMaster;
+use App\Models\MaintenanceMaster;
 use App\Models\OpsiKeluhan;
 use App\Models\Puskesmas;
 use App\Models\Tahapan;
@@ -20,6 +22,11 @@ class DashboardPuskesmasController extends Controller
             'document'
         ])
         ->findOrFail(auth()->user()->puskesmas_id);
+
+        
+        $tahapan = Tahapan::orderBy('tahap_ke')->get();
+        $maintenance = MaintenanceMaster::all();
+        $kalibrasi = KalibrasiMaster::all();
 
         $tahapan = Tahapan::orderBy('tahap_ke')->get();
 
@@ -68,6 +75,8 @@ class DashboardPuskesmasController extends Controller
             'puskesmas' => $puskesmas,
             'tahapan' => $tahapan,
             'revisions' => $revisions,
+            'maintenance' => $maintenance,
+            'kalibrasi' => $kalibrasi,
             'opsiKeluhan' => OpsiKeluhan::with('kategoriKeluhan')->orderBy('opsi', 'asc')->get(),
         ]);
     }
