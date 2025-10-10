@@ -16,9 +16,9 @@ class CreateKalibrasiMasterTable extends Migration
         Schema::create('kalibrasi_master', function (Blueprint $table) {
             $table->integer('id')->autoIncrement()->unsigned();
             $table->integer('kuartal');
-            $table->date('start_period');
-            $table->date('end_period');
-            $table->text('description');
+            $table->date('start_period')->nullable();
+            $table->date('end_period')->nullable();
+            $table->text('description')->nullable();
         });
     }
 
