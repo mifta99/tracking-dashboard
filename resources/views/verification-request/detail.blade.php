@@ -1171,6 +1171,12 @@
         </div>
     </div>
 
+    @if($uji && $uji->tgl_instalasi)
+    @include('verification-request.partials.maintainance')
+    @endif
+
+
+
     <!-- Tracking Delivery Orders -->
     @if(!empty($peng->resi))
     <div class="card shadow-sm mb-4" id="trackingCard" data-initial-do="{{ $peng->resi }}">
@@ -1213,6 +1219,7 @@
         </div>
     </div>
     @endif
+
 
     <!-- Equipment Issue - Only show if tahapan_id is greater than 2 -->
     @if($peng && $peng->tahapan_id && $peng->tahapan_id > 2)

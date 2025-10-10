@@ -192,13 +192,20 @@ class APIVerificationRequestController extends Controller
 
             // Handle equipment creation/update if serial number is provided
             if (!empty($validated['serial_number'])) {
-                Equipment::firstOrCreate(
-                    [
-                        'serial_number' => $validated['serial_number'],
-                        'puskesmas_id' => $puskesmas->id
-                    ],
-                    ['name' => null] // Can be updated later
-                );
+                $equipment = Equipment::where('puskesmas_id', $puskesmas->id)->first();
+                if ($equipment) {
+                    // Update existing equipment
+                    $equipment->update(['serial_number' => $validated['serial_number']]);
+                } else {
+                    // Create new equipment
+                    $equipment = Equipment::firstOrCreate(
+                        [
+                            'serial_number' => $validated['serial_number'],
+                            'puskesmas_id' => $puskesmas->id
+                        ],
+                        ['name' => null] // Can be updated later
+                    );
+                }
             }
 
             // Handle file upload

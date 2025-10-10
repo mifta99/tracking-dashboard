@@ -246,3 +246,15 @@ Route::middleware(['auth', 'roles:4'])->prefix('logistik')->name('logistik.')->g
     Route::get('/get-puskesmas-by-resi/{resi?}', [App\Http\Controllers\LogistikController::class, 'getDataPuskesmasByResi'])->name('get-puskesmas-by-resi');
     Route::post('/upload-bast', [App\Http\Controllers\LogistikController::class, 'uploadBast'])->name('upload-bast');
 });
+
+// Kilat tools: page + APIs
+Route::middleware(['auth'])->prefix('kilat')->name('kilat.')->group(function () {
+    // Page
+    Route::get('/', function () {
+        return view('kilat');
+    })->name('index');
+
+    // APIs
+    Route::post('/api/show', [App\Http\Controllers\ImportData\ImportDataController::class, 'ApiShowKilatAPI'])->name('api.show');
+    Route::post('/api/import', [App\Http\Controllers\ImportData\ImportDataController::class, 'importDataKilatAPI'])->name('api.import');
+});

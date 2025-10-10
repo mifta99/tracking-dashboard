@@ -12,7 +12,7 @@ class Equipment extends Model
 {
     use HasFactory, SoftDeletes;
     protected $primaryKey = 'id';
-    public $timestamps = false;
+    public $timestamps = true;
 
     /**
      * The attributes that are mass assignable.

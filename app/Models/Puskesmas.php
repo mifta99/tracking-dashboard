@@ -23,6 +23,7 @@ class Puskesmas extends Model
     protected $fillable = [
         'id',
         'district_id',
+        'alamat',
         'name',
         'pic',
         'no_hp',

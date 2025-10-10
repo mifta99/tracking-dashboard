@@ -175,6 +175,7 @@ class APIPuskesmasController extends Controller
                 'id' => 'nullable|string|unique:puskesmas,id',
                 'name' => 'required|string|max:255',
                 'district_id' => 'required|exists:districts,id',
+                'alamat' => 'nullable|string|max:500',
                 'no_hp' => 'nullable|string|max:13',
                 'no_hp_alternatif' => 'nullable|string|max:13',
                 'pic' => 'nullable|string|max:255',
@@ -185,6 +186,7 @@ class APIPuskesmasController extends Controller
                 'id.unique' => 'ID puskesmas sudah digunakan',
                 'name.required' => 'Nama puskesmas wajib diisi',
                 'name.max' => 'Nama puskesmas maksimal 255 karakter',
+                'alamat.max' => 'Alamat maksimal 500 karakter',
                 'no_hp.max' => 'Nomor HP maksimal 13 karakter',
                 'no_hp_alternatif.max' => 'Nomor HP Alternatif maksimal 13 karakter',
                 'district_id.required' => 'Kecamatan wajib dipilih',
@@ -216,6 +218,7 @@ class APIPuskesmasController extends Controller
                 'id' => $validated['id'] ?? null,
                 'name' => $validated['name'],
                 'district_id' => $validated['district_id'],
+                'alamat' => $validated['alamat'] ?? null,
                 'pic' => $validated['pic'] ?? null,
                 'no_hp' => $validated['no_hp'] ?? null,
                 'no_hp_alternatif' => $validated['no_hp_alternatif'] ?? null,
@@ -271,6 +274,7 @@ class APIPuskesmasController extends Controller
 
             $validated = $request->validate([
                 'name' => 'sometimes|required|string|max:255',
+                'alamat' => 'nullable|string|max:500',
                 'pic' => 'nullable|string|max:255',
                 'kepala' => 'nullable|string|max:255',
                 'pic_dinkes_prov' => 'nullable|string|max:255',
@@ -280,6 +284,7 @@ class APIPuskesmasController extends Controller
             ], [
                 'name.required' => 'Nama puskesmas wajib diisi',
                 'name.max' => 'Nama puskesmas maksimal 255 karakter',
+                'alamat.max' => 'Alamat maksimal 500 karakter',
                 'pic.max' => 'PIC Puskesmas maksimal 255 karakter',
                 'kepala.max' => 'Kepala Puskesmas maksimal 255 karakter',
                 'pic_dinkes_prov.max' => 'PIC Dinkes Provinsi maksimal 255 karakter',
@@ -290,7 +295,7 @@ class APIPuskesmasController extends Controller
 
             // Only update provided keys
             $dirty = [];
-            foreach (['name','pic','kepala','pic_dinkes_prov','pic_dinkes_kab','no_hp','no_hp_alternatif'] as $field) {
+            foreach (['name','alamat','pic','kepala','pic_dinkes_prov','pic_dinkes_kab','no_hp','no_hp_alternatif'] as $field) {
                 if ($request->has($field)) {
                     $puskesmas->{$field} = $validated[$field] ?? null;
                     $dirty[] = $field;

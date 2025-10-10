@@ -60,6 +60,7 @@
                         <th class="excel-header">Kabupaten</th>
                         <th class="excel-header">Kecamatan</th>
                         <th class="excel-header">Nama Puskesmas</th>
+                        <th class="excel-header">Alamat Puskesmas</th>
                         <th class="excel-header">PIC Puskesmas (Petugas ASPAK)</th>
                         <th class="excel-header">Kepala Puskesmas</th>
                         <th class="excel-header">No HP</th>
@@ -77,6 +78,7 @@
                             <td class="excel-cell align-middle">{{ $item->district->regency->name ?? '-' }}</td>
                             <td class="excel-cell align-middle">{{ $item->district->name ?? '-' }}</td>
                             <td class="excel-cell editable align-middle" data-field="name" contenteditable="false">{{ $item->name ?? '-' }}</td>
+                            <td class="excel-cell editable align-middle" data-field="alamat" contenteditable="false">{{ $item->alamat ?? '-' }}</td>
                             <td class="excel-cell editable align-middle" data-field="pic" contenteditable="false">{{ $item->pic ?? '-' }}</td>
                             <td class="excel-cell editable align-middle" data-field="kepala" contenteditable="false">{{ $item->kepala ?? '-' }}</td>
                             <td class="excel-cell editable align-middle" data-field="no_hp" contenteditable="false">{{ $item->no_hp ?? '-' }}</td>
@@ -158,6 +160,13 @@
                                 <div class="form-group mb-2">
                                     <label class="mb-1">Nama Puskesmas <span class="text-danger">*</span></label>
                                     <input type="text" name="name" id="modal_name" class="form-control" placeholder="Masukkan nama puskesmas...">
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group mb-2">
+                                    <label class="mb-1">Alamat Puskesmas</label>
+                                    <textarea name="alamat" id="modal_alamat" class="form-control" rows="2" placeholder="Alamat lengkap puskesmas..."></textarea>
                                     <div class="invalid-feedback"></div>
                                 </div>
                             </div>
@@ -673,18 +682,19 @@ $(document).ready(function() {
         const tbody = $('#puskesmasTable tbody');
         tbody.empty();
         
-        // Validate header columns (should be 12)
+        // Validate header columns (should be 13)
         const headerCount = $('#puskesmasTable thead th').length;
-        if (headerCount !== 12) {
-            console.error('Header column count is not 12:', headerCount);
+        if (headerCount !== 13) {
+            console.error('Header column count is not 13:', headerCount);
             return;
         }
 
         // Handle data population
         if (!data || data.length === 0) {
-            // For empty data, add a proper row with exact column count (12 columns)
+            // For empty data, add a proper row with exact column count (13 columns)
             tbody.append(`
                 <tr>
+                    <td class="excel-cell text-center">-</td>
                     <td class="excel-cell text-center">-</td>
                     <td class="excel-cell text-center">-</td>
                     <td class="excel-cell text-center">-</td>
@@ -713,6 +723,7 @@ $(document).ready(function() {
                         <td class="excel-cell">${item.kabupaten_kota || '-'}</td>
                         <td class="excel-cell">${item.kecamatan || '-'}</td>
                         <td class="excel-cell editable" data-field="name" contenteditable="false">${item.name || '-'}</td>
+                        <td class="excel-cell editable" data-field="alamat" contenteditable="false">${item.alamat || '-'}</td>
                         <td class="excel-cell editable" data-field="pic" contenteditable="false">${item.pic || '-'}</td>
                         <td class="excel-cell editable" data-field="kepala" contenteditable="false">${item.kepala || '-'}</td>
                         <td class="excel-cell editable" data-field="no_hp" contenteditable="false">${item.no_hp || '-'}</td>
@@ -732,7 +743,7 @@ $(document).ready(function() {
         
         console.log(`Final validation - Header: ${finalHeaderCount}, First row: ${finalRowCount}`);
         
-        if (finalHeaderCount === 12 && (finalRowCount === 0 || finalRowCount === 12)) {
+        if (finalHeaderCount === 13 && (finalRowCount === 0 || finalRowCount === 13)) {
             // Small delay before reinitializing DataTable to ensure DOM is ready
             setTimeout(function() {
                 initializeDataTable();
@@ -751,6 +762,9 @@ $(document).ready(function() {
         tbody.empty();
         tbody.append(`
             <tr>
+                <td class="excel-cell text-center">-</td>
+                <td class="excel-cell text-center">-</td>
+                <td class="excel-cell text-center">-</td>
                 <td class="excel-cell text-center">-</td>
                 <td class="excel-cell text-center">-</td>
                 <td class="excel-cell text-center">-</td>
@@ -841,13 +855,13 @@ $(document).ready(function() {
             
             console.log(`Table structure - Header: ${headerCount} columns, First row: ${firstRowCount} columns, Total rows: ${totalRows}`);
             
-            if (headerCount !== 12) {
-                console.error('Header column count is not 12:', headerCount);
-                throw new Error(`Header should have 12 columns, but has ${headerCount}`);
+            if (headerCount !== 13) {
+                console.error('Header column count is not 13:', headerCount);
+                throw new Error(`Header should have 13 columns, but has ${headerCount}`);
             }
 
-            if (firstRowCount > 0 && firstRowCount !== 12) {
-                console.warn(`First row has ${firstRowCount} columns instead of 12, but continuing...`);
+            if (firstRowCount > 0 && firstRowCount !== 13) {
+                console.warn(`First row has ${firstRowCount} columns instead of 13, but continuing...`);
             }
             
             // Safely destroy existing DataTable
@@ -879,8 +893,8 @@ $(document).ready(function() {
                         "width": "50px"
                     },
                     { "targets": 1, "width": "200px" },
-                    { "targets": [2, 3, 4], "width": "120px" },
-                    { "targets": [5, 6, 7, 8, 9, 10], "width": "150px" }
+                    { "targets": [2, 3, 4, 5], "width": "120px" },
+                    { "targets": [6, 7, 8, 9, 10, 11], "width": "150px" }
                 ],
                 language: {
                     search: "Pencarian:",

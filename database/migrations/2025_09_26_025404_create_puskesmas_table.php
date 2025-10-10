@@ -34,9 +34,6 @@ class CreatePuskesmasTable extends Migration
             $table->string('updated_by')->nullable();
             $table->timestamps();
             $table->softDeletes();
-        });
-
-        Schema::table('puskesmas', function (Blueprint $table) {
             $table->foreign('district_id')->references('id')->on('districts')->onDelete('cascade');
         });
     }

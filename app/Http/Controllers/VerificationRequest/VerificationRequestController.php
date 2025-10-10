@@ -4,6 +4,8 @@ namespace App\Http\Controllers\VerificationRequest;
 
 use App\Http\Controllers\Controller;
 use App\Models\OpsiKeluhan;
+use App\Models\KalibrasiMaster;
+use App\Models\MaintenanceMaster;
 use App\Models\Pengiriman;
 use App\Models\Puskesmas;
 use App\Models\Tahapan;
@@ -289,7 +291,8 @@ class VerificationRequestController extends Controller
         ->findOrFail($id);
 
         $tahapan = Tahapan::orderBy('tahap_ke')->get();
-
+        $maintenance = MaintenanceMaster::all();
+        $kalibrasi = KalibrasiMaster::all();
         // Get revision data for documents - only filter by is_verified = 0
         $revisions = [
             // UjiFungsi document revisions
@@ -335,6 +338,8 @@ class VerificationRequestController extends Controller
             'puskesmas' => $puskesmas,
             'tahapan' => $tahapan,
             'revisions' => $revisions,
+            'maintenance' => $maintenance,
+            'kalibrasi' => $kalibrasi,
             'opsiKeluhan' => OpsiKeluhan::with('kategoriKeluhan')->orderBy('opsi', 'asc')->get(),
         ]);
     }
