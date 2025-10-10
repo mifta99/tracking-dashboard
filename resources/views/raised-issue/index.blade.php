@@ -63,7 +63,23 @@
                     <h3 class="card-title mb-0">Distribusi Keluhan Berdasarkan Kategori</h3>
                 </div>
                 <div class="card-body">
-                    <div id="kategoriKeluhanChart" style="width: 100%; height: 400px;"></div>
+                    <div class="row align-items-end mb-3">
+                        <div class="col-sm-3 col-md-2 mb-2">
+                            <label for="kategori-chart-start-date" class="small font-weight-bold mb-1">Tanggal Mulai</label>
+                            <input type="date" id="kategori-chart-start-date" class="form-control form-control-sm">
+                        </div>
+                        <div class="col-sm-3 col-md-2 mb-2">
+                            <label for="kategori-chart-end-date" class="small font-weight-bold mb-1">Tanggal Akhir</label>
+                            <input type="date" id="kategori-chart-end-date" class="form-control form-control-sm">
+                        </div>
+                        <div class="col-sm-3 col-md-2 mb-2 d-flex flex-column flex-sm-row">
+                            <button type="button" id="apply-kategori-chart-filter" class="btn btn-primary btn-sm mb-2 mb-sm-0 mr-sm-2 flex-fill"><i class="fas fa-filter mr-1"></i>Terapkan</button>
+                            <button type="button" id="reset-kategori-chart-filter" class="btn btn-secondary btn-sm flex-fill"><i class="fas fa-undo mr-1"></i>Reset</button>
+                        </div>
+                    </div>
+                    <div id="kategoriChartWrapper" style="position: relative; width:100%; height:400px;">
+                        <div id="kategoriKeluhanChart" style="width:100%; height:100%;"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -496,6 +512,7 @@
             const statusCountsUrl = '{{ route('keluhan.status-counts') }}';
 
             function loadStatusCounts(){
+                $('#count-baru, #count-proses, #count-selesai, #count-total').html('<div class="spinner-border text-dark" role="status"></div>');
                 $.get(statusCountsUrl).done(function(r){
                     if(r.success){
                         $('#count-baru').text(r.data.baru);
@@ -804,13 +821,40 @@
                     initKategoriChart();
                 }
 
+                if (!kategoriChart) {
+                    return;
+                }
+
+                kategoriChart.showLoading('default', {
+                    text: 'Memuat...',
+                    color: '#6f42c1',
+                    maskColor: 'rgba(255, 255, 255, 0.7)',
+                    textColor: '#6f42c1'
+                });
+
+                let startDate = $('#kategori-chart-start-date').val();
+                let endDate = $('#kategori-chart-end-date').val();
+
+                if (startDate && endDate && startDate > endDate) {
+                    const temp = startDate;
+                    startDate = endDate;
+                    endDate = temp;
+                    $('#kategori-chart-start-date').val(startDate);
+                    $('#kategori-chart-end-date').val(endDate);
+                }
+
                 $.ajax({
                     url: '{{ route('keluhan.kategori-chart') }}',
                     method: 'GET',
+                    data: {
+                        start_date: startDate,
+                        end_date: endDate
+                    },
                     success: function(response) {
                         if (response.success) {
-                            const chartData = response.data;
-                            
+                            const chartData = Array.isArray(response.data) ? response.data : [];
+                            const hasData = chartData.length > 0;
+
                             const option = {
                                 title: {
                                     text: 'Distribusi Keluhan per Kategori',
@@ -837,7 +881,7 @@
                                     type: 'pie',
                                     radius: ['40%', '70%'],
                                     center: ['40%', '50%'],
-                                    data: chartData,
+                                    data: hasData ? chartData : [],
                                     emphasis: {
                                         itemStyle: {
                                             shadowBlur: 10,
@@ -858,16 +902,30 @@
                                         show: true
                                     }
                                 }],
+                                graphic: hasData ? [] : {
+                                    type: 'text',
+                                    left: 'center',
+                                    top: 'middle',
+                                    style: {
+                                        text: 'Data tidak tersedia untuk rentang tanggal ini',
+                                        fill: '#6f42c1',
+                                        fontSize: 14,
+                                        fontWeight: 'bold'
+                                    }
+                                },
                                 color: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8']
                             };
 
-                            kategoriChart.setOption(option);
+                            kategoriChart.setOption(option, true);
                         } else {
                             console.error('Failed to load kategori chart data:', response.message);
                         }
                     },
                     error: function(xhr, status, error) {
                         console.error('Error loading kategori chart:', error);
+                    },
+                    complete: function() {
+                        kategoriChart.hideLoading();
                     }
                 });
             }
@@ -875,6 +933,16 @@
             // Initialize chart on page load
             initKategoriChart();
             loadKategoriChart();
+
+            $('#apply-kategori-chart-filter').on('click', function() {
+                loadKategoriChart();
+            });
+
+            $('#reset-kategori-chart-filter').on('click', function() {
+                $('#kategori-chart-start-date').val('');
+                $('#kategori-chart-end-date').val('');
+                loadKategoriChart();
+            });
 
             // Handle window resize for responsive charts
             $(window).on('resize', function() {

@@ -83,6 +83,11 @@ Route::middleware(['auth'])->prefix('keluhan')->name('keluhan.')->group(function
     Route::get('/kategori-chart', [App\Http\Controllers\KeluhanController::class, 'getKategoriChart'])->name('kategori-chart');
 });
 
+Route::middleware(['auth'])->prefix('dashboard')->name('dashboard.')->group(function () {
+    Route::get('/keluhan-chart', [App\Http\Controllers\DashboardController::class, 'getKeluhanChart'])->name('keluhan-chart');
+    Route::get('/insiden-chart', [App\Http\Controllers\DashboardController::class, 'getInsidenChart'])->name('insiden-chart');
+});
+
 /*
 |--------------------------------------------------------------------------
 | API Verification Request Routes

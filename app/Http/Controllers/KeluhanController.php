@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Log;
 use App\Models\Keluhan;
 use App\Models\KategoriKeluhan;
 use App\Models\StatusKeluhan;
+use Carbon\Carbon;
 
 class KeluhanController extends Controller
 {
@@ -33,6 +34,9 @@ class KeluhanController extends Controller
                     });
                 }
             }
+
+            // Apply optional reported date range filter
+
 
             // For puskesmas users, only show their own keluhan
             if (auth()->user()->role_id == 1) {
@@ -128,7 +132,7 @@ class KeluhanController extends Controller
     /**
      * Get complaint counts by status for dashboard cards
      */
-    public function getStatusCounts()
+    public function getStatusCounts(Request $request)
     {
         try {
             $counts = [
@@ -138,13 +142,23 @@ class KeluhanController extends Controller
                 'total' => 0
             ];
 
+            // Base query for counting by status
+            $query = Keluhan::with('statusKeluhan');
+
+            // Limit data for puskesmas users
+            if (auth()->user()->role_id == 1) {
+                $query->where('puskesmas_id', auth()->user()->puskesmas_id);
+            }
+
+            // Apply optional reported date range filter
+
+
             // Get counts by status
-            $statusCounts = Keluhan::with('statusKeluhan')
-                ->get()
-                ->groupBy(function($keluhan) {
+            $statusCounts = $query->get()
+                ->groupBy(function ($keluhan) {
                     return strtolower($keluhan->statusKeluhan->status ?? 'unknown');
                 })
-                ->map(function($group) {
+                ->map(function ($group) {
                     return $group->count();
                 });
 
@@ -170,11 +184,43 @@ class KeluhanController extends Controller
     /**
      * Get keluhan data grouped by kategori for chart visualization
      */
-    public function getKategoriChart()
+    public function getKategoriChart(Request $request)
     {
         try {
             // Base query for keluhan
             $query = Keluhan::with(['kategoriKeluhan']);
+
+            // Optional reported_date range filter
+            $startDate = null;
+            $endDate = null;
+
+            if ($request->filled('start_date')) {
+                try {
+                    $startDate = Carbon::parse($request->input('start_date'))->startOfDay();
+                } catch (\Exception $e) {
+                    Log::warning('Invalid start_date provided for kategori chart filter.', ['start_date' => $request->input('start_date')]);
+                }
+            }
+
+            if ($request->filled('end_date')) {
+                try {
+                    $endDate = Carbon::parse($request->input('end_date'))->endOfDay();
+                } catch (\Exception $e) {
+                    Log::warning('Invalid end_date provided for kategori chart filter.', ['end_date' => $request->input('end_date')]);
+                }
+            }
+
+            if ($startDate && $endDate && $startDate->gt($endDate)) {
+                [$startDate, $endDate] = [$endDate->copy()->startOfDay(), $startDate->copy()->endOfDay()];
+            }
+
+            if ($startDate && $endDate) {
+                $query->whereBetween('reported_date', [$startDate->toDateString(), $endDate->toDateString()]);
+            } elseif ($startDate) {
+                $query->whereDate('reported_date', '>=', $startDate->toDateString());
+            } elseif ($endDate) {
+                $query->whereDate('reported_date', '<=', $endDate->toDateString());
+            }
 
             // For puskesmas users, only show their own keluhan
             if (auth()->user()->role_id == 1) {
@@ -218,4 +264,6 @@ class KeluhanController extends Controller
             ], 500);
         }
     }
+
+
 }

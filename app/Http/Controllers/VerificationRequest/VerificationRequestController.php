@@ -10,6 +10,7 @@ use App\Models\UjiFungsi;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
 
 class VerificationRequestController extends Controller
 {
@@ -42,10 +43,10 @@ class VerificationRequestController extends Controller
         $query = Puskesmas::query()
             ->with([
                 'district.regency.province',
-                'pengiriman:id,puskesmas_id,tgl_pengiriman,verif_kemenkes,tgl_verif_kemenkes',
-                'document:id,puskesmas_id,kalibrasi,is_verified_kalibrasi,bast,is_verified_bast,aspak,is_verified_aspak,basto,is_verified_basto,verif_kemenkes,tgl_verif_kemenkes',
-                'ujiFungsi:id,puskesmas_id,doc_instalasi,is_verified_instalasi,doc_uji_fungsi,is_verified_uji_fungsi,doc_pelatihan,is_verified_pelatihan',
-                'revisions:id,puskesmas_id,jenis_dokumen_id,is_resolved,is_verified,created_at'
+                'pengiriman:id,puskesmas_id,tgl_pengiriman,verif_kemenkes,tgl_verif_kemenkes,updated_at',
+                'document:id,puskesmas_id,kalibrasi,is_verified_kalibrasi,bast,is_verified_bast,aspak,is_verified_aspak,basto,is_verified_basto,verif_kemenkes,tgl_verif_kemenkes,updated_at',
+                'ujiFungsi:id,puskesmas_id,doc_instalasi,is_verified_instalasi,doc_uji_fungsi,is_verified_uji_fungsi,doc_pelatihan,is_verified_pelatihan,updated_at',
+                'revisions:id,puskesmas_id,jenis_dokumen_id,is_resolved,is_verified,created_at,updated_at'
             ]);
 
         if ($districtId) {
@@ -84,12 +85,9 @@ class VerificationRequestController extends Controller
         }
 
         $orderColumnIndex = (int) $request->input('order.0.column', 1);
-        $orderDirection = strtolower($request->input('order.0.dir', 'asc')) === 'desc' ? 'desc' : 'asc';
+        $orderDirection = strtolower($request->input('order.0.dir', 'desc')) === 'desc' ? 'desc' : 'asc';
 
         switch ($orderColumnIndex) {
-            case 1:
-                $query->orderBy('name', $orderDirection);
-                break;
             case 5:
                 $query->orderBy(
                     Pengiriman::select('tgl_pengiriman')
@@ -99,7 +97,16 @@ class VerificationRequestController extends Controller
                 );
                 break;
             default:
-                $query->orderBy('name', 'asc');
+                $query->orderBy(
+                    DB::raw('GREATEST(
+                        COALESCE(puskesmas.updated_at, "1970-01-01"),
+                        COALESCE((SELECT MAX(updated_at) FROM pengiriman WHERE pengiriman.puskesmas_id = puskesmas.id), "1970-01-01"),
+                        COALESCE((SELECT updated_at FROM documents WHERE documents.puskesmas_id = puskesmas.id), "1970-01-01"),
+                        COALESCE((SELECT updated_at FROM uji_fungsi WHERE uji_fungsi.puskesmas_id = puskesmas.id), "1970-01-01"),
+                        COALESCE((SELECT MAX(updated_at) FROM revisions WHERE revisions.puskesmas_id = puskesmas.id), "1970-01-01")
+                    )'),
+                    $orderDirection
+                );
                 break;
         }
 

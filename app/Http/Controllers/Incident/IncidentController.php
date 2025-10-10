@@ -255,6 +255,15 @@ class IncidentController extends Controller
                 $query->where('puskesmas_id', $user->puskesmas_id);
             }
 
+            // Optional date range filter
+            if ($request->filled('start_date')) {
+                $query->whereDate('tgl_kejadian', '>=', $request->start_date);
+            }
+
+            if ($request->filled('end_date')) {
+                $query->whereDate('tgl_kejadian', '<=', $request->end_date);
+            }
+
             $incidents = $query->latest('tgl_kejadian')->get();
 
             $formattedData = $incidents->map(function ($incident) {
@@ -303,7 +312,7 @@ class IncidentController extends Controller
     /**
      * Get insiden data grouped by tahapan for chart visualization
      */
-    public function getTahapanChart()
+    public function getTahapanChart(Request $request)
     {
         try {
             // Get all tahapan from master table
@@ -315,6 +324,14 @@ class IncidentController extends Controller
             // For puskesmas users, only show their own insiden
             if (auth()->user()->role_id == 1) {
                 $query->where('puskesmas_id', auth()->user()->puskesmas_id);
+            }
+
+            if ($request->filled('start_date')) {
+                $query->whereDate('tgl_kejadian', '>=', $request->start_date);
+            }
+
+            if ($request->filled('end_date')) {
+                $query->whereDate('tgl_kejadian', '<=', $request->end_date);
             }
 
             // Get insiden counts grouped by tahapan_id
@@ -359,7 +376,7 @@ class IncidentController extends Controller
     /**
      * Get insiden data grouped by kategori insiden for chart visualization
      */
-    public function getKategoriInsidenChart()
+    public function getKategoriInsidenChart(Request $request)
     {
         try {
             // Get all kategori insiden from master table
@@ -371,6 +388,14 @@ class IncidentController extends Controller
             // For puskesmas users, only show their own insiden
             if (auth()->user()->role_id == 1) {
                 $query->where('puskesmas_id', auth()->user()->puskesmas_id);
+            }
+
+            if ($request->filled('start_date')) {
+                $query->whereDate('tgl_kejadian', '>=', $request->start_date);
+            }
+
+            if ($request->filled('end_date')) {
+                $query->whereDate('tgl_kejadian', '<=', $request->end_date);
             }
 
             // Get insiden counts grouped by kategori_id
@@ -415,7 +440,7 @@ class IncidentController extends Controller
     /**
      * Get insiden data grouped by status for chart visualization
      */
-    public function getStatusInsidenChart()
+    public function getStatusInsidenChart(Request $request)
     {
         try {
             // Get all status insiden from master table
@@ -427,6 +452,14 @@ class IncidentController extends Controller
             // For puskesmas users, only show their own insiden
             if (auth()->user()->role_id == 1) {
                 $query->where('puskesmas_id', auth()->user()->puskesmas_id);
+            }
+
+            if ($request->filled('start_date')) {
+                $query->whereDate('tgl_kejadian', '>=', $request->start_date);
+            }
+
+            if ($request->filled('end_date')) {
+                $query->whereDate('tgl_kejadian', '<=', $request->end_date);
             }
 
             // Get insiden counts grouped by status_id

@@ -70,7 +70,13 @@ class LoginController extends Controller
         if(Auth::attempt($credentials)){
             return redirect()->intended('/')->with('success','Successfully Login');
         }
-            $existPuskesmasUser = User::where('email', $request->email)->first();
+        $userByPuskesmasId = User::where('puskesmas_id', $request->email)->first();
+        if($userByPuskesmasId){
+            if(Auth::attempt(['email' => $userByPuskesmasId->email, 'password' => $request->password])){
+                return redirect()->intended('/')->with('success','Successfully Login');
+            }
+        }
+            $existPuskesmasUser = User::where('email', $request->email)->orWhere('puskesmas_id', $request->email)->first();
             $loginCheck = Puskesmas::select('puskesmas.*', 'puskesmas.id as puskesmas_id')
                 ->join('districts', 'districts.id', '=', 'puskesmas.district_id')
                 ->where(function($query) use ($request) {
@@ -101,12 +107,7 @@ class LoginController extends Controller
                 
                 
             }
-            $userByPuskesmasId = User::where('puskesmas_id', $request->email)->first();
-            if($userByPuskesmasId){
-                if(Auth::attempt(['email' => $userByPuskesmasId->email, 'password' => $request->password])){
-                    return redirect()->intended('/')->with('success','Successfully Login');
-                }
-            }
+
         return redirect('login')->withInput()->withErrors(['login_message'=>'Email atau Password Salah !']);
       }
 

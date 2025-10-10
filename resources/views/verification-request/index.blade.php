@@ -1,9 +1,9 @@
 @extends('adminlte::page')
 
-@section('title', 'Verification Request')
+@section('title', 'Permintaan Verifikasi')
 
 @section('content_header')
-	<h1>Verification Request</h1>
+	<h1>Permintaan Verifikasi</h1>
 	<p class="text-muted">Menampilkan hanya Puskesmas yang memiliki dokumen perlu diverifikasi</p>
 @stop
 
@@ -443,7 +443,6 @@
 						},
 						zeroRecords: 'Tidak ada data yang cocok'
 					},
-					order: [[1, 'asc']], // Sort by Puskesmas name
 					initComplete: function() {
 						// Optimize search input behavior
 						var searchInput = $('.dataTables_filter input');

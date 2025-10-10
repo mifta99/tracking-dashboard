@@ -78,14 +78,6 @@
                         <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
                             <h3 class="card-title mb-0">Ringkasan Tahapan Distribusi T-Piece</h3>
                             <div class="card-tools d-flex align-items-center ml-auto justify-content-between flex-wrap flex-md-nowrap">
-                                <div class="form-inline mr-2">
-                                    <label for="trackingChartMode" class="mr-2 mb-0 text-white-50">Tampilan Chart:</label>
-                                    <select id="trackingChartMode" class="form-control form-control-sm">
-                                        <option value="cascade">Cascade Waterfall</option>
-                                        <option value="block">Blok Horizontal</option>
-                                        <option value="bar">Bar Vertikal</option>
-                                    </select>
-                                </div>
                                 <button type="button" class="btn btn-tool text-white" data-card-widget="collapse">
                                     <i class="fas fa-minus"></i>
                                 </button>
@@ -97,11 +89,22 @@
                     </div>
                 </div>
             </div>
+            <div class="d-flex justify-content-end align-items-center flex-wrap mb-2">
+                <div class="form-inline chart-range-picker align-items-center">
+                    <label for="chartStartMonth" class="small mb-0 mr-2">Rentang Bulan</label>
+                    <input type="month" id="chartStartMonth" class="form-control form-control-sm mr-2">
+                    <span class="text-muted mr-2">s.d.</span>
+                    <input type="month" id="chartEndMonth" class="form-control form-control-sm mr-2">
+                    <button type="button" class="btn btn-primary btn-sm" id="chartApplyMonthRange">
+                        <i class="fas fa-filter mr-1"></i> Terapkan
+                    </button>
+                </div>
+            </div>
             <div class="row mt-3">
                 <div class="col-lg-6">
                     <div class="card card-collapsible monthly-chart-card">
                         <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
-                            <h3 class="card-title mb-0">Keluhan Yang Terjadi pada 5 Bulan Terakhir</h3>
+                            <h3 class="card-title mb-0">Keluhan Dilaporkan &amp; Terselesaikan</h3>
                             <div class="card-tools ml-auto">
                                 <button type="button" class="btn btn-tool text-white" data-card-widget="collapse">
                                     <i class="fas fa-minus"></i>
@@ -116,7 +119,7 @@
                 <div class="col-lg-6 mt-3 mt-lg-0">
                     <div class="card card-collapsible monthly-chart-card">
                         <div class="card-header bg-warning text-white d-flex justify-content-between align-items-center">
-                            <h3 class="card-title mb-0">Insiden Yang Terjadi pada 5 Bulan Terakhir</h3>
+                            <h3 class="card-title mb-0 text-white">Insiden Dilaporkan &amp; Terselesaikan</h3>
                             <div class="card-tools ml-auto">
                                 <button type="button" class="btn btn-tool text-white" data-card-widget="collapse">
                                     <i class="fas fa-minus"></i>
@@ -271,6 +274,13 @@
                 height: 220px;
             }
         }
+        .chart-range-picker label {
+            color: rgba(37, 47, 63, 0.8);
+        }
+        #chartStartMonth,
+        #chartEndMonth {
+            min-width: 155px;
+        }
     </style>
 @stop
 
@@ -278,6 +288,8 @@
     <!-- DataTables JS -->
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/min/moment.min.js"></script>
 
     <!-- ECharts (Pie Chart Replacement for Highcharts) -->
     <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
@@ -291,6 +303,23 @@
         const provincesUrl = '{{ route('api-puskesmas.provinces') }}';
         const regenciesUrl = '{{ route('api-puskesmas.regencies') }}';
         const districtsUrl = '{{ route('api-puskesmas.districts') }}';
+        const keluhanChartUrl = '{{ route('dashboard.keluhan-chart') }}';
+        const insidenChartUrl = '{{ route('dashboard.insiden-chart') }}';
+
+        const issueSeriesNames = ['Keluhan Dilaporkan', 'Keluhan Terselesaikan'];
+        const incidentSeriesNames = ['Insiden Dilaporkan', 'Insiden Terselesaikan'];
+        const issueBarColors = ['#E74C3C', '#F1948A'];
+        const incidentBarColors = ['#E67E22', '#F5B041'];
+
+        const chartStartMonthInput = $('#chartStartMonth');
+        const chartEndMonthInput = $('#chartEndMonth');
+        const chartApplyMonthRangeBtn = $('#chartApplyMonthRange');
+        let issueLabels = [];
+        let incidentLabels = [];
+        let issueData = [[], []];
+        let incidentData = [[], []];
+        let monthlyIssueChartInstance = null;
+        let monthlyIncidentChartInstance = null;
 
         // Initialize DataTable
         const table = $('#reported-incidents-table').DataTable({
@@ -534,61 +563,159 @@
         const trackingCategories = trackingStatusOrder.map(item => item.label);
         const trackingValues = trackingStatusOrder.map(item => Number(trackingRawStatusData[item.key] ?? 0));
 
-        // Mock data toggle function
-        function generateMockData() {
-            return trackingCategories.map(() => Math.floor(Math.random() * 100) + 10);
-        }
-
-        function toggleMockData() {
-            // Replace trackingValues with mock data
-            const mockValues = generateMockData();
-            trackingValues.splice(0, trackingValues.length, ...mockValues);
-            renderTrackingChart(currentTrackingMode);
-
-        }
-        $(document).ready(function() {
-            setTimeout(() => {
-                toggleMockData();
-            }, 100);
-        });
-
-
         let trackingChartInstance = null;
-        let currentTrackingMode = 'cascade';
+        let currentTrackingMode = 'bar';
 
-        const monthLabels = getLastFiveMonths();
-        const issueData = [[5, 9, 4, 11, 7], [6, 10, 5, 12, 8]];
-        const incidentData = [[2, 3, 1, 4, 2], [3, 4, 2, 5, 3]];
-        let monthlyIssueChartInstance = null;
-        let monthlyIncidentChartInstance = null;
+        const defaultRangeStart = moment().subtract(4, 'months').startOf('month');
+        const defaultRangeEnd = moment().endOf('month');
 
         renderTrackingChart(currentTrackingMode);
-        monthlyIssueChartInstance = renderMonthlyBarChart('monthlyIssueChart', ['Keluhan Dilaporkan', 'Keluhan Terselesaikan'], issueData, ['#E74C3C','#F1948A'], monthlyIssueChartInstance);
-        monthlyIncidentChartInstance = renderMonthlyBarChart('monthlyIncidentChart', ['Insiden Dilaporkan', 'Insiden Terselesaikan'], incidentData, ['#E67E22','#F5B041'], monthlyIncidentChartInstance);
+        setMonthInputValues(defaultRangeStart, defaultRangeEnd);
+        fetchMonthlyChartData(defaultRangeStart.clone(), defaultRangeEnd.clone());
 
-        $('#trackingChartMode').on('change', function () {
-            const selected = this.value || 'cascade';
-            currentTrackingMode = selected;
-            renderTrackingChart(selected);
-        });
+        chartApplyMonthRangeBtn.on('click', handleMonthRangeApply);
+        chartStartMonthInput.on('change', ensureMonthRangeOrder);
+        chartEndMonthInput.on('change', ensureMonthRangeOrder);
 
         let resizeTimeout;
         $(window).on('resize', function () {
             clearTimeout(resizeTimeout);
             resizeTimeout = setTimeout(function () {
                 renderTrackingChart(currentTrackingMode);
-                monthlyIssueChartInstance = renderMonthlyBarChart('monthlyIssueChart', ['Keluhan Dilaporkan', 'Keluhan Terselesaikan'], issueData, ['#E74C3C','#F1948A'], monthlyIssueChartInstance);
-                monthlyIncidentChartInstance = renderMonthlyBarChart('monthlyIncidentChart', ['Insiden Dilaporkan', 'Insiden Terselesaikan'], incidentData, ['#E67E22','#F5B041'], monthlyIncidentChartInstance);
+                renderMonthlyCharts();
             }, 200);
         });
 
         $(document).on('expanded.lte.cardwidget collapsed.lte.cardwidget', function () {
             setTimeout(function () {
                 renderTrackingChart(currentTrackingMode);
-                monthlyIssueChartInstance = renderMonthlyBarChart('monthlyIssueChart', ['Keluhan Dilaporkan', 'Keluhan Terselesaikan'], issueData, ['#E74C3C','#F1948A'], monthlyIssueChartInstance);
-                monthlyIncidentChartInstance = renderMonthlyBarChart('monthlyIncidentChart', ['Insiden Dilaporkan', 'Insiden Terselesaikan'], incidentData, ['#E67E22','#F5B041'], monthlyIncidentChartInstance);
+                renderMonthlyCharts();
             }, 220);
         });
+
+        function ensureMonthRangeOrder() {
+            const startVal = chartStartMonthInput.val();
+            const endVal = chartEndMonthInput.val();
+            if (!startVal || !endVal) {
+                return;
+            }
+
+            const startMoment = moment(`${startVal}-01`);
+            const endMoment = moment(`${endVal}-01`);
+            if (startMoment.isAfter(endMoment)) {
+                chartEndMonthInput.val(startMoment.format('YYYY-MM'));
+            }
+        }
+
+        function handleMonthRangeApply() {
+            const startVal = chartStartMonthInput.val();
+            const endVal = chartEndMonthInput.val();
+
+            if (!startVal || !endVal) {
+                console.warn('Rentang bulan belum lengkap.');
+                return;
+            }
+
+            let startMoment = moment(`${startVal}-01`).startOf('month');
+            let endMoment = moment(`${endVal}-01`).endOf('month');
+
+            if (startMoment.isAfter(endMoment)) {
+                const temp = startMoment.clone();
+                startMoment = endMoment.clone().startOf('month');
+                endMoment = temp.endOf('month');
+                setMonthInputValues(startMoment, endMoment);
+            }
+
+            fetchMonthlyChartData(startMoment, endMoment);
+        }
+
+        function setMonthInputValues(startMoment, endMoment) {
+            if (chartStartMonthInput.length) {
+                chartStartMonthInput.val(startMoment.clone().startOf('month').format('YYYY-MM'));
+            }
+            if (chartEndMonthInput.length) {
+                chartEndMonthInput.val(endMoment.clone().startOf('month').format('YYYY-MM'));
+            }
+        }
+
+        function fetchMonthlyChartData(startMoment, endMoment) {
+            const params = {
+                start_date: startMoment.format('YYYY-MM-DD'),
+                end_date: endMoment.format('YYYY-MM-DD')
+            };
+
+            renderMonthlyCharts();
+            showChartsLoading();
+
+            $.when(
+                $.get(keluhanChartUrl, params),
+                $.get(insidenChartUrl, params)
+            ).done(function (keluhanResponse, insidenResponse) {
+                const keluhanPayload = keluhanResponse[0] || {};
+                const keluhanSeries = keluhanPayload.series || {};
+
+                if (keluhanPayload.success) {
+                    issueLabels = keluhanPayload.labels || [];
+                    issueData = [
+                        Array.isArray(keluhanSeries.reported) ? keluhanSeries.reported.map(Number) : [],
+                        Array.isArray(keluhanSeries.resolved) ? keluhanSeries.resolved.map(Number) : []
+                    ];
+                } else {
+                    issueLabels = [];
+                    issueData = [[], []];
+                    console.error('Gagal memuat data keluhan:', keluhanPayload.message || 'Unknown error');
+                }
+
+                const insidenPayload = insidenResponse[0] || {};
+                const insidenSeries = insidenPayload.series || {};
+
+                if (insidenPayload.success) {
+                    incidentLabels = insidenPayload.labels || [];
+                    incidentData = [
+                        Array.isArray(insidenSeries.reported) ? insidenSeries.reported.map(Number) : [],
+                        Array.isArray(insidenSeries.resolved) ? insidenSeries.resolved.map(Number) : []
+                    ];
+                } else {
+                    incidentLabels = [];
+                    incidentData = [[], []];
+                    console.error('Gagal memuat data insiden:', insidenPayload.message || 'Unknown error');
+                }
+
+                renderMonthlyCharts();
+            }).fail(function (jqXHR) {
+                console.error('Gagal memuat data chart:', jqXHR.statusText || jqXHR);
+                issueLabels = [];
+                incidentLabels = [];
+                issueData = [[], []];
+                incidentData = [[], []];
+                renderMonthlyCharts();
+            }).always(function () {
+                hideChartsLoading();
+            });
+        }
+
+        function renderMonthlyCharts() {
+            monthlyIssueChartInstance = renderMonthlyBarChart('monthlyIssueChart', issueLabels, issueSeriesNames, issueData, issueBarColors, monthlyIssueChartInstance);
+            monthlyIncidentChartInstance = renderMonthlyBarChart('monthlyIncidentChart', incidentLabels, incidentSeriesNames, incidentData, incidentBarColors, monthlyIncidentChartInstance);
+        }
+
+        function showChartsLoading() {
+            if (monthlyIssueChartInstance) {
+                monthlyIssueChartInstance.showLoading('default', { text: 'Memuat data...' });
+            }
+            if (monthlyIncidentChartInstance) {
+                monthlyIncidentChartInstance.showLoading('default', { text: 'Memuat data...' });
+            }
+        }
+
+        function hideChartsLoading() {
+            if (monthlyIssueChartInstance) {
+                monthlyIssueChartInstance.hideLoading();
+            }
+            if (monthlyIncidentChartInstance) {
+                monthlyIncidentChartInstance.hideLoading();
+            }
+        }
 
         function getScreenFlags() {
             const width = window.innerWidth || document.documentElement.clientWidth;
@@ -610,216 +737,206 @@
 
             const flags = getScreenFlags();
             let option;
-            switch (mode) {
-                case 'block':
-                    option = buildBlockOption(flags);
-                    break;
-                case 'bar':
-                    option = buildStandardBarOption(flags);
-                    break;
-                case 'cascade':
-                default:
-                    option = buildCascadeOption(flags);
-            }
+            option = buildStandardBarOption(flags);
 
             trackingChartInstance.setOption(option, true);
             trackingChartInstance.resize();
         }
 
-        function buildCascadeOption(flags) {
-            let runningTotal = 0;
-            const assistData = [];
-            const segments = trackingValues.map((value, index) => {
-                assistData.push(runningTotal);
-                runningTotal += value;
-                return {
-                    value,
-                    itemStyle: {
-                        color: trackingBarColors[index % trackingBarColors.length],
-                        borderRadius: [0, 6, 6, 0]
-                    }
-                };
-            });
+        // function buildCascadeOption(flags) {
+        //     let runningTotal = 0;
+        //     const assistData = [];
+        //     const segments = trackingValues.map((value, index) => {
+        //         assistData.push(runningTotal);
+        //         runningTotal += value;
+        //         return {
+        //             value,
+        //             itemStyle: {
+        //                 color: trackingBarColors[index % trackingBarColors.length],
+        //                 borderRadius: [0, 6, 6, 0]
+        //             }
+        //         };
+        //     });
 
-            const trimmedCategories = trackingCategories.map(label => {
-                if (flags.isTablet && label.length > 18) {
-                    return `${label.substring(0, 18)}…`;
-                }
-                return label;
-            });
+        //     const trimmedCategories = trackingCategories.map(label => {
+        //         if (flags.isTablet && label.length > 18) {
+        //             return `${label.substring(0, 18)}…`;
+        //         }
+        //         return label;
+        //     });
 
-            return {
-                backgroundColor: 'transparent',
-                title: {
-                    text: 'Distribusi Status Tracking',
-                    left: 'center',
-                    top: 12,
-                    textStyle: {
-                        fontSize: flags.isSmall ? 14 : 16,
-                        fontWeight: 600,
-                        color: '#2d3748'
-                    }
-                },
-                tooltip: {
-                    trigger: 'axis',
-                    axisPointer: { type: 'shadow' },
-                    formatter: params => {
-                        const current = params.find(item => item.seriesName === 'Jumlah');
-                        if (!current) {
-                            return '';
-                        }
-                        return `${current.name}<br/>Jumlah: ${current.value}`;
-                    }
-                },
-                grid: {
-                    left: '8%',
-                    right: '8%',
-                    top: 60,
-                    bottom: flags.isSmall ? 55 : 45,
-                    containLabel: true
-                },
-                xAxis: {
-                    type: 'value',
-                    name: 'Jumlah',
-                    nameLocation: 'middle',
-                    nameGap: flags.isSmall ? 24 : 32,
-                    nameTextStyle: {
-                        fontSize: flags.isSmall ? 10 : 12
-                    },
-                    axisLine: { lineStyle: { color: '#94a3b8' } },
-                    axisLabel: {
-                        color: '#475569',
-                        fontSize: flags.isSmall ? 10 : 12
-                    },
-                    splitLine: { lineStyle: { color: 'rgba(148,163,184,0.25)' } }
-                },
-                yAxis: {
-                    type: 'category',
-                    data: trimmedCategories,
-                    axisTick: { show: false },
-                    axisLine: { lineStyle: { color: '#94a3b8' } },
-                    axisLabel: {
-                        color: '#475569',
-                        fontSize: flags.isSmall ? 10 : 12,
-                        interval: 0
-                    }
-                },
-                series: [
-                    {
-                        type: 'bar',
-                        stack: 'total',
-                        silent: true,
-                        itemStyle: {
-                            borderColor: 'transparent',
-                            color: 'transparent'
-                        },
-                        data: assistData
-                    },
-                    {
-                        name: 'Jumlah',
-                        type: 'bar',
-                        stack: 'total',
-                        barWidth: flags.isTablet ? '40%' : '45%',
-                        label: {
-                            show: true,
-                            position: 'right',
-                            color: '#1e293b',
-                            fontWeight: 600,
-                            fontSize: flags.isSmall ? 10 : 12,
-                            formatter: ({ value }) => value
-                        },
-                        data: segments
-                    }
-                ]
-            };
-        }
+        //     return {
+        //         backgroundColor: 'transparent',
+        //         title: {
+        //             text: 'Distribusi Status Tracking',
+        //             left: 'center',
+        //             top: 12,
+        //             textStyle: {
+        //                 fontSize: flags.isSmall ? 14 : 16,
+        //                 fontWeight: 600,
+        //                 color: '#2d3748'
+        //             }
+        //         },
+        //         tooltip: {
+        //             trigger: 'axis',
+        //             axisPointer: { type: 'shadow' },
+        //             formatter: params => {
+        //                 const current = params.find(item => item.seriesName === 'Jumlah');
+        //                 if (!current) {
+        //                     return '';
+        //                 }
+        //                 return `${current.name}<br/>Jumlah: ${current.value}`;
+        //             }
+        //         },
+        //         grid: {
+        //             left: '8%',
+        //             right: '8%',
+        //             top: 60,
+        //             bottom: flags.isSmall ? 55 : 45,
+        //             containLabel: true
+        //         },
+        //         xAxis: {
+        //             type: 'value',
+        //             name: 'Jumlah',
+        //             nameLocation: 'middle',
+        //             nameGap: flags.isSmall ? 24 : 32,
+        //             nameTextStyle: {
+        //                 fontSize: flags.isSmall ? 10 : 12
+        //             },
+        //             axisLine: { lineStyle: { color: '#94a3b8' } },
+        //             axisLabel: {
+        //                 color: '#475569',
+        //                 fontSize: flags.isSmall ? 10 : 12
+        //             },
+        //             splitLine: { lineStyle: { color: 'rgba(148,163,184,0.25)' } }
+        //         },
+        //         yAxis: {
+        //             type: 'category',
+        //             data: trimmedCategories,
+        //             axisTick: { show: false },
+        //             axisLine: { lineStyle: { color: '#94a3b8' } },
+        //             axisLabel: {
+        //                 color: '#475569',
+        //                 fontSize: flags.isSmall ? 10 : 12,
+        //                 interval: 0
+        //             }
+        //         },
+        //         series: [
+        //             {
+        //                 type: 'bar',
+        //                 stack: 'total',
+        //                 silent: true,
+        //                 itemStyle: {
+        //                     borderColor: 'transparent',
+        //                     color: 'transparent'
+        //                 },
+        //                 data: assistData
+        //             },
+        //             {
+        //                 name: 'Jumlah',
+        //                 type: 'bar',
+        //                 stack: 'total',
+        //                 barWidth: flags.isTablet ? '40%' : '45%',
+        //                 label: {
+        //                     show: true,
+        //                     position: 'right',
+        //                     color: '#1e293b',
+        //                     fontWeight: 600,
+        //                     fontSize: flags.isSmall ? 10 : 12,
+        //                     formatter: ({ value }) => value
+        //                 },
+        //                 data: segments
+        //             }
+        //         ]
+        //     };
+        // }
 
-        function buildBlockOption(flags) {
-            return {
-                backgroundColor: 'transparent',
-                title: {
-                    text: 'Distribusi Status Tracking',
-                    left: 'center',
-                    top: 12,
-                    textStyle: {
-                        fontSize: flags.isSmall ? 14 : 16,
-                        fontWeight: 600,
-                        color: '#2d3748'
-                    }
-                },
-                tooltip: {
-                    trigger: 'axis',
-                    axisPointer: { type: 'shadow' },
-                    formatter: params => params
-                        .filter(item => item.value !== undefined && item.value > 0)
-                        .map(item => `${item.marker} ${item.seriesName}: ${item.value}`)
-                        .join('<br/>')
-                },
-                legend: {
-                    orient: 'horizontal',
-                    left: 'center',
-                    bottom: 10,
-                    textStyle: { fontSize: flags.isSmall ? 10 : 12 },
-                    itemWidth: flags.isSmall ? 12 : 14,
-                    itemHeight: flags.isSmall ? 8 : 10,
-                    itemGap: flags.isSmall ? 8 : 12,
-                    formatter: name => {
-                        const idx = trackingCategories.indexOf(name);
-                        const value = idx > -1 ? trackingValues[idx] : 0;
-                        const maxLength = flags.isSmall ? 12 : 18;
-                        const displayName = name.length > maxLength ? `${name.substring(0, maxLength)}…` : name;
-                        return `${displayName}: ${value}`;
-                    }
-                },
-                grid: {
-                    left: '8%',
-                    right: '8%',
-                    top: 60,
-                    bottom: flags.isSmall ? 110 : 85,
-                    containLabel: true
-                },
-                xAxis: {
-                    type: 'value',
-                    name: 'Jumlah',
-                    nameTextStyle: { fontSize: flags.isSmall ? 10 : 12 },
-                    axisLine: { lineStyle: { color: '#94a3b8' } },
-                    axisLabel: {
-                        color: '#475569',
-                        fontSize: flags.isSmall ? 10 : 12
-                    },
-                    splitLine: { lineStyle: { color: 'rgba(148,163,184,0.25)' } }
-                },
-                yAxis: {
-                    type: 'category',
-                    data: ['Status'],
-                    axisTick: { show: false },
-                    axisLine: { lineStyle: { color: '#94a3b8' } },
-                    axisLabel: {
-                        color: '#475569',
-                        fontSize: flags.isSmall ? 10 : 12
-                    }
-                },
-                series: trackingCategories.map((name, index) => ({
-                    name,
-                    type: 'bar',
-                    stack: 'total',
-                    barWidth: flags.isTablet ? '45%' : '55%',
-                    itemStyle: {
-                        color: trackingBarColors[index % trackingBarColors.length],
-                        borderRadius: [4, 4, 4, 4]
-                    },
-                    label: {
-                        show: trackingValues[index] > 0,
-                        position: trackingValues[index] > 5 ? 'inside' : 'right',
-                        color: trackingValues[index] > 5 ? '#ffffff' : '#1e293b',
-                        fontWeight: 600,
-                        fontSize: flags.isSmall ? 10 : 12,
-                        formatter: ({ value }) => value
-                    },
-                    data: [trackingValues[index]]
-                }))
-            };
-        }
+        // function buildBlockOption(flags) {
+        //     return {
+        //         backgroundColor: 'transparent',
+        //         title: {
+        //             text: 'Distribusi Status Tracking',
+        //             left: 'center',
+        //             top: 12,
+        //             textStyle: {
+        //                 fontSize: flags.isSmall ? 14 : 16,
+        //                 fontWeight: 600,
+        //                 color: '#2d3748'
+        //             }
+        //         },
+        //         tooltip: {
+        //             trigger: 'axis',
+        //             axisPointer: { type: 'shadow' },
+        //             formatter: params => params
+        //                 .filter(item => item.value !== undefined && item.value > 0)
+        //                 .map(item => `${item.marker} ${item.seriesName}: ${item.value}`)
+        //                 .join('<br/>')
+        //         },
+        //         legend: {
+        //             orient: 'horizontal',
+        //             left: 'center',
+        //             bottom: 10,
+        //             textStyle: { fontSize: flags.isSmall ? 10 : 12 },
+        //             itemWidth: flags.isSmall ? 12 : 14,
+        //             itemHeight: flags.isSmall ? 8 : 10,
+        //             itemGap: flags.isSmall ? 8 : 12,
+        //             formatter: name => {
+        //                 const idx = trackingCategories.indexOf(name);
+        //                 const value = idx > -1 ? trackingValues[idx] : 0;
+        //                 const maxLength = flags.isSmall ? 12 : 18;
+        //                 const displayName = name.length > maxLength ? `${name.substring(0, maxLength)}…` : name;
+        //                 return `${displayName}: ${value}`;
+        //             }
+        //         },
+        //         grid: {
+        //             left: '8%',
+        //             right: '8%',
+        //             top: 60,
+        //             bottom: flags.isSmall ? 110 : 85,
+        //             containLabel: true
+        //         },
+        //         xAxis: {
+        //             type: 'value',
+        //             name: 'Jumlah',
+        //             nameTextStyle: { fontSize: flags.isSmall ? 10 : 12 },
+        //             axisLine: { lineStyle: { color: '#94a3b8' } },
+        //             axisLabel: {
+        //                 color: '#475569',
+        //                 fontSize: flags.isSmall ? 10 : 12
+        //             },
+        //             splitLine: { lineStyle: { color: 'rgba(148,163,184,0.25)' } }
+        //         },
+        //         yAxis: {
+        //             type: 'category',
+        //             data: ['Status'],
+        //             axisTick: { show: false },
+        //             axisLine: { lineStyle: { color: '#94a3b8' } },
+        //             axisLabel: {
+        //                 color: '#475569',
+        //                 fontSize: flags.isSmall ? 10 : 12
+        //             }
+        //         },
+        //         series: trackingCategories.map((name, index) => ({
+        //             name,
+        //             type: 'bar',
+        //             stack: 'total',
+        //             barWidth: flags.isTablet ? '45%' : '55%',
+        //             itemStyle: {
+        //                 color: trackingBarColors[index % trackingBarColors.length],
+        //                 borderRadius: [4, 4, 4, 4]
+        //             },
+        //             label: {
+        //                 show: trackingValues[index] > 0,
+        //                 position: trackingValues[index] > 5 ? 'inside' : 'right',
+        //                 color: trackingValues[index] > 5 ? '#ffffff' : '#1e293b',
+        //                 fontWeight: 600,
+        //                 fontSize: flags.isSmall ? 10 : 12,
+        //                 formatter: ({ value }) => value
+        //             },
+        //             data: [trackingValues[index]]
+        //         }))
+        //     };
+        // }
 
         function buildStandardBarOption(flags) {
             const trimmedCategories = trackingCategories.map(label => {
@@ -899,18 +1016,9 @@
             };
         }
 
-        function getLastFiveMonths() {
-            const arr = [];
-            const now = new Date();
-            for (let i = 4; i >= 0; i--) {
-                const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-                const formatter = d.toLocaleDateString('id-ID', { month: 'short', year: '2-digit' });
-                arr.push(formatter);
-            }
-            return arr;
-        }
 
-        function renderMonthlyBarChart(elId, seriesName, seriesData, barColor, existingInstance) {
+
+        function renderMonthlyBarChart(elId, labels, seriesName, seriesData, barColor, existingInstance) {
             const el = document.getElementById(elId);
             if (!el) {
                 return existingInstance;
@@ -934,7 +1042,7 @@
                 },
                 xAxis: {
                     type: 'category',
-                    data: monthLabels,
+                    data: labels,
                     axisLine: { lineStyle: { color: '#94a3b8' } },
                     axisLabel: {
                         color: '#475569',
@@ -967,12 +1075,13 @@
                     },
                     itemWidth: flags.isSmall ? 12 : 14,
                     itemHeight: flags.isSmall ? 8 : 10,
-                    itemGap: flags.isSmall ? 10 : 15
+                    itemGap: flags.isSmall ? 10 : 15,
+                    data: seriesName
                 },
                 series: [{
                     name: seriesName[0],
                     type: 'bar',
-                    data: seriesData[0],
+                    data: Array.isArray(seriesData[0]) ? seriesData[0] : [],
                     barGap: '10%',
                     barWidth: '30%',
                     itemStyle: {
@@ -988,10 +1097,10 @@
                         formatter: ({ value }) => value
                     }
                 },
-            {
+                {
                     name: seriesName[1],
                     type: 'bar',
-                    data: seriesData[1],
+                    data: Array.isArray(seriesData[1]) ? seriesData[1] : [],
                     barWidth: '30%',
                     itemStyle: {
                         borderRadius: [6, 6, 0, 0],

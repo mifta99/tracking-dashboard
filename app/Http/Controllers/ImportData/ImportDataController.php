@@ -10,6 +10,7 @@ use App\Models\Equipment;
 use App\Models\Pengiriman;
 use App\Models\Puskesmas;
 use App\Providers\RouteServiceProvider;
+use Carbon\Carbon;
 use Illuminate\Foundation\Auth\ConfirmsPasswords;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -152,187 +153,170 @@ class ImportDataController extends Controller
         }
     }
 
-        function importDataEndo($request){
-        $request->validate([
-            'excel_file' => 'required|mimes:xlsx,xls,csv'
-        ]);
+        function importDataEndo($request)
+        {
+            $request->validate([
+                'excel_file' => 'required|mimes:xlsx,xls,csv'
+            ]);
 
-        $file = $request->file('excel_file');
-        
-        try {
-            $startTime = microtime(true);
+            $file = $request->file('excel_file');
+            
+            try {
+                $startTime = microtime(true);
 
-            $import = new PuskesmasImport();
-            Excel::import($import, $file);
-            $user_id = Auth::user()->id;
-            $data = $import->getData();
+                $import = new PuskesmasImport();
+                Excel::import($import, $file);
+                $user_id = Auth::user()->id;
+                $data = $import->getData();
 
-            $query = DB::table('districts')
-                ->join('regencies', 'districts.regency_id', '=', 'regencies.id')
-                ->select(DB::raw("CONCAT(regencies.name, '-', districts.name) as regency_district"), 'districts.id');
-
-            $districtMap = $query->pluck('id', 'regency_district'); // key => id for direct lookup
-            $districtsList = $query->get()->map(function ($d) {
-                return ['name' => $d->regency_district, 'id' => $d->id];
-            })->toArray(); 
-
-            foreach ($data as $item) {
-                $key = ($item['kabupaten_kota'] ?? '') . '-' . ($item['kecamatan'] ?? '');
-                $districtId = $districtMap[$key] ?? null;
-
-                if (!$districtId) {
-                    $districtId = $this->findClosestDistrictId($key, $districtsList);
-                }
-                
-                // If still no district id found, skip this row
-                if (!$districtId) {
-                    continue;
-                }
-                $shippingFields = [
-                    'tanggal_pengiriman', 'eta', 'nomor_resi', 'serial_number', 
-                    'catatan', 'tanggal_diterima', 'nama_penerima', 'jabatan_penerima', 
-                    'instansi_penerima', 'nomor_penerima', 'tanggal_instalasi', 'target_tanggal_uji_fungsi', 
-                    'tanggal_uji_fungsi', 'tanggal_pelatihan'
-                ];
-
-                $allFieldsNull = true;
-                foreach ($shippingFields as $field) {
-                    if (!empty($item[$field]) && $item[$field] !== null) {
-                        $allFieldsNull = false;
-                        
-                        break;
+                // Helper function untuk parsing tanggal
+                $parseDate = function ($value) {
+                    if (empty($value)) return null;
+                    try {
+                        if (is_numeric($value)) {
+                            return Date::excelToDateTimeObject($value);
+                        }
+                        return Carbon::createFromFormat('d-m-Y', trim($value));
+                    } catch (\Exception $e) {
+                        return null;
                     }
-                }
+                };
 
-                if ($allFieldsNull) {
-                    continue;
-                }
-                // Check if puskesmas already exists with same name and district
-                $existingPuskesmas = Puskesmas::where('id', $item['id_puskesmas'] ?? null)
-                    ->first();
-                    
-                $existingPengiriman = Pengiriman::where('puskesmas_id', $existingPuskesmas->id)->first();
-                    
-                if ($existingPuskesmas && $existingPengiriman) {
-                    $equipment = $existingPengiriman->equipment->serial_number ?? null;
+                // Ambil mapping district
+                $query = DB::table('districts')
+                    ->join('regencies', 'districts.regency_id', '=', 'regencies.id')
+                    ->select(DB::raw("CONCAT(regencies.name, '-', districts.name) as regency_district"), 'districts.id');
 
-                    $updateData = [];
-                    
-                    if (!empty($item['tanggal_pengiriman']) && $item['tanggal_pengiriman'] !== null) {
-                        try {
-                            $updateData['tgl_pengiriman'] = Date::excelToDateTimeObject($item['tanggal_pengiriman']);
-                        } catch (\Exception $e) {
-                            $updateData['tgl_pengiriman'] = $item['tanggal_pengiriman'];
+                $districtMap = $query->pluck('id', 'regency_district');
+                $districtsList = $query->get()->map(function ($d) {
+                    return ['name' => $d->regency_district, 'id' => $d->id];
+                })->toArray(); 
+
+                foreach ($data as $item) {
+                    $key = ($item['kabupaten_kota'] ?? '') . '-' . ($item['kecamatan'] ?? '');
+                    $districtId = $districtMap[$key] ?? null;
+
+                    if (!$districtId) {
+                        $districtId = $this->findClosestDistrictId($key, $districtsList);
+                    }
+                    if (!$districtId) continue;
+
+                    // Skip kalau semua field kosong
+                    $shippingFields = [
+                        'tanggal_pengiriman', 'eta', 'nomor_resi', 'serial_number', 
+                        'catatan', 'tanggal_diterima', 'nama_penerima', 'jabatan_penerima', 
+                        'instansi_penerima', 'nomor_penerima', 'tanggal_instalasi', 'target_tanggal_uji_fungsi', 
+                        'tanggal_uji_fungsi', 'tanggal_pelatihan'
+                    ];
+                    $allFieldsNull = true;
+                    foreach ($shippingFields as $field) {
+                        if (!empty($item[$field])) {
+                            $allFieldsNull = false;
+                            break;
                         }
                     }
-                    if (!empty($item['eta']) && $item['eta'] !== null) {
-                        try {
-                            $updateData['eta'] = Date::excelToDateTimeObject($item['eta']);
-                        } catch (\Exception $e) {
-                            $updateData['eta'] = $item['eta'];
+                    if ($allFieldsNull) continue;
+
+                    // Cari Puskesmas
+                    $id = trim((string) ($item['id_puskesmas'] ?? ''));
+                    $existingPuskesmas = Puskesmas::where('id', $id)->first();
+
+                    $existingPengiriman = null;
+                    if ($existingPuskesmas) {
+                        $existingPengiriman = Pengiriman::where('puskesmas_id', $existingPuskesmas->id)->first();
+                    }
+
+                    // Update jika sudah ada Puskesmas + Pengiriman
+                    if ($existingPuskesmas && $existingPengiriman) {
+                        $equipment = optional($existingPengiriman->equipment)->serial_number;
+                        $updateData = [];
+
+                        if (!empty($item['tanggal_pengiriman'])) {
+                            $updateData['tgl_pengiriman'] = $parseDate($item['tanggal_pengiriman']);
                         }
-                    }
-                    if (!empty($item['nomor_resi']) && $item['nomor_resi'] !== null) {
-                        $updateData['resi'] = $item['nomor_resi'];
-                    }
-                    if(!empty($item['serial_number']) && $item['serial_number'] != null){
-                        if ($equipment != $item['serial_number']) {
-                            $equipment = Equipment::create([
-                                'serial_number' => $item['serial_number'],
-                                'puskesmas_id' => $existingPuskesmas->id
+                        if (!empty($item['eta'])) {
+                            $updateData['eta'] = $parseDate($item['eta']);
+                        }
+                        if (!empty($item['nomor_resi'])) {
+                            $updateData['resi'] = $item['nomor_resi'];
+                        }
+                        if ($existingPuskesmas && !empty($item['serial_number'])) {
+                            $serial = (string) trim($item['serial_number']);
+                            $equipment = Equipment::firstOrCreate([
+                                'serial_number' => $serial,
+                                'puskesmas_id'  => $existingPuskesmas->id
                             ]);
-                        } 
-                    }
-                    if (!empty($item['catatan']) && $item['catatan'] !== null) {
-                        $updateData['catatan'] = $item['catatan'];
-                    }
-                    if (!empty($item['tanggal_diterima']) && $item['tanggal_diterima'] !== null) {
-                        try {
-                            $updateData['tgl_diterima'] = Date::excelToDateTimeObject($item['tanggal_diterima']);
-                        } catch (\Exception $e) {
-                            $updateData['tgl_diterima'] = $item['tanggal_diterima'];
                         }
-                    }
-                    if (!empty($item['nama_penerima']) && $item['nama_penerima'] !== null) {
-                        $updateData['nama_penerima'] = $item['nama_penerima'];
-                    }
-                    if (!empty($item['jabatan_penerima']) && $item['jabatan_penerima'] !== null) {
-                        $updateData['jabatan_penerima'] = $item['jabatan_penerima'];
-                    }
-                    if (!empty($item['instansi_penerima']) && $item['instansi_penerima'] !== null) {
-                        $updateData['instansi_penerima'] = $item['instansi_penerima'];
-                    }
-                    if (!empty($item['nomor_penerima']) && $item['nomor_penerima'] !== null) {
-                        $updateData['nomor_penerima'] = $item['nomor_penerima'];
-                    }
-                    if (!empty($item['tanggal_instalasi']) && $item['tanggal_instalasi'] !== null) {
-                        try {
-                            $updateData['tanggal_instalasi'] = Date::excelToDateTimeObject($item['tanggal_instalasi']);
-                        } catch (\Exception $e) {
-                            $updateData['tanggal_instalasi'] = $item['tanggal_instalasi'];
+                        if (!empty($item['catatan'])) {
+                            $updateData['catatan'] = $item['catatan'];
                         }
-                    }
-                    if (!empty($item['target_tanggal_uji_fungsi']) && $item['target_tanggal_uji_fungsi'] !== null) {
-                        try {
-                            $updateData['target_tanggal_uji_fungsi'] = Date::excelToDateTimeObject($item['target_tanggal_uji_fungsi']);
-                        } catch (\Exception $e) {
-                            $updateData['target_tanggal_uji_fungsi'] = $item['target_tanggal_uji_fungsi'];
+                        if (!empty($item['tanggal_diterima'])) {
+                            $updateData['tgl_diterima'] = $parseDate($item['tanggal_diterima']);
                         }
-                    }
-                    if (!empty($item['tanggal_uji_fungsi']) && $item['tanggal_uji_fungsi'] !== null) {
-                        try {
-                            $updateData['tanggal_uji_fungsi'] = Date::excelToDateTimeObject($item['tanggal_uji_fungsi']);
-                        } catch (\Exception $e) {
-                            $updateData['tanggal_uji_fungsi'] = $item['tanggal_uji_fungsi'];
+                        if (!empty($item['nama_penerima'])) {
+                            $updateData['nama_penerima'] = $item['nama_penerima'];
                         }
-                    }
-                    if (!empty($item['tanggal_pelatihan']) && $item['tanggal_pelatihan'] !== null) {
-                        try {
-                            $updateData['tanggal_pelatihan'] = Date::excelToDateTimeObject($item['tanggal_pelatihan']);
-                        } catch (\Exception $e) {
-                            $updateData['tanggal_pelatihan'] = $item['tanggal_pelatihan'];
+                        if (!empty($item['jabatan_penerima'])) {
+                            $updateData['jabatan_penerima'] = $item['jabatan_penerima'];
                         }
-                    }
-                    
-                    if (!empty($updateData)) {
-                        $existingPengiriman->update($updateData);
-                    }
-                   
-                } else if($existingPuskesmas){
-                    $equipment = null;
-                    if(!empty($item['serial_number']) || $item['serial_number'] != null){
-                        $equipment = Equipment::create([
-                            'serial_number' => $item['serial_number'] ?? null,
-                            'puskesmas_id' => $existingPuskesmas->id
+                        if (!empty($item['instansi_penerima'])) {
+                            $updateData['instansi_penerima'] = $item['instansi_penerima'];
+                        }
+                        if (!empty($item['nomor_penerima'])) {
+                            $updateData['nomor_penerima'] = $item['nomor_penerima'];
+                        }
+                        if (!empty($item['tanggal_instalasi'])) {
+                            $updateData['tanggal_instalasi'] = $parseDate($item['tanggal_instalasi']);
+                        }
+                        if (!empty($item['target_tanggal_uji_fungsi'])) {
+                            $updateData['target_tanggal_uji_fungsi'] = $parseDate($item['target_tanggal_uji_fungsi']);
+                        }
+                        if (!empty($item['tanggal_uji_fungsi'])) {
+                            $updateData['tanggal_uji_fungsi'] = $parseDate($item['tanggal_uji_fungsi']);
+                        }
+                        if (!empty($item['tanggal_pelatihan'])) {
+                            $updateData['tanggal_pelatihan'] = $parseDate($item['tanggal_pelatihan']);
+                        }
+
+                        if (!empty($updateData)) {
+                            $existingPengiriman->update($updateData);
+                        }
+                    } 
+                    // Jika Puskesmas ada tapi Pengiriman belum ada
+                    else if ($existingPuskesmas) {
+                        $serial = !empty($item['serial_number']) ? (string) trim($item['serial_number']) : null;
+                        if ($serial) {
+                            Equipment::firstOrCreate([
+                                'serial_number' => $serial,
+                                'puskesmas_id'  => $existingPuskesmas->id
+                            ]);
+                        }
+
+                        Pengiriman::create([
+                            'puskesmas_id' => $existingPuskesmas->id,
+                            'tgl_pengiriman' => $parseDate($item['tanggal_pengiriman']),
+                            'eta' => $parseDate($item['eta']),
+                            'resi' => $item['nomor_resi'] ?? null,
+                            'catatan' => $item['catatan'] ?? null,
+                            'tgl_diterima' => $parseDate($item['tanggal_diterima']),
+                            'nama_penerima' => $item['nama_penerima'] ?? null,
+                            'tahapan_id' => 1,
+                            'instansi_penerima' => $item['instansi_penerima'] ?? null,
+                            'jabatan_penerima' => $item['jabatan_penerima'] ?? null,
+                            'nomor_penerima' => $item['nomor_penerima'] ?? null,
+                            'created_by' => $user_id,
                         ]);
                     }
-
-                    Pengiriman::create([
-                        'puskesmas_id' => $existingPuskesmas->id,
-                        'tgl_pengiriman' => Date::excelToDateTimeObject($item['tanggal_pengiriman']) ?? null,
-                        'eta' => $item['eta'] ?? null,
-                        'resi' => $item['resi'] ?? null,
-                        'catatan' => $item['catatan'] ?? null,
-                        'tgl_diterima' => $item['tgl_diterima'] ?? null,
-                        'nama_penerima' => $item['nama_penerima'] ?? null,
-                        'tahapan_id' => 1,
-                        'instansi_penerima' => $item['instansi_penerima'] ?? null,
-                        'jabatan_penerima' => $item['jabatan_penerima'] ?? null,
-                        'nomor_penerima' => $item['nomor_penerima'] ?? null,
-                        'created_by' => $user_id,
-                    ]);
                 }
+                    
+                $endTime = microtime(true);
+                $duration = $endTime - $startTime;
+
+                return redirect()->back()->with('success', 'File imported successfully! Waktu proses: ' . round($duration, 2) . ' detik');
+            } catch (\Exception $e) {
+                return redirect()->back()->with('error', 'Import failed: ' . $e->getMessage());
             }
-                
-            $endTime = microtime(true);
-            $duration = $endTime - $startTime;
-
-            return redirect()->back()->with('success', 'File imported successfully! Waktu proses: ' . round($duration, 2) . ' detik');
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Import failed: ' . $e->getMessage());
         }
-    }
-
     public function importPuskesmas(Request $request)
     {
         switch (auth()->user()->role_id) {

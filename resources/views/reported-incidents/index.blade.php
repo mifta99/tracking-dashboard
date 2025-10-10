@@ -8,6 +8,31 @@
 @stop
 
 @section('content')
+    <!-- Visualization Filter Section -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body py-3">
+                    <div class="form-row align-items-end">
+                        <div class="form-group col-md-3 mb-2">
+                            <label class="small font-weight-bold mb-1" for="chart-start-date">Tanggal Mulai Visualisasi</label>
+                            <input type="date" id="chart-start-date" class="form-control form-control-sm">
+                        </div>
+                        <div class="form-group col-md-3 mb-2">
+                            <label class="small font-weight-bold mb-1" for="chart-end-date">Tanggal Akhir Visualisasi</label>
+                            <input type="date" id="chart-end-date" class="form-control form-control-sm">
+                        </div>
+                        <div class="form-group col-md-2 mb-2 d-flex align-items-end">
+                            <button id="btn-apply-chart-filter" class="btn btn-primary btn-sm btn-block"><i class="fas fa-filter mr-1"></i>Terapkan</button>
+                        </div>
+                        <div class="form-group col-md-2 mb-2 d-flex align-items-end">
+                            <button id="btn-reset-chart-filter" class="btn btn-secondary btn-sm btn-block"><i class="fas fa-undo mr-1"></i>Reset</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     <!-- Charts Section -->
     <div class="row mb-4">
         <div class="col-lg-4 col-md-6 mb-4">
@@ -81,13 +106,26 @@
                             <option value="">Semua</option>
                         </select>
                     </div>
+                    <div class="form-group col-md-2 mb-2">
+                        <label class="small font-weight-bold mb-1" for="filter-start-date">Tanggal Mulai</label>
+                        <input type="date" id="filter-start-date" class="form-control form-control-sm">
+                    </div>
+                    <div class="form-group col-md-2 mb-2">
+                        <label class="small font-weight-bold mb-1" for="filter-end-date">Tanggal Akhir</label>
+                        <input type="date" id="filter-end-date" class="form-control form-control-sm">
+                    </div>
                     <div class="form-group col-md-2 mb-2 d-flex align-items-end">
                         <button id="btn-reset-filter" class="btn btn-secondary btn-sm btn-block"><i class="fas fa-undo mr-1"></i>Reset</button>
                     </div>
                 </div>
             </div>
             @endif
-            <div class="table-responsive">
+            <div class="table-responsive position-relative">
+                <div id="table-loading" class="table-loading-overlay d-none">
+                    <div class="spinner-border text-primary" role="status" style="width:2.5rem;height:2.5rem;">
+                        <span class="sr-only">Memuat...</span>
+                    </div>
+                </div>
                 <table class="table table-bordered table-striped table-sm" id="reported-incidents-table">
                     <thead>
                         <tr>
@@ -237,6 +275,19 @@
             color: #6c757d !important;
         }
 
+        .table-loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.75);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
     </style>
 @stop
 
@@ -272,7 +323,14 @@
         };
 
         $(document).ready(function() {
+            const isInvalidDateRange = (start, end) => start && end && start > end;
+            const showInvalidRangeToast = () => toastr.error('Tanggal mulai tidak boleh melebihi tanggal akhir.');
+            const $tableLoading = $('#table-loading');
+            const showTableLoading = () => $tableLoading.removeClass('d-none');
+            const hideTableLoading = () => $tableLoading.addClass('d-none');
+
             // Initialize DataTable
+            showTableLoading();
             const table = $('#reported-incidents-table').DataTable({
                 processing: true,
                 serverSide: false,
@@ -449,19 +507,45 @@
                 ajax: {
                     url: '{{ route('insiden.fetch-data') }}',
                     type: 'GET',
+                    data: function(d) {
+                        const startDate = $('#filter-start-date').val();
+                        const endDate = $('#filter-end-date').val();
+
+                        if (startDate) {
+                            d.start_date = startDate;
+                        } else {
+                            delete d.start_date;
+                        }
+
+                        if (endDate) {
+                            d.end_date = endDate;
+                        } else {
+                            delete d.end_date;
+                        }
+                    },
                     dataSrc: function(json) {
                         if (json.success) {
                             return json.data;
                         } else {
+                            hideTableLoading();
                             console.error('Error loading insiden data:', json.message);
                             return [];
                         }
                     },
                     error: function(xhr, error, code) {
+                        hideTableLoading();
                         console.error('AJAX Error:', error);
                         toastr.error('Gagal memuat data insiden');
                     }
                 }
+            });
+
+            table.on('preXhr.dt', function() {
+                showTableLoading();
+            });
+
+            table.on('xhr.dt', function() {
+                hideTableLoading();
             });
 
             // Province -> Regency -> District cascading using existing API endpoints
@@ -552,6 +636,17 @@
             $('#filter-district, #filter-status, #filter-kategori').on('change keyup', function(){
                 table.draw();
             });
+            $('#filter-start-date, #filter-end-date').on('change', function(){
+                const start = $('#filter-start-date').val();
+                const end = $('#filter-end-date').val();
+
+                if (isInvalidDateRange(start, end)) {
+                    showInvalidRangeToast();
+                    return;
+                }
+
+                table.ajax.reload();
+            });
             $('#btn-reset-filter').on('click', function(e){
                 e.preventDefault();
                 $('#filter-province').val('');
@@ -559,7 +654,9 @@
                 $('#filter-district').html('<option value="">Semua</option>').prop('disabled', true);
                 $('#filter-status').val('');
                 $('#filter-kategori').val('');
-                table.draw();
+                $('#filter-start-date').val('');
+                $('#filter-end-date').val('');
+                table.ajax.reload();
             });
 
             // Custom filtering plug-in
@@ -591,6 +688,22 @@
             let kategoriInsidenChart = null;
             let statusInsidenChart = null;
 
+            function getChartFilterParams() {
+                const start = $('#chart-start-date').val();
+                const end = $('#chart-end-date').val();
+                const params = {};
+
+                if (start) {
+                    params.start_date = start;
+                }
+
+                if (end) {
+                    params.end_date = end;
+                }
+
+                return params;
+            }
+
             function initCharts() {
                 // Tahapan Chart
                 const tahapanEl = document.getElementById('tahapanChart');
@@ -614,13 +727,21 @@
             function loadTahapanChart() {
                 if (!tahapanChart) return;
 
+                tahapanChart.showLoading('default', {
+                    text: 'Memuat...',
+                    color: '#6f42c1',
+                    maskColor: 'rgba(255, 255, 255, 0.7)',
+                    textColor: '#6f42c1'
+                });
+
                 $.ajax({
                     url: '{{ route('insiden.tahapan-chart') }}',
                     method: 'GET',
+                    data: getChartFilterParams(),
                     success: function(response) {
                         if (response.success) {
                             const chartData = response.data;
-                            
+
                             const option = {
                                 title: {
                                     text: 'Tahapan',
@@ -668,8 +789,10 @@
 
                             tahapanChart.setOption(option);
                         }
+                        tahapanChart.hideLoading();
                     },
                     error: function(xhr, status, error) {
+                        tahapanChart.hideLoading();
                         console.error('Error loading tahapan chart:', error);
                     }
                 });
@@ -678,9 +801,17 @@
             function loadKategoriInsidenChart() {
                 if (!kategoriInsidenChart) return;
 
+                kategoriInsidenChart.showLoading('default', {
+                    text: 'Memuat...',
+                    color: '#28a745',
+                    maskColor: 'rgba(255, 255, 255, 0.7)',
+                    textColor: '#28a745'
+                });
+
                 $.ajax({
                     url: '{{ route('insiden.kategori-chart') }}',
                     method: 'GET',
+                    data: getChartFilterParams(),
                     success: function(response) {
                         if (response.success) {
                             const chartData = response.data;
@@ -745,8 +876,10 @@
 
                             kategoriInsidenChart.setOption(option);
                         }
+                        kategoriInsidenChart.hideLoading();
                     },
                     error: function(xhr, status, error) {
+                        kategoriInsidenChart.hideLoading();
                         console.error('Error loading kategori insiden chart:', error);
                     }
                 });
@@ -755,9 +888,17 @@
             function loadStatusInsidenChart() {
                 if (!statusInsidenChart) return;
 
+                statusInsidenChart.showLoading('default', {
+                    text: 'Memuat...',
+                    color: '#ffc107',
+                    maskColor: 'rgba(255, 255, 255, 0.7)',
+                    textColor: '#ffc107'
+                });
+
                 $.ajax({
                     url: '{{ route('insiden.status-chart') }}',
                     method: 'GET',
+                    data: getChartFilterParams(),
                     success: function(response) {
                         if (response.success) {
                             const chartData = response.data;
@@ -809,12 +950,36 @@
 
                             statusInsidenChart.setOption(option);
                         }
+                        statusInsidenChart.hideLoading();
                     },
                     error: function(xhr, status, error) {
+                        statusInsidenChart.hideLoading();
                         console.error('Error loading status insiden chart:', error);
                     }
                 });
             }
+
+            $('#btn-apply-chart-filter').on('click', function(){
+                const start = $('#chart-start-date').val();
+                const end = $('#chart-end-date').val();
+
+                if (isInvalidDateRange(start, end)) {
+                    showInvalidRangeToast();
+                    return;
+                }
+
+                loadTahapanChart();
+                loadKategoriInsidenChart();
+                loadStatusInsidenChart();
+            });
+
+            $('#btn-reset-chart-filter').on('click', function(){
+                $('#chart-start-date').val('');
+                $('#chart-end-date').val('');
+                loadTahapanChart();
+                loadKategoriInsidenChart();
+                loadStatusInsidenChart();
+            });
 
             // Initialize charts
             initCharts();
