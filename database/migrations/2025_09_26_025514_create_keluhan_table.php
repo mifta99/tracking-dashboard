@@ -17,10 +17,11 @@ class CreateKeluhanTable extends Migration
             $table->integer('id')->autoIncrement()->unsigned();
             $table->string('puskesmas_id', 13);
             $table->integer('equipment_id')->nullable()->unsigned();
-            $table->integer('kategori_id')->unsigned();
-            $table->integer('opsi_keluhan_id')->unsigned();
+            $table->integer('kategori_id')->nullable()->unsigned();
+            $table->integer('opsi_keluhan_id')->nullable()->unsigned();
             $table->integer('status_id')->unsigned();
             $table->integer('reported_by')->unsigned()->nullable();
+            $table->string('reported_subject')->nullable();
             $table->date('reported_date')->nullable();
             $table->text('reported_issue')->nullable();
             $table->string('proceed_by')->nullable();
