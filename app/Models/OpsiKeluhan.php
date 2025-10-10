@@ -7,11 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Equipment extends Model
+class OpsiKeluhan extends Model
 {
     use HasFactory;
     protected $primaryKey = 'id';
-        public $timestamps = false;
+    protected $table = 'opsi_keluhan';
 
     /**
      * The attributes that are mass assignable.
@@ -20,9 +20,8 @@ class Equipment extends Model
      */
     protected $fillable = [
         'id',
-        'puskesmas_id',
-        'serial_number',
-        'name',
+        'kategori_keluhan_id',
+        'opsi',
     ];
 
     /**
@@ -32,36 +31,26 @@ class Equipment extends Model
      */
     protected $casts = [
         'id' => 'integer',
+        'kategori_keluhan_id' => 'integer',
     ];
 
     /**
-     * Get the puskesmas that owns the Equipment
+     * Get the kategoriKeluhan that owns the OpsiKeluhan
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function puskesmas(): BelongsTo
+    public function kategoriKeluhan(): BelongsTo
     {
-        return $this->belongsTo(Puskesmas::class, 'puskesmas_id', 'id');
+        return $this->belongsTo(KategoriKeluhan::class, 'kategori_keluhan_id', 'id');
     }
 
     /**
-     * Get all of the maintenance for the Equipment
+     * Get all of the keluhan for the OpsiKeluhan
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function maintenance(): HasMany
+    public function keluhan(): HasMany
     {
-        return $this->hasMany(Maintenance::class, 'equipment_id', 'id');
+        return $this->hasMany(Keluhan::class, 'opsi_keluhan_id', 'id');
     }
-
-    /**
-     * Get all of the kalibrasi for the Equipment
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
-    public function kalibrasi(): HasMany
-    {
-        return $this->hasMany(Kalibrasi::class, 'equipment_id', 'id');
-    }
-
 }

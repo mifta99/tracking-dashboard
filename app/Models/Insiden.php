@@ -31,6 +31,7 @@ class Insiden extends Model
         'kronologis',
         'tindakan',
         'tgl_selesai',
+        'doc_selesai',
         'rencana_tindakan_koreksi',
         'pelaksana_tindakan_koreksi',
         'tgl_selesai_koreksi',

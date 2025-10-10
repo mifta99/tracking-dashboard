@@ -5,12 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\Maintenance;
 
-class KategoriKeluhan extends Model
+class MaintenanceMaster extends Model
 {
     use HasFactory;
     protected $primaryKey = 'id';
-    protected $table = 'kategori_keluhan';
+    protected $table = 'maintenance_master';
 
     /**
      * The attributes that are mass assignable.
@@ -19,7 +20,14 @@ class KategoriKeluhan extends Model
      */
     protected $fillable = [
         'id',
-        'kategori',
+        'kuartal',
+        'start_period',
+        'end_period',
+        'description',
+        'layanan',
+        'waktu_pengecekan',
+        'kunjungan',
+        'total_active_days',
     ];
 
     /**
@@ -29,25 +37,19 @@ class KategoriKeluhan extends Model
      */
     protected $casts = [
         'id' => 'integer',
+        'kuartal' => 'integer',
+        'start_period' => 'date',
+        'end_period' => 'date',
+        'total_active_days' => 'integer',
     ];
 
     /**
-     * Get all of the keluhan for the KategoriKeluhan
+     * Get all of the maintenance for the MaintenanceMaster
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function keluhan(): HasMany
+    public function maintenance(): HasMany
     {
-        return $this->hasMany(Keluhan::class, 'kategori_id', 'id');
-    }
-
-    /**
-     * Get all of the opsiKeluhan for the KategoriKeluhan
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
-    public function opsiKeluhan(): HasMany
-    {
-        return $this->hasMany(OpsiKeluhan::class, 'kategori_keluhan_id', 'id');
+        return $this->hasMany(Maintenance::class, 'maintenance_master_id', 'id');
     }
 }

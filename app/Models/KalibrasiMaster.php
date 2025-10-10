@@ -6,11 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class KategoriKeluhan extends Model
+class KalibrasiMaster extends Model
 {
     use HasFactory;
     protected $primaryKey = 'id';
-    protected $table = 'kategori_keluhan';
+    protected $table = 'kalibrasi_master';
 
     /**
      * The attributes that are mass assignable.
@@ -19,7 +19,10 @@ class KategoriKeluhan extends Model
      */
     protected $fillable = [
         'id',
-        'kategori',
+        'kuartal',
+        'start_period',
+        'end_period',
+        'description',
     ];
 
     /**
@@ -29,25 +32,18 @@ class KategoriKeluhan extends Model
      */
     protected $casts = [
         'id' => 'integer',
+        'kuartal' => 'integer',
+        'start_period' => 'date',
+        'end_period' => 'date',
     ];
 
     /**
-     * Get all of the keluhan for the KategoriKeluhan
+     * Get all of the kalibrasi for the KalibrasiMaster
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function keluhan(): HasMany
+    public function kalibrasi(): HasMany
     {
-        return $this->hasMany(Keluhan::class, 'kategori_id', 'id');
-    }
-
-    /**
-     * Get all of the opsiKeluhan for the KategoriKeluhan
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
-    public function opsiKeluhan(): HasMany
-    {
-        return $this->hasMany(OpsiKeluhan::class, 'kategori_keluhan_id', 'id');
+        return $this->hasMany(Kalibrasi::class, 'kalibrasi_master_id', 'id');
     }
 }
