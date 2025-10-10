@@ -27,7 +27,10 @@
         .table-kv td{padding:.35rem .25rem;vertical-align:top;font-size:.875rem;}
         .table-kv td:first-child{font-weight:600;width:230px;color:#212529;}
         .section-title-bar{font-size:.7rem;font-weight:600;letter-spacing:.5px;text-transform:uppercase;}
-        .badge-status{font-size:.55rem;}
+        .badge-status{font-size:.875rem;}
+        .badge {
+            font-size: .875rem;
+        }
         /* Shipment status flow (bottom) */
         .shipment-status-flow-wrapper{max-width:880px;margin:1.5rem auto 0;}
         .shipment-status-flow{display:flex;justify-content:space-between;position:relative;}
@@ -1268,11 +1271,49 @@
                             <!-- Subject Keluhan -->
                             <div class="col-md-12">
                                 <div class="form-group">
-                                    <label for="issue_subject" class="required">Judul Keluhan <span class="text-danger">*</span></label>
+                                    <label for="issue_subject" class="required">Ringkasan Keluhan <span class="text-danger">*</span></label>
                                     <input type="text" class="form-control" id="issue_subject" name="issue_subject"
                                            placeholder="Masukkan judul / ringkasan keluhan"
                                            maxlength="255" required>
                                     <small class="form-text text-muted">Maksimal 255 karakter</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- Opsi Keluhan -->
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="opsi_keluhan_id" class="required">Opsi Keluhan <span class="text-danger">*</span></label>
+                                    <select class="form-control" id="opsi_keluhan_id" name="opsi_keluhan_id" required>
+                                        <option value="">-- Pilih Opsi Keluhan --</option>
+                                        @foreach($opsiKeluhan as $opsi)
+                                        <option value="{{ $opsi->id }}" data-kategori="{{ $opsi->kategori_keluhan_id }}">
+                                            {{ $opsi->opsi }}
+                                        </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- Nama Pelapor -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="reported_name" class="required">Nama Pelapor <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="reported_name" name="reported_name"
+                                           placeholder="Masukkan nama pelapor"
+                                           maxlength="255" required>
+                                </div>
+                            </div>
+                            <!-- Nomor HP Pelapor -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="reported_hp" class="required">Nomor HP Pelapor <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="reported_hp" name="reported_hp"
+                                           placeholder="Masukkan nomor HP pelapor"
+                                           maxlength="20" required>
                                 </div>
                             </div>
                         </div>
@@ -1297,13 +1338,13 @@
                             <!-- Bukti Dokumentasi -->
                             <div class="col-md-12">
                                 <div class="form-group">
-                                    <label>Bukti Dokumentasi</label>
+                                    <label class="required">Bukti Dokumentasi <span class="text-danger">*</span></label>
 
                                     <!-- File input for multiple selection -->
                                     <input type="file" id="file-input-multiple" class="form-control-file mb-2"
-                                           accept="image/jpeg,image/jpg,image/png" multiple>
+                                           accept="image/jpeg,image/jpg,image/png" multiple required>
                                     <small class="form-text text-muted">
-                                        Maksimal 5 file, masing-masing 5MB (JPG, PNG)
+                                        Minimal 1 file, maksimal 5 file, masing-masing 5MB (JPG, PNG)
                                     </small>
 
                                     <!-- Selected files list with previews -->
@@ -3106,6 +3147,25 @@ $(document).ready(function() {
         }
     });
 
+    // Opsi Keluhan change handler - auto populate kategori_id
+    $('#opsi_keluhan_id').on('change', function() {
+        const selectedOption = $(this).find('option:selected');
+        const kategoriId = selectedOption.data('kategori');
+
+        // Add hidden input for kategori_id or update if exists
+        let kategoriInput = $('#kategori_id_hidden');
+        if (kategoriInput.length === 0) {
+            $('<input>', {
+                type: 'hidden',
+                id: 'kategori_id_hidden',
+                name: 'kategori_id',
+                value: kategoriId || ''
+            }).appendTo('#addIssueForm');
+        } else {
+            kategoriInput.val(kategoriId || '');
+        }
+    });
+
     // File input change handler
     $('#file-input-multiple').on('change', function() {
         const files = Array.from(this.files);
@@ -3148,6 +3208,11 @@ $(document).ready(function() {
     // Reset form when modal closes
     $('#addIssueModal').on('hidden.bs.modal', function() {
         resetKeluhanForm();
+    });
+
+    // Trigger opsi keluhan change event when modal opens to set initial kategori_id
+    $('#addIssueModal').on('shown.bs.modal', function() {
+        $('#opsi_keluhan_id').trigger('change');
     });
 
     // Function to update file display with image previews
@@ -3321,6 +3386,14 @@ function submitKeluhanForm() {
     formData.append('_token', $('input[name="_token"]').val());
     formData.append('issue_subject', $('#issue_subject').val());
     formData.append('issue_description', $('#issue_description').val());
+    formData.append('opsi_keluhan_id', $('#opsi_keluhan_id').val());
+    formData.append('reported_name', $('#reported_name').val());
+    formData.append('reported_hp', $('#reported_hp').val());
+
+    // Get kategori_id from selected option or hidden input
+    const selectedOption = $('#opsi_keluhan_id').find('option:selected');
+    const kategoriId = selectedOption.data('kategori') || $('#kategori_id_hidden').val() || '';
+    formData.append('kategori_id', kategoriId);
 
     // Add selected files
     selectedFiles.forEach((file, index) => {
@@ -3381,6 +3454,9 @@ function resetKeluhanForm() {
     // Clear old preview system
     $('#documentation-preview').hide();
     $('#preview-container').empty();
+
+    // Clear hidden kategori_id input
+    $('#kategori_id_hidden').remove();
 }
 
 // Incident Form Management

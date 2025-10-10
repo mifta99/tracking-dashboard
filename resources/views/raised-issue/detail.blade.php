@@ -68,8 +68,33 @@
                     @method('PUT')
                     <div class="modal-body">
                         <div class="form-group">
-                            <label for="reported_subject">Judul Keluhan</label>
+                            <label for="reported_subject">Ringkasan Keluhan</label>
                             <input type="text" class="form-control" id="reported_subject" name="reported_subject" value="{{ $issue->reported_subject }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit_opsi_keluhan_id" class="required">Opsi Keluhan <span class="text-danger">*</span></label>
+                            <select class="form-control" id="edit_opsi_keluhan_id" name="opsi_keluhan_id" required>
+                                <option value="">-- Pilih Opsi Keluhan --</option>
+                                @foreach($opsiKeluhan as $opsi)
+                                <option value="{{ $opsi->id }}" data-kategori="{{ $opsi->kategori_keluhan_id }}" {{ $issue->opsi_keluhan_id == $opsi->id ? 'selected' : '' }}>
+                                    {{ $opsi->opsi }}
+                                </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="edit_reported_name" class="required">Nama Pelapor <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="edit_reported_name" name="reported_name" value="{{ $issue->reported_name }}" maxlength="255" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="edit_reported_hp" class="required">Nomor HP Pelapor <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="edit_reported_hp" name="reported_hp" value="{{ $issue->reported_hp }}" maxlength="20" required>
+                                </div>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label for="reported_issue">Deskripsi Detail Keluhan</label>
@@ -121,7 +146,9 @@
                         <div class="col-lg-6">
                             <table class="table table-sm table-borderless table-kv mb-0 mt-4 mt-lg-0">
                                 <tr><td>Tanggal Dilaporkan</td><td>{{ $reportedDate ?? '-' }}</td></tr>
-                                <tr><td>Dilaporkan Oleh</td><td>{{ $reporter }}</td></tr>
+                                {{-- <tr><td>Dilaporkan Oleh</td><td>{{ $reporter }}</td></tr>                                 --}}
+                                <tr><td>Nama Pelapor</td><td>{{ $issue->reported_name ?? '-' }}</td></tr>
+                                <tr><td>Nomor HP Pelapor</td><td>{{ $issue->reported_hp ?? '-' }}</td></tr>
                             </table>
                         </div>
                     </div>
@@ -131,8 +158,21 @@
                     <div class="row">
                         <div class="col-lg-6 mb-4 mb-lg-0">
                             <h5 class="section-title">Deskripsi Keluhan</h5>
-                            <p class="mb-3 font-weight-bold text-dark">{{ $issue->reported_subject ?? '-' }}</p>
-                            <p class="text-muted mb-0" style="white-space: pre-line;">{{ $issue->reported_issue ?? '-' }}</p>
+                            <table class="table table-sm table-borderless table-kv mb-0 mt-4 mt-lg-0">
+                                <tr><td>Opsi Keluhan</td><td>
+                                    @if(optional($issue->opsiKeluhan)->opsi)
+                                        @php $opsiKey = \Illuminate\Support\Str::slug(optional($issue->opsiKeluhan)->opsi); @endphp
+                                        <span class="badge badge-pill badge-status badge-opsi-{{ $opsiKey }}">
+                                            {{ optional($issue->opsiKeluhan)->opsi }}
+                                        </span>
+                                    @else
+                                        <span class="text-muted">-</span>
+                                    @endif
+                                </td></tr>
+                                <tr><td>Ringkasan Keluhan</td><td>{{ $issue->reported_subject ?? '-' }}</td></tr>
+                                <tr><td>Rincian</td><td>{{ $issue->reported_issue ?? '-' }}</td></tr>
+                            </table>
+
                         </div>
                         <div class="col-lg-6">
                             <h5 class="section-title">Bukti Dokumentasi</h5>
@@ -222,6 +262,16 @@
                                 <tr><td>Tanggal Diproses</td><td>{{ optional($issue->proceed_date)->translatedFormat('d F Y') ?? '-' }}</td></tr>
                                 <tr><td>Diselesaikan Oleh</td><td>{{ $issue->resolved_by ?? '-' }}</td></tr>
                                 <tr><td>Tanggal Selesai</td><td>{{ optional($issue->resolved_date)->translatedFormat('d F Y') ?? '-' }}</td></tr>
+                                <tr><td>Lampiran Dokumen Penyelesaian</td><td>
+                                    @if($issue->doc_selesai)
+                                        <a href="{{ asset('storage/' . $issue->doc_selesai) }}" target="_blank" class="text-primary">
+                                            <i class="fas fa-file-download mr-1"></i>
+                                            Lihat Dokumen
+                                        </a>
+                                    @else
+                                        <span class="text-muted">-</span>
+                                    @endif
+                                </td></tr>
                             </table>
                         </div>
                     </div>
@@ -264,7 +314,7 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <form id="tindakLanjutForm" action="{{ route('raised-issue.update-tindak-lanjut', $issue->id) }}" method="POST">
+                <form id="tindakLanjutForm" action="{{ route('raised-issue.update-tindak-lanjut', $issue->id) }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
                     <div class="modal-body">
@@ -313,6 +363,19 @@
                                     <label for="resolved_date">Tanggal Selesai</label>
                                     <input type="date" class="form-control" id="resolved_date" name="resolved_date" value="{{ optional($issue->resolved_date)->translatedFormat('Y-m-d') }}">
                                 </div>
+                                <div class="form-group">
+                                    <label for="doc_selesai">Lampiran Dokumen Penyelesaian</label>
+                                    <input type="file" class="form-control-file" id="doc_selesai" name="doc_selesai" accept="image/*,.pdf,.doc,.docx">
+                                    <small class="form-text text-muted">Upload dokumen penyelesaian (gambar, PDF, Word)</small>
+                                    @if($issue->doc_selesai)
+                                    <div class="mt-2">
+                                        <small class="text-muted">Dokumen saat ini: </small>
+                                        <a href="{{ asset('storage/' . $issue->doc_selesai) }}" target="_blank" class="text-primary">
+                                            {{ basename($issue->doc_selesai) }}
+                                        </a>
+                                    </div>
+                                    @endif
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -332,7 +395,7 @@
         .table-kv td{padding:.35rem .25rem;vertical-align:top;font-size:.875rem;}
         .table-kv td:first-child{font-weight:600;width:230px;color:#212529;}
         .section-title-bar{font-size:.7rem;font-weight:600;letter-spacing:.5px;text-transform:uppercase;}
-        .badge-status{font-size:.55rem;}
+        .badge-status{font-size:.875rem;}
         .raised-issue-detail .detail-list dt {
             font-weight: 600;
             color: #4a5568;
@@ -442,9 +505,16 @@
             background: rgba(108, 117, 125, 0.15);
             color: #495057;
         }
+        /* Opsi Keluhan Badge Styles */
+        .raised-issue-detail .badge-opsi,
+        .raised-issue-detail [class*="badge-opsi-"] {
+            background: rgba(106, 90, 205, 0.15);
+            color: #6a5acd;
+        }
         .raised-issue-detail .badge {
             font-weight: 600;
             padding: 0.35rem 0.75rem;
+            font-size: .875rem;
         }
         @media (max-width: 576px) {
             .raised-issue-detail .card-footer .btn {
@@ -560,11 +630,36 @@ $(document).ready(function() {
         });
     });
 
+    // Handle Opsi Keluhan change in Edit Laporan Keluhan modal
+    $('#edit_opsi_keluhan_id').on('change', function() {
+        const selectedOption = $(this).find('option:selected');
+        const kategoriId = selectedOption.data('kategori');
+
+        // Add hidden input for kategori_id or update if exists
+        let kategoriInput = $('#edit_kategori_id_hidden');
+        if (kategoriInput.length === 0) {
+            $('<input>', {
+                type: 'hidden',
+                id: 'edit_kategori_id_hidden',
+                name: 'kategori_id',
+                value: kategoriId || ''
+            }).appendTo('#editLaporanKeluhanForm');
+        } else {
+            kategoriInput.val(kategoriId || '');
+        }
+    });
+
     // Handle Edit Laporan Keluhan form submission
     $('#editLaporanKeluhanForm').on('submit', function(e) {
         e.preventDefault();
 
         const formData = new FormData(this);
+
+        // Ensure kategori_id is included
+        const selectedOption = $('#edit_opsi_keluhan_id').find('option:selected');
+        const kategoriId = selectedOption.data('kategori') || $('#edit_kategori_id_hidden').val() || '';
+        formData.set('kategori_id', kategoriId);
+
         const submitBtn = $(this).find('button[type="submit"]');
         const originalText = submitBtn.text();
 
@@ -606,6 +701,11 @@ $(document).ready(function() {
                 submitBtn.prop('disabled', false).text(originalText);
             }
         });
+    });
+
+    // Trigger opsi keluhan change event when edit modal opens to set initial kategori_id
+    $('#editLaporanKeluhanModal').on('shown.bs.modal', function() {
+        $('#edit_opsi_keluhan_id').trigger('change');
     });
 });
 </script>

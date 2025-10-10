@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\OpsiKeluhan;
 use App\Models\Puskesmas;
 use App\Models\Tahapan;
 
@@ -67,6 +68,7 @@ class DashboardPuskesmasController extends Controller
             'puskesmas' => $puskesmas,
             'tahapan' => $tahapan,
             'revisions' => $revisions,
+            'opsiKeluhan' => OpsiKeluhan::with('kategoriKeluhan')->orderBy('opsi', 'asc')->get(),
         ]);
     }
 }

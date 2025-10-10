@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\VerificationRequest;
 
 use App\Http\Controllers\Controller;
+use App\Models\OpsiKeluhan;
 use App\Models\Pengiriman;
 use App\Models\Puskesmas;
 use App\Models\Tahapan;
@@ -334,6 +335,7 @@ class VerificationRequestController extends Controller
             'puskesmas' => $puskesmas,
             'tahapan' => $tahapan,
             'revisions' => $revisions,
+            'opsiKeluhan' => OpsiKeluhan::with('kategoriKeluhan')->orderBy('opsi', 'asc')->get(),
         ]);
     }
 
